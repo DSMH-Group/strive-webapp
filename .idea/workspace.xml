@@ -4,8 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Added necessary files">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="changed middleware to proxy.ts">
+      <change afterPath="$PROJECT_DIR$/app/(dashboard)/dashboard/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(dashboard)/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/dashboard/Header.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/dashboard/Sidebar.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(static)/(home)/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(static)/(home)/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +43,9 @@
   "fromUser": false
 }]]></component>
   <component name="ProjectId" id="3DbwJ0pTZ3r5UrIRzy88dUAi7IG" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -94,7 +102,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1778564001864</updated>
-      <workItem from="1778564002914" duration="8197000" />
+      <workItem from="1778564002914" duration="10509000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -120,7 +128,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778571773910</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="changed middleware to proxy.ts">
+      <option name="closed" value="true" />
+      <created>1778572532039</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1778572532039</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -130,6 +146,7 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="OAUTH authentication works" />
     <MESSAGE value="Added necessary files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added necessary files" />
+    <MESSAGE value="changed middleware to proxy.ts" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed middleware to proxy.ts" />
   </component>
 </project>

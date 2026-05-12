@@ -29,7 +29,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                     <Button size="lg"
                             className="rounded-xl px-10 h-14 font-bold shadow-[0_0_20px_rgba(249,115,22,0.3)]">
-                        <Link href="/book-demo">See Member App <ArrowRight className="ml-2 w-4 h-4"/></Link>
+                        <Link href="/book-demo">Member App</Link>
                     </Button>
                     <Button size="lg" variant="outline"
                             className="rounded-xl px-10 h-14 border-border hover:bg-secondary">
