@@ -4,6 +4,7 @@ import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {ArrowRight, Calendar, Flame, MapPin, TrendingUp, Trophy} from "lucide-react";
 import {NoContextDashboard} from "@/components/dashboard/no-context-dashboard";
+import {headers} from "next/headers";
 
 // 1. Define strict TypeScript interfaces matching our NestJS OpenApi DTOs
 interface MembershipResponse {
