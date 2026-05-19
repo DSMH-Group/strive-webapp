@@ -61,12 +61,6 @@ export function Sidebar() {
                     active={pathname === "/discover"}
                 />
                 <SidebarItem
-                    icon={<Heart size={18} />}
-                    label="Favorites"
-                    href="/favorites"
-                    active={pathname === "/favorites"}
-                />
-                <SidebarItem
                     icon={<Wallet size={18} />}
                     label="Payments"
                     href="/wallet"

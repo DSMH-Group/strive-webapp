@@ -21,10 +21,8 @@ export async function DashboardHeader() {
                 {/* 1. Mobile Sidebar Trigger & Brand (Visible on mobile only) */}
                 <div className="flex items-center gap-4 md:hidden">
                     <Sheet>
-                        <SheetTrigger>
-                            <Button variant="ghost" size="icon" className="text-zinc-400">
-                                <Menu size={20}/>
-                            </Button>
+                        <SheetTrigger className="group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 p-2 text-zinc-400 hover:bg-zinc-800">
+                            <Menu size={20} />
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 bg-zinc-950 border-r-white/10 w-64">
                             <Sidebar/>
