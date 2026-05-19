@@ -18,13 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Basic dashboard up">
-      <change afterPath="$PROJECT_DIR$/app/(dashboard)/discover/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/biome.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/dashboard/no-context-dashboard.tsx" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(dashboard): import `headers` from Next.js for future enhancements  &#10;&#10;- Added `headers` import to `page.tsx` for improved request handling flexibility.  &#10;- Updated project workspace configurations for IDE enhancements and indexing.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(dashboard)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(dashboard)/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eslint.config.mjs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(dashboard)/discover/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(dashboard)/discover/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
@@ -133,7 +129,7 @@
       <option name="presentableId" value="Default" />
       <updated>1778564001864</updated>
       <workItem from="1778564002914" duration="12787000" />
-      <workItem from="1779100114646" duration="5968000" />
+      <workItem from="1779100114646" duration="6853000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -183,18 +179,38 @@
       <option name="project" value="LOCAL" />
       <updated>1778576290542</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="feat(dashboard): integrate dynamic tenant-specific data and discovery directory&#10;&#10;- Replaced static dashboard logic with tenant-specific membership, attendance, and metric data fetched from the backend.&#10;- Added secure server-to-server call utilities using Bearer tokens.&#10;- Introduced `DiscoverGymsPage` for exploring partner gyms with search and filter functionality.&#10;- Removed deprecated ESLint configuration.">
+      <option name="closed" value="true" />
+      <created>1779179175113</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1779179175113</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat(dashboard): import `headers` from Next.js for future enhancements  &#10;&#10;- Added `headers` import to `page.tsx` for improved request handling flexibility.  &#10;- Updated project workspace configurations for IDE enhancements and indexing.">
+      <option name="closed" value="true" />
+      <created>1779179372617</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1779179372617</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <MESSAGE value="initial commit" />
     <MESSAGE value="OAUTH authentication works" />
     <MESSAGE value="Added necessary files" />
     <MESSAGE value="changed middleware to proxy.ts" />
     <MESSAGE value="Basic dashboard up" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basic dashboard up" />
+    <MESSAGE value="feat(dashboard): integrate dynamic tenant-specific data and discovery directory&#10;&#10;- Replaced static dashboard logic with tenant-specific membership, attendance, and metric data fetched from the backend.&#10;- Added secure server-to-server call utilities using Bearer tokens.&#10;- Introduced `DiscoverGymsPage` for exploring partner gyms with search and filter functionality.&#10;- Removed deprecated ESLint configuration." />
+    <MESSAGE value="feat(dashboard): import `headers` from Next.js for server-side functionality" />
+    <MESSAGE value="feat(dashboard): import `headers` from Next.js for future enhancements  &#10;&#10;- Added `headers` import to `page.tsx` for improved request handling flexibility.  &#10;- Updated project workspace configurations for IDE enhancements and indexing." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(dashboard): import `headers` from Next.js for future enhancements  &#10;&#10;- Added `headers` import to `page.tsx` for improved request handling flexibility.  &#10;- Updated project workspace configurations for IDE enhancements and indexing." />
   </component>
 </project>

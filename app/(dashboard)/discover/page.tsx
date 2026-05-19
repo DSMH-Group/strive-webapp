@@ -1,97 +1,129 @@
 "use client";
 
-import React, {useState, useTransition} from "react";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Building2, CheckCircle2, Compass, Dumbbell, MapPin, Search, SlidersHorizontal} from "lucide-react";
+import React, { useState, useDeferredValue } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client"; // Native better-auth frontend client export
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner"; // Modern shadcn/ui requirement
+import {
+    Building2,
+    CheckCircle2,
+    Compass,
+    Dumbbell,
+    MapPin,
+    Search,
+    SlidersHorizontal,
+    Loader2,
+    AlertCircle
+} from "lucide-react";
 
-// 1. Contract matching our future global tenant directory endpoint
-interface TenantDirectoryItem {
+interface StriveTenant {
     id: string;
     name: string;
     subdomain: string;
     vertical: "High Performance" | "CrossFit" | "Wellness" | "Combat Sports" | "Traditional Gym";
     location: string;
-    distance: string;
-    status: "ACTIVE" | "GRACE_PERIOD" | "NONE"; // Does the current user belong here?
     accentColor: string;
-    imageUrl?: string;
+    membershipStatus: "ACTIVE" | "GRACE_PERIOD" | "PENDING" | "SUSPENDED" | "NONE";
 }
 
-// 2. Mock dataset mirroring local Sri Lankan fitness hubs on Strive
-const MOCK_PARTNER_GYMS: TenantDirectoryItem[] = [
-    {
-        id: "tass-colombo-uuid",
-        name: "TASS Colombo",
-        subdomain: "tass",
-        vertical: "High Performance",
-        location: "Colombo 07",
-        distance: "1.2 km",
-        status: "ACTIVE",
-        accentColor: "from-blue-600/20 to-cyan-600/10",
-    },
-    {
-        id: "the-box-sl-uuid",
-        name: "The Box SL",
-        subdomain: "thebox",
-        vertical: "CrossFit",
-        location: "Colombo 05",
-        distance: "3.8 km",
-        status: "NONE",
-        accentColor: "from-orange-600/20 to-amber-600/10",
-    },
-    {
-        id: "yoga-soul-uuid",
-        name: "Yoga Soul",
-        subdomain: "yogasoul",
-        vertical: "Wellness",
-        location: "Negombo",
-        distance: "0.5 km",
-        status: "NONE",
-        accentColor: "from-purple-600/20 to-pink-600/10",
-    },
-    {
-        id: "power-world-gym-uuid",
-        name: "Power World Gyms",
-        subdomain: "powerworld",
-        vertical: "Traditional Gym",
-        location: "Kandy",
-        distance: "12.4 km",
-        status: "GRACE_PERIOD",
-        accentColor: "from-red-600/20 to-rose-600/10",
-    },
-];
-
 const CATEGORIES = ["All", "High Performance", "CrossFit", "Wellness", "Traditional Gym"];
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
 export default function DiscoverGymsPage() {
+    // Native better-auth React 18/19 reactive hook structure
+    const { data: sessionData } = authClient.useSession();
+    const queryClient = useQueryClient();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [isPending, startTransition] = useTransition();
 
-    // Filtering engine
-    const filteredGyms = MOCK_PARTNER_GYMS.filter((gym) => {
-        const matchesSearch = gym.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            gym.location.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "All" || gym.vertical === selectedCategory;
-        return matchesSearch && matchesCategory;
+    // Defer input analysis to prevent thread blocking on 4G networks
+    const deferredSearchQuery = useDeferredValue(searchQuery);
+
+    // 1. Live Catalog Query built natively using Web Fetch API
+    const { data: gyms, isLoading, isError, error } = useQuery<StriveTenant[]>({
+        queryKey: ["tenants", deferredSearchQuery, selectedCategory],
+        queryFn: async () => {
+            const params = new URLSearchParams();
+            if (deferredSearchQuery) params.append("search", deferredSearchQuery);
+            if (selectedCategory !== "All") params.append("vertical", selectedCategory);
+
+            const res = await fetch(`${BASE_URL}/api/v1/tenants?${params.toString()}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${sessionData?.session?.token}`,
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Boundary response failure during tenant scanning.");
+            }
+
+            return res.json();
+        },
+        enabled: !!sessionData?.session?.token,
+        staleTime: 1000 * 60 * 5,
     });
 
-    const handleGymAction = (subdomain: string, currentStatus: string) => {
-        startTransition(() => {
-            if (currentStatus === "ACTIVE" || currentStatus === "GRACE_PERIOD") {
-                // Route directly to their tenant space
-                window.location.href = `https://${subdomain}.stride.lk/dashboard`;
-            } else {
-                // Trigger profile linker orchestration flow
-                window.location.href = `https://${subdomain}.stride.lk/onboarding/link-profile`;
+    // 2. Profile Link Mutation built natively using Web Fetch API
+    const linkMembershipMutation = useMutation({
+        mutationFn: async ({ tenantId }: { tenantId: string; subdomain: string }) => {
+            const res = await fetch(`${BASE_URL}/api/v1/members`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${sessionData?.session?.token}`,
+                    "X-Tenant-ID": tenantId,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: sessionData?.user?.id,
+                    initialRole: "MEMBER",
+                    rfidTag: `AUTO-${Math.random().toString(16).substring(2, 8).toUpperCase()}`
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Ledger writing validation fault.");
             }
-        });
+
+            return res.json();
+        },
+        onSuccess: (_, variables) => {
+            // Modern native sonner deployment pattern
+            toast.success("Space Connected Successfully!", {
+                description: "Synchronizing platform identity parameters... routing to workspace.",
+                duration: 2000,
+            });
+
+            queryClient.invalidateQueries({ queryKey: ["tenants"] });
+
+            setTimeout(() => {
+                window.location.href = `https://${variables.subdomain}.stride.lk/dashboard`;
+            }, 1200);
+        },
+        onError: (err: Error) => {
+            toast.error("Identity Binding Fault", {
+                description: err.message,
+            });
+        }
+    });
+
+    const handleGymAction = (tenant: StriveTenant) => {
+        if (tenant.membershipStatus === "NONE") {
+            linkMembershipMutation.mutate({ tenantId: tenant.id, subdomain: tenant.subdomain });
+        } else {
+            window.location.href = `https://${tenant.subdomain}.stride.lk/dashboard`;
+        }
     };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Header section matching Dashboard style */}
+            {/* Header branding block */}
             <div className="flex flex-col gap-1">
                 <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
                     <Compass size={12} className="animate-spin-slow"/> Global Fitness Directory
@@ -105,9 +137,8 @@ export default function DiscoverGymsPage() {
                 </p>
             </div>
 
-            {/* Sticky Search & Filter Belt */}
-            <div
-                className="flex flex-col sm:flex-row gap-3 bg-zinc-900/50 p-3 rounded-2xl border border-white/5 backdrop-blur-md">
+            {/* Ingress Search Mechanics */}
+            <div className="flex flex-col sm:flex-row gap-3 bg-zinc-900/50 p-3 rounded-2xl border border-white/5 backdrop-blur-md">
                 <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"/>
                     <input
@@ -118,16 +149,15 @@ export default function DiscoverGymsPage() {
                         className="w-full bg-zinc-950 border border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-sm placeholder-zinc-500 text-white focus:outline-none focus:border-primary/50 transition-all"
                     />
                 </div>
-                <Button variant="outline"
-                        className="rounded-xl border-white/5 bg-zinc-950 hover:bg-zinc-900 gap-2 text-zinc-400">
+                <Button variant="outline" className="rounded-xl border-white/5 bg-zinc-950 hover:bg-zinc-900 gap-2 text-zinc-400">
                     <SlidersHorizontal size={14}/> Filters
                 </Button>
             </div>
 
-            {/* Quick-pill Category Filters */}
+            {/* Taxonomy Navigation Belt */}
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
                 {CATEGORIES.map((category) => (
-                    <button
+                    <Button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-tight uppercase border whitespace-nowrap transition-all duration-200 ${
@@ -137,81 +167,93 @@ export default function DiscoverGymsPage() {
                         }`}
                     >
                         {category}
-                    </button>
+                    </Button>
                 ))}
             </div>
 
-            {/* Gyms Result Grid */}
-            {filteredGyms.length > 0 ? (
+            {/* Asynchronous Thread Management Views */}
+            {isLoading && (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <p className="text-xs text-zinc-500 tracking-widest uppercase font-bold">Scanning platform ledger...</p>
+                </div>
+            )}
+
+            {isError && (
+                <div className="rounded-[2rem] border border-red-500/10 bg-red-500/5 p-8 text-center max-w-md mx-auto space-y-3">
+                    <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+                    <h3 className="font-bold text-white text-lg">Platform Handshake Disrupted</h3>
+                    <p className="text-xs text-zinc-400">{error.message}</p>
+                </div>
+            )}
+
+            {/* Interactive Data Matrix Layout */}
+            {!isLoading && !isError && (gyms && gyms.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredGyms.map((gym) => (
+                    {gyms.map((gym) => (
                         <div
                             key={gym.id}
                             className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-zinc-900 p-1 group flex flex-col justify-between"
                         >
-                            {/* Accent backdrop mapping to custom brand configurations */}
-                            <div
-                                className={`absolute inset-0 bg-gradient-to-br ${gym.accentColor} opacity-40 transition-opacity group-hover:opacity-60`}/>
+                            <div className={`absolute inset-0 bg-gradient-to-br ${gym.accentColor || "from-zinc-800/20 to-zinc-900/10"} opacity-40 transition-opacity group-hover:opacity-60`}/>
 
                             <div className="relative p-6 space-y-6">
-                                {/* Vertical + Distance Header */}
                                 <div className="flex justify-between items-start">
-                                    <Badge variant="outline"
-                                           className="border-white/10 bg-white/5 uppercase tracking-wider text-[9px] font-black italic text-primary">
-                                        {gym.vertical}
+                                    <Badge variant="outline" className="border-white/10 bg-white/5 uppercase tracking-wider text-[9px] font-black italic text-primary">
+                                        {gym.vertical || "General Fitness"}
                                     </Badge>
-                                    <span
-                                        className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
-                                        <MapPin size={10}/> {gym.distance} away
+                                    <span className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <MapPin size={10}/> {gym.location || "Sri Lanka"}
                                     </span>
                                 </div>
 
-                                {/* Main Title / Brand Row */}
                                 <div className="flex items-center gap-4">
-                                    <div
-                                        className="w-14 h-14 rounded-2xl bg-zinc-950 border border-white/10 flex items-center justify-center text-xl font-black italic text-zinc-300 tracking-tighter">
+                                    <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-white/10 flex items-center justify-center text-xl font-black italic text-zinc-300 tracking-tighter">
                                         {gym.name.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div className="space-y-0.5">
                                         <h3 className="text-xl font-bold tracking-tight text-white group-hover:text-primary transition-colors">
                                             {gym.name}
                                         </h3>
-                                        <p className="text-xs text-zinc-400 font-medium">{gym.location}</p>
+                                        <p className="text-xs text-zinc-500 font-mono tracking-tighter">
+                                            {gym.subdomain}.stride.lk
+                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Status indicators linked to core user engine state */}
-                                <div className="pt-2 flex items-center justify-between border-t border-white/5">
+                                <div className="pt-4 flex items-center justify-between border-t border-white/5">
                                     <div className="text-xs">
-                                        {gym.status === "ACTIVE" && (
+                                        {gym.membershipStatus === "ACTIVE" && (
                                             <span className="text-emerald-400 flex items-center gap-1 font-bold">
                                                 <CheckCircle2 size={12}/> Active Member
                                             </span>
                                         )}
-                                        {gym.status === "GRACE_PERIOD" && (
-                                            <span
-                                                className="text-amber-500 flex items-center gap-1 font-bold animate-pulse">
-                                                ⚠️ Action Required
+                                        {gym.membershipStatus === "GRACE_PERIOD" && (
+                                            <span className="text-amber-500 flex items-center gap-1 font-bold animate-pulse">
+                                                ⚠️ Overdue
                                             </span>
                                         )}
-                                        {gym.status === "NONE" && (
+                                        {gym.membershipStatus === "NONE" && (
                                             <span className="text-zinc-500 flex items-center gap-1">
-                                                <Building2 size={12}/> Available Space
+                                                <Building2 size={12}/> Target Environment
                                             </span>
                                         )}
                                     </div>
 
                                     <Button
-                                        onClick={() => handleGymAction(gym.subdomain, gym.status)}
-                                        disabled={isPending}
-                                        variant={gym.status === "NONE" ? "outline" : "default"}
+                                        onClick={() => handleGymAction(gym)}
+                                        disabled={linkMembershipMutation.isPending}
+                                        variant={gym.membershipStatus === "NONE" ? "outline" : "default"}
                                         className={`rounded-xl px-4 py-2 h-9 text-xs font-bold uppercase tracking-tight ${
-                                            gym.status === "NONE"
-                                                ? "border-white/10 bg-zinc-950 hover:bg-zinc-900 text-white"
+                                            gym.membershipStatus === "NONE"
+                                                ? "border-white/10 bg-zinc-950 hover:bg-zinc-900 text-white hover:text-primary"
                                                 : "bg-white text-black hover:bg-zinc-200"
                                         }`}
                                     >
-                                        {gym.status === "NONE" ? "Connect Space" : "Enter Portal"}
+                                        {linkMembershipMutation.isPending && linkMembershipMutation.variables?.tenantId === gym.id ? (
+                                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                        ) : null}
+                                        {gym.membershipStatus === "NONE" ? "Connect Space" : "Enter Portal"}
                                     </Button>
                                 </div>
                             </div>
@@ -219,19 +261,16 @@ export default function DiscoverGymsPage() {
                     ))}
                 </div>
             ) : (
-                <div
-                    className="rounded-[2rem] border border-dashed border-white/10 p-12 text-center max-w-md mx-auto space-y-3">
-                    <div
-                        className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-600 mx-auto">
+                <div className="rounded-[2rem] border border-dashed border-white/10 p-12 text-center max-w-md mx-auto space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-600 mx-auto">
                         <Dumbbell size={20}/>
                     </div>
                     <h3 className="font-bold text-white text-lg">No facilities found</h3>
                     <p className="text-xs text-zinc-500">
                         We couldn&apos;t find any partner spaces matching &ldquo;{searchQuery}&rdquo; in this category.
-                        Try adjusting your search query.
                     </p>
                 </div>
-            )}
+            ))}
         </div>
     );
 }
