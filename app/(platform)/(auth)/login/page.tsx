@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Dumbbell, QrCode, TrendingUp, CreditCard } from "lucide-react";
-import {LoginForm} from "@/components/login-form";
+import {LoginForm} from "@/components/platform/login-form";
 
 export const metadata: Metadata = {
     title: "Sign In | Stride",
@@ -20,7 +20,7 @@ export default function LoginPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-[600px] bg-gradient-to-t from-orange-500/10 to-transparent z-0 pointer-events-none" />
 
                 {/* Back to Stride Link */}
-                <Link href="/" className="relative z-10 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-20">
+                <Link href="/public" className="relative z-10 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-20">
                     <ArrowLeft className="w-3 h-3" /> Back to Stride
                 </Link>
 

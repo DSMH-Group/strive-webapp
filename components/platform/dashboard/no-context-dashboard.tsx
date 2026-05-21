@@ -24,7 +24,7 @@ export function NoContextDashboard() {
                             alerts for your club.
                         </p>
                     </div>
-                    <Link href="/onboarding/provision-tenant" passHref legacyBehavior>
+                    <Link href="/onboarding/provision-tenant" passHref >
                         <Button
                             className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 shrink-0">
                             Launch Your Gym <Building2 className="ml-2 w-4 h-4"/>
@@ -53,13 +53,13 @@ export function NoContextDashboard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <Link href="/explore" passHref legacyBehavior>
+                        <Link href="/explore" passHref >
                             <Button
                                 className="w-full h-12 bg-white hover:bg-zinc-200 text-zinc-950 font-black uppercase tracking-wider rounded-xl transition-all">
                                 Explore Partner Gyms
                             </Button>
                         </Link>
-                        <Link href="/support/find-subdomain" passHref legacyBehavior>
+                        <Link href="/support/find-subdomain" passHref >
                             <Button variant="ghost"
                                     className="w-full h-12 text-zinc-400 hover:text-white font-medium text-xs">
                                 My gym uses Strive - Find my club URL

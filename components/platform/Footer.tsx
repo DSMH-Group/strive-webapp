@@ -7,7 +7,7 @@ export function Footer() {
             <div className="container mx-auto px-6 max-w-7xl">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-2">
-                        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground mb-4">
+                        <Link href="/public" className="flex items-center gap-2 text-xl font-bold text-foreground mb-4">
                             <Activity className="w-5 h-5 text-primary" />
                             Stride
                         </Link>

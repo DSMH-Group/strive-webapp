@@ -4,8 +4,8 @@ import {Bell, Menu, Search} from "lucide-react";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
-import {UserAccountNav} from "@/components/user-account-nav";
-import {Sidebar} from "@/components/dashboard/Sidebar";
+import {UserAccountNav} from "@/components/platform/user-account-nav";
+import {Sidebar} from "@/components/platform/dashboard/Sidebar";
 
 export async function DashboardHeader() {
     const session = await auth.api.getSession({

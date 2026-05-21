@@ -1,4 +1,4 @@
-import {Sidebar} from "@/components/dashboard/Sidebar";
+import {Sidebar} from "@/components/platform/dashboard/Sidebar";
 
 
 export default function DashboardLayout({
@@ -34,7 +34,7 @@ export default function DashboardLayout({
 
 // Quick helper for Mobile Nav
 import { LayoutDashboard, Search, Wallet, Settings } from "lucide-react";
-import {DashboardHeader} from "@/components/dashboard/Header";
+import {DashboardHeader} from "@/components/platform/dashboard/Header";
 function MobileNavItem({ icon, label, active = false }: { icon: any, label: string, active?: boolean }) {
     return (
         <div className={`flex flex-col items-center gap-1 ${active ? 'text-primary' : 'text-zinc-500'}`}>

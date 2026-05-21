@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import {Header} from "@/components/Header";
-import {Footer} from "@/components/Footer";
+import {Header} from "@/components/platform/Header";
+import {Footer} from "@/components/platform/Footer";
 
 export default function StaticLayout({ children }: { children: ReactNode }) {
     return (
