@@ -18,17 +18,36 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(platform): restructure app architecture and enhance modularity&#10;&#10;- Moved core components and pages under the `platform` directory for improved separation of concerns.&#10;- Introduced centralized authentication and API utilities with `betterAuth` and `striveClientFetch`.&#10;- Added tenant onboarding flows with `ProvisionTenantPage` and `ProvisionTenantClient`.&#10;- Enhanced theming and UI consistency using shared Tailwind configurations.&#10;- Refactored database schema for stricter type safety and snake_case conventions.">
-      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hooks/use-mobile.ts" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests.">
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/membersClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/reports/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/reports/reportsClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/settingsClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/activities/activitiesClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/activities/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/dashboardClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/paymentsClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/progress/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/progress/progressClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/clients/clientsClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/clients/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/log/logClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/log/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/schedule/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/schedule/scheduleClient.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/tenant/admin/TenantAdminSidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/tenant/member/TenantMemberSidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/tenant/shared/MuscleMap.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/tenant/staff/TenantStaffSidebar.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/provisionClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/provisionClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/proxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,7 +55,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="80" />
+    <option name="cachedIndexableFilesCount" value="79" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -142,6 +161,7 @@
       <workItem from="1779265636046" duration="7131000" />
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
+      <workItem from="1779423712874" duration="4551000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -231,7 +251,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779340313816</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests.">
+      <option name="closed" value="true" />
+      <created>1779423794276</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1779423794276</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,6 +278,7 @@
     <MESSAGE value="feat(discover): implement dynamic gym discovery with backend integration&#10;&#10;- Replaced mock data with dynamic tenant fetching using `react-query`.&#10;- Integrated secure API calls leveraging user session tokens.&#10;- Introduced membership linking and portal redirection logic.&#10;- Enhanced UI/UX with loading/error states and deferred search input handling.&#10;- Updated dependencies: added `sonner` for toasts and `next-themes` for theming." />
     <MESSAGE value="feat(discover): modularize client and server logic for gym discovery&#10;&#10;- Extracted client-side gym discovery logic to `DiscoverGymsClient`.&#10;- Improved server-side session validation and token forwarding.&#10;- Removed deprecated logic and simplified `DiscoverGymsPage` structure.&#10;- Updated `Header` and `Sidebar` for UI consistency.&#10;- Removed unused sidebar item `Favorites`." />
     <MESSAGE value="feat(platform): restructure app architecture and enhance modularity&#10;&#10;- Moved core components and pages under the `platform` directory for improved separation of concerns.&#10;- Introduced centralized authentication and API utilities with `betterAuth` and `striveClientFetch`.&#10;- Added tenant onboarding flows with `ProvisionTenantPage` and `ProvisionTenantClient`.&#10;- Enhanced theming and UI consistency using shared Tailwind configurations.&#10;- Refactored database schema for stricter type safety and snake_case conventions." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(platform): restructure app architecture and enhance modularity&#10;&#10;- Moved core components and pages under the `platform` directory for improved separation of concerns.&#10;- Introduced centralized authentication and API utilities with `betterAuth` and `striveClientFetch`.&#10;- Added tenant onboarding flows with `ProvisionTenantPage` and `ProvisionTenantClient`.&#10;- Enhanced theming and UI consistency using shared Tailwind configurations.&#10;- Refactored database schema for stricter type safety and snake_case conventions." />
+    <MESSAGE value="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests." />
   </component>
 </project>
