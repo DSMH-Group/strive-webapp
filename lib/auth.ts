@@ -8,9 +8,7 @@ import {eq} from "drizzle-orm";
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg",
-        schema: {
-            ...schema
-        },
+        schema: {...schema},
         camelCase: false
     }),
     session: {
@@ -19,13 +17,20 @@ export const auth = betterAuth({
             maxAge: 5 * 60,
         }
     },
-    // Modern pattern to securely extend the user entity schema options
+    advanced: {
+        crossSubDomainCookies: {
+            enabled: true,
+            additionalCookies: ["better-auth.session_token", "better-auth.session_data"],
+            domain: process.env.NODE_ENV === 'development' ? 'localhost' : '.strive-webapp-development.up.railway.app'
+        }
+    },
+
     user: {
         additionalFields: {
             keycloakId: {
                 type: "string",
                 required: false,
-                input: false // Guard from untrusted arbitrary client-side writes
+                input: false
             }
         }
     },
@@ -36,14 +41,12 @@ export const auth = betterAuth({
                     issuer: process.env.KEYCLOAK_ISSUER!,
                     clientId: process.env.KEYCLOAK_CLIENT_ID!,
                     clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-                    // Note: No extra custom object properties are needed or allowed here!
                 })
             ]
         })
     ],
     callbacks: {
         onSuccess: async ({account, user}: { account: any, user: any }) => {
-            // Persist the actual Keycloak Access Token to your database
             await db.update(schema.account)
                 .set({accessToken: account.access_token})
                 .where(eq(schema.account.userId, user.id));

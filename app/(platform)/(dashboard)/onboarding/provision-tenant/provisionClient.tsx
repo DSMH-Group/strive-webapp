@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { striveClientFetch } from "@/lib/api";
-import { toast } from "sonner";
+import {useState} from "react";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {z} from "zod";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {striveClientFetch} from "@/lib/api";
+import {toast} from "sonner";
 
 const formSchema = z.object({
     name: z.string().min(3, "Gym name must be at least 3 chars"),
@@ -18,10 +18,13 @@ const formSchema = z.object({
     vatPercentage: z.coerce.number().min(0),
 });
 
-export default function ProvisionTenantClient({ ownerId }: { ownerId: string }) {
+export default function ProvisionTenantClient({ownerId, keycloakAccessToken}: {
+    ownerId: string,
+    keycloakAccessToken?: any
+}) {
     const [step, setStep] = useState(1);
 
-    const { register, trigger, handleSubmit, formState: { errors } } = useForm({
+    const {register, trigger, handleSubmit, formState: {errors}} = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -46,13 +49,14 @@ export default function ProvisionTenantClient({ ownerId }: { ownerId: string }) 
             name: values.name,
             subdomain: values.subdomain,
             ownerId: ownerId,
-            themeConfig: { primaryColor: values.primaryColor },
-            taxRules: { vatPercentage: values.vatPercentage, ssclPercentage: 2.5 },
-            gatewayKeys: { payhereMerchantId: "", payhereSecret: "" }
+            //themeConfig: {primaryColor: values.primaryColor},
+            //taxRules: {vatPercentage: values.vatPercentage, ssclPercentage: 2.5},
+            //gatewayKeys: {payhereMerchantId: "", payhereSecret: ""}
         };
 
+
         try {
-            const res = await striveClientFetch("/api/v1/tenants", {
+            const res = await striveClientFetch("/api/v1/tenants", keycloakAccessToken, {
                 method: "POST",
                 body: JSON.stringify(payload)
             });
@@ -84,7 +88,8 @@ export default function ProvisionTenantClient({ ownerId }: { ownerId: string }) 
                             <div className="space-y-2">
                                 <Label>Subdomain</Label>
                                 <Input {...register("subdomain")} />
-                                {errors.subdomain && <p className="text-red-500 text-sm">{errors.subdomain.message as string}</p>}
+                                {errors.subdomain &&
+                                    <p className="text-red-500 text-sm">{errors.subdomain.message as string}</p>}
                             </div>
                         </>
                     )}
@@ -92,18 +97,21 @@ export default function ProvisionTenantClient({ ownerId }: { ownerId: string }) 
                         <div className="space-y-2">
                             <Label>Brand Color (Hex)</Label>
                             <Input {...register("primaryColor")} />
-                            {errors.primaryColor && <p className="text-red-500 text-sm">{errors.primaryColor.message as string}</p>}
+                            {errors.primaryColor &&
+                                <p className="text-red-500 text-sm">{errors.primaryColor.message as string}</p>}
                         </div>
                     )}
                     {step === 3 && (
                         <div className="space-y-2">
                             <Label>VAT %</Label>
                             <Input type="number" {...register("vatPercentage")} />
-                            {errors.vatPercentage && <p className="text-red-500 text-sm">{errors.vatPercentage.message as string}</p>}
+                            {errors.vatPercentage &&
+                                <p className="text-red-500 text-sm">{errors.vatPercentage.message as string}</p>}
                         </div>
                     )}
                     <div className="flex justify-between mt-6">
-                        <Button disabled={step === 1} onClick={() => setStep(s => s - 1)} type="button" variant="outline">Back</Button>
+                        <Button disabled={step === 1} onClick={() => setStep(s => s - 1)} type="button"
+                                variant="outline">Back</Button>
                         {step < 3 ? (
                             <Button onClick={handleNext} type="button">Next</Button>
                         ) : (

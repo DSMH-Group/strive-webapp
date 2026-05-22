@@ -1,41 +1,58 @@
-import { authClient } from "@/lib/auth-client";
+import {authClient} from "@/lib/auth-client";
+
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
 /**
- * Enterprise-grade fetch wrapper.
- * Automatically injects authentication headers from the active Better Auth session.
+ * Extended RequestInit to natively support Stride's Multi-Tenant architecture.
  */
-export const striveClientFetch = async (endpoint: string, options: RequestInit = {}) => {
-    // 1. Get the current active session
-    // Note: authClient.getSession() is asynchronous and handles
-    // retrieving the valid token from storage automatically.
-    const session = await authClient.getSession();
+interface StriveFetchOptions extends RequestInit {
+    tenantId?: string;
+}
 
-    // 2. Extract the access token
-    // Ensure 'token' matches the property provided by your auth configuration
-    const accessToken = session?.data?.session?.token;
+/**
+ * Enterprise-grade fetch wrapper for Stride Core Engine.
+ * Automatically injects JWT authentication and X-Tenant-ID headers.
+ */
+export const striveClientFetch = async (endpoint: string, keycloakAccessToken: string, options: StriveFetchOptions = {}) => {
+    // 1. Get the current active session
+    const sessionResponse = await authClient.getSession();
+
+    // 2. Extract the JWT token
+    // Better Auth uses session.id or requires the jwt() plugin to expose a signed token.
+    // Make sure your Better Auth config issues a JWT compatible with your NestJS backend.
+    const accessToken = sessionResponse?.data?.session?.id;
 
     // 3. Prepare headers
-    const headers = new Headers(options.headers || {});
+    const customHeaders = new Headers(options.headers || {});
+    customHeaders.set("Content-Type", "application/json");
 
-    if (accessToken) {
-        headers.set("Authorization", `Bearer ${accessToken}`);
+    customHeaders.set("Authorization", `Bearer ${keycloakAccessToken}`);
+
+    // 4. Inject Tenant Context (Crucial for B2B Gym Operations)
+    // If working in the frontend, this could also be dynamically pulled
+    // from window.location.hostname based on your Edge Routing logic.
+    if (options.tenantId) {
+        customHeaders.set("X-Tenant-ID", options.tenantId);
     }
 
-    headers.set("Content-Type", "application/json");
 
-    // 4. Execute request
+    // 5. Execute request
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
-        headers,
+        headers: customHeaders,
     });
 
-    // 5. Global Error Handling
+    // 6. Global Error Handling & State Recovery
     if (response.status === 401) {
-        // If we get a 401, we trigger a re-fetch of the session
-        // to see if the client can recover the state.
-        await authClient.getSession();
+        console.error("[Strive Fetch] 401 Unauthorized: Invalid Stride access token.");
+
+        // In the Sri Lankan market, mobile users on spotty 4G might face session drops.
+        // If a session becomes invalid, we forcefully clear local state to prevent a corrupted UI loop.
+        // Optional: Trigger a redirect to the central Login with Stride portal.
+        if (typeof window !== "undefined") {
+            // window.location.href = '/login';
+        }
     }
 
     return response;

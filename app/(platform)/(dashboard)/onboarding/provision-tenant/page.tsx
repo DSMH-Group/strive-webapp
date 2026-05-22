@@ -5,6 +5,8 @@ import ProvisionTenantClient from "./provisionClient";
 import {account} from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {db} from "@/db/db";
+import {striveClientFetch} from "@/lib/api";
+import {toast} from "sonner";
 
 export default async function ProvisionTenantPage() {
     const session = await auth.api.getSession({headers: await headers()});
@@ -39,6 +41,16 @@ export default async function ProvisionTenantPage() {
         }
     });
 
+    // 2. Fetch the Keycloak cryptographic JWT from the OAuth subsystem
+    const tokenResult = await auth.api.getAccessToken({
+        headers: await headers(),
+        body: {
+            providerId: "keycloak", // Scopes lookups to Keycloak identity link records
+        }
+    });
+
+    const keycloakAccessToken = tokenResult?.accessToken;
+
     if (!userRes.ok) {
         // 2. LOG THE EXACT BACKEND ERROR
         const errorText = await userRes.text();
@@ -56,7 +68,7 @@ export default async function ProvisionTenantPage() {
     return (
         <div className="container py-10">
             <h1 className="text-3xl font-bold mb-8">Gym Onboarding</h1>
-            <ProvisionTenantClient ownerId={user.id}/>
+            <ProvisionTenantClient ownerId={user.id} keycloakAccessToken={keycloakAccessToken}/>
         </div>
     );
 }
