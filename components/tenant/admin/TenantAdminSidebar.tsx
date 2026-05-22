@@ -111,7 +111,7 @@ export function TenantAdminSidebar({ tenantName, logoUrl }: TenantAdminSidebarPr
                 <div className="px-4 py-2 mb-2 rounded-xl bg-zinc-900/30 border border-white/5 flex items-center gap-2">
                     <ShieldCheck size={14} className="text-primary" />
                     <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
-                        Operator Access
+                        Administrator Access
                     </span>
                 </div>
 

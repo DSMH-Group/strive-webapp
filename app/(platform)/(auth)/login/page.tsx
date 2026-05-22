@@ -1,7 +1,9 @@
+// app/login/page.tsx
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Dumbbell, QrCode, TrendingUp, CreditCard } from "lucide-react";
-import {LoginForm} from "@/components/platform/login-form";
+import { LoginForm } from "@/components/platform/login-form";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
     title: "Sign In | Stride",
@@ -10,35 +12,35 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <div className="relative min-h-screen w-full bg-zinc-950 overflow-hidden flex flex-col lg:grid lg:grid-cols-2">
+        <div className="relative min-h-screen w-full bg-background overflow-hidden flex flex-col lg:grid lg:grid-cols-2 text-foreground">
 
             {/* LEFT SIDE: BRANDED MARKETING SECTION */}
-            <div className="relative flex flex-col p-8 lg:p-16 h-full border-r border-white/5">
-                {/* Visual Background: Grid + Subtle Radial Gradient */}
+            <div className="relative flex flex-col p-8 lg:p-16 h-full border-r border-border">
+                {/* Visual Background: Grid + Subtle Radial Gradient via dynamic utility opacity context */}
                 <div className="absolute inset-0 z-0 opacity-20"
-                     style={{ backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
-                <div className="absolute bottom-0 left-0 right-0 h-[600px] bg-gradient-to-t from-orange-500/10 to-transparent z-0 pointer-events-none" />
+                     style={{ backgroundImage: `radial-gradient(circle at 2px 2px, hsl(var(--muted-foreground) / 0.1) 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
+                <div className="absolute bottom-0 left-0 right-0 h-[600px] bg-gradient-to-t from-primary/10 to-transparent z-0 pointer-events-none" />
 
                 {/* Back to Stride Link */}
-                <Link href="/public" className="relative z-10 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-20">
+                <Link href="/" className="relative z-10 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-20">
                     <ArrowLeft className="w-3 h-3" /> Back to Stride
                 </Link>
 
                 <div className="relative z-10 mt-auto space-y-10">
                     {/* Gym Logo & Identity */}
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-orange-900/30 border border-orange-500/50 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.1)]">
-                            <span className="text-orange-500 font-black text-2xl italic">FF</span>
+                        <div className="w-14 h-14 bg-primary/10 border border-primary/40 rounded-lg flex items-center justify-center shadow-sm">
+                            <span className="text-primary font-black text-2xl italic">FF</span>
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-foreground">Stride</h2>
+                            <h2 className="text-2xl font-bold">Stride</h2>
                             <p className="text-xs text-muted-foreground">Colombo&apos;s Premier Training Facility</p>
                         </div>
                     </div>
 
-                    {/* Branded Value Proposition [cite: 15, 62] */}
+                    {/* Branded Value Proposition */}
                     <div className="space-y-4 max-w-md">
-                        <h1 className="text-5xl lg:text-6xl font-black tracking-tighter leading-tight text-white">
+                        <h1 className="text-5xl lg:text-6xl font-black tracking-tighter leading-tight">
                             Track every lift.<br/>
                             Hit every goal.
                         </h1>
@@ -47,7 +49,7 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    {/* Feature Pills [cite: 51, 57, 66] */}
+                    {/* Feature Pills */}
                     <div className="flex flex-wrap gap-3 pb-20">
                         <FeaturePill icon={<Dumbbell className="w-3 h-3" />} text="Workout plans" />
                         <FeaturePill icon={<QrCode className="w-3 h-3" />} text="QR check-in" />
@@ -63,7 +65,7 @@ export default function LoginPage() {
             </div>
 
             {/* RIGHT SIDE: AUTHENTICATION FORM */}
-            <div className="relative flex items-center justify-center p-8 lg:p-12 bg-zinc-950">
+            <div className="relative flex items-center justify-center p-8 lg:p-12 bg-background">
                 <LoginForm />
             </div>
         </div>
@@ -72,8 +74,8 @@ export default function LoginPage() {
 
 function FeaturePill({ icon, text }: { icon: React.ReactNode, text: string }) {
     return (
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-[11px] font-medium text-muted-foreground shadow-sm">
-            <span className="text-primary">{icon}</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-sm border border-border bg-card text-[11px] font-medium text-muted-foreground shadow-sm">
+            <span className="text-primary flex items-center">{icon}</span>
             {text}
         </div>
     );

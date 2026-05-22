@@ -13,7 +13,7 @@ export async function Header() {
     return (
         <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-zinc-950/80 backdrop-blur-md">
             <div className="container mx-auto px-6 h-16 flex items-center justify-between max-w-7xl">
-                <Link href="/public" className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-white italic">
+                <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-white italic">
                     <Activity className="w-6 h-6 text-primary" />
                     Stride.
                 </Link>

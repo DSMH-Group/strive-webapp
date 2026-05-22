@@ -1,14 +1,16 @@
+// components/platform/settings/SettingsDashboardClient.tsx
 "use client";
 
-import React, {useRef, useState} from "react";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {authClient} from "@/lib/auth-client"; // Native better-auth frontend reference hook
+import React, { useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client"; // Native better-auth frontend reference hook
 import Link from "next/link";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Card} from "@/components/ui/card";
-import {toast} from "sonner";
-import {AlertCircle, Camera, Loader2, Lock, Mail, Phone, ShieldCheck, User, Wallet} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { AlertCircle, Camera, Loader2, Lock, Mail, Phone, ShieldCheck, User, Wallet } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface UserResponseDto {
     id: string;
@@ -27,7 +29,7 @@ interface SettingsDashboardClientProps {
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
-export default function SettingsDashboardClient({initialToken, globalUser}: SettingsDashboardClientProps) {
+export default function SettingsDashboardClient({ initialToken, globalUser }: SettingsDashboardClientProps) {
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -38,7 +40,7 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
     const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     // 1. Fetch Global Core Identity Profile
-    const {data: profile, isLoading, isError} = useQuery<UserResponseDto>({
+    const { data: profile, isLoading, isError} = useQuery<UserResponseDto>({
         queryKey: ["userProfile"],
         queryFn: async () => {
             const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
@@ -74,10 +76,10 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
             toast.success("Profile Updated Successfully", {
                 description: "Core environment variables propagated globally across all tenant modules.",
             });
-            queryClient.invalidateQueries({queryKey: ["userProfile"]});
+            queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         },
         onError: (err: Error) => {
-            toast.error("Profile Modification Fault", {description: err.message});
+            toast.error("Profile Modification Fault", { description: err.message });
         }
     });
 
@@ -86,15 +88,13 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Verify format restriction safely matching backend expectations
         if (!file.name.match(/\.(jpg|jpeg|png)$/i)) {
-            toast.error("Invalid Format", {description: "Avatars must be standard jpg, jpeg, or png files."});
+            toast.error("Invalid Format", { description: "Avatars must be standard jpg, jpeg, or png files." });
             return;
         }
 
         setIsUploading(true);
         try {
-            // Step A: Request Pre-signed S3 allocation token from backend
             const urlRequest = await fetch(`${BASE_URL}/api/v1/files/upload-url`, {
                 method: "POST",
                 headers: {
@@ -109,18 +109,16 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
             });
 
             if (!urlRequest.ok) throw new Error("Cloud boundary rejection of object allocation parameters.");
-            const {uploadUrl, fileUrl} = await urlRequest.json();
+            const { uploadUrl, fileUrl } = await urlRequest.json();
 
-            // Step B: Stream binary layout block straight to target cloud bucket
             const storageStream = await fetch(uploadUrl, {
                 method: "PUT",
                 body: file,
-                headers: {"Content-Type": file.type}
+                headers: { "Content-Type": file.type }
             });
 
             if (!storageStream.ok) throw new Error("Object boundary transmission protocol failure.");
 
-            // Step C: Link newly generated public bucket URL back into Auth Context
             await authClient.updateUser({
                 image: fileUrl
             });
@@ -129,9 +127,9 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                 description: "New image synced across identity headers."
             });
 
-            window.location.reload(); // Hard flush to force context updates to redraw sidebar/headers
+            window.location.reload();
         } catch (err: any) {
-            toast.error("Upload Handshake Interrupted", {description: err.message});
+            toast.error("Upload Handshake Interrupted", { description: err.message });
         } finally {
             setIsUploading(false);
         }
@@ -141,13 +139,12 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
     const handlePasswordUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentPassword || !newPassword) {
-            toast.error("Validation Error", {description: "All parameter fields must be filled explicitly."});
+            toast.error("Validation Error", { description: "All parameter fields must be filled explicitly." });
             return;
         }
 
         setIsChangingPassword(true);
-        // Routed via Native Client wrapper straight to security endpoint providers
-        const {error} = await authClient.changePassword({
+        const { error } = await authClient.changePassword({
             currentPassword,
             newPassword,
             revokeOtherSessions: true,
@@ -155,7 +152,7 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
 
         setIsChangingPassword(false);
         if (error) {
-            toast.error("Credential Alteration Blocked", {description: error.message || "Security clearance reject."});
+            toast.error("Credential Alteration Blocked", { description: error.message || "Security clearance reject." });
         } else {
             toast.success("Security Credentials Updated", {
                 description: "Password mutated successfully. Other active platform instances revoked.",
@@ -178,7 +175,7 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 text-foreground">
             {/* Header Area */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex flex-col gap-1">
@@ -188,16 +185,15 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter">
                         Profile & Settings
                     </h1>
-                    <p className="text-sm text-zinc-400 max-w-xl">
+                    <p className="text-sm text-muted-foreground max-w-xl">
                         Modify your global master identity data parameters. Updates here ripple automatically across
                         connected gyms.
                     </p>
                 </div>
 
-                {/* Platform shortcut route straight back down into Wallet interface */}
                 <Link href="/dashboard/payments" passHref>
                     <Button variant="outline"
-                            className="rounded-xl border-white/5 bg-zinc-900 hover:bg-zinc-800 gap-2 text-xs uppercase font-bold tracking-tight h-11 px-5">
+                            className="rounded-md border-border bg-card hover:bg-accent hover:text-accent-foreground gap-2 text-xs uppercase font-bold tracking-tight h-11 px-5">
                         <Wallet size={14} className="text-primary"/> Manage Wallet
                     </Button>
                 </Link>
@@ -205,17 +201,16 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
 
             {isLoading && (
                 <div
-                    className="flex items-center justify-center py-20 text-xs text-zinc-500 uppercase font-black tracking-widest gap-2">
+                    className="flex items-center justify-center py-20 text-xs text-muted-foreground uppercase font-black tracking-widest gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-primary"/> Resolving Identity Record Matrices...
                 </div>
             )}
 
             {isError && (
                 <div
-                    className="rounded-[2rem] border border-red-500/10 bg-red-500/5 p-8 text-center max-w-md mx-auto space-y-2">
-                    <AlertCircle className="w-6 h-6 text-red-500 mx-auto"/>
-                    <p className="text-xs text-zinc-400">Failed to establish handshake verification logs with internal
-                        registries.</p>
+                    className="rounded-lg border border-destructive/10 bg-destructive/5 p-8 text-center max-w-md mx-auto space-y-2">
+                    <AlertCircle className="w-6 h-6 text-destructive mx-auto"/>
+                    <p className="text-xs text-muted-foreground">Failed to establish handshake verification logs with internal registries.</p>
                 </div>
             )}
 
@@ -224,10 +219,10 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
 
                     {/* Left Column: Avatar Interaction Workspace */}
                     <Card
-                        className="bg-zinc-900 border-white/5 rounded-[2rem] overflow-hidden p-6 text-center space-y-6">
+                        className="bg-card border-border rounded-lg overflow-hidden p-6 text-center space-y-6">
                         <div className="relative w-32 h-32 mx-auto group">
                             <div
-                                className="w-32 h-32 rounded-full border-2 border-white/5 bg-zinc-950 overflow-hidden flex items-center justify-center text-4xl font-black text-zinc-500 uppercase italic">
+                                className="w-32 h-32 rounded-full border border-border bg-background overflow-hidden flex items-center justify-center text-4xl font-black text-muted-foreground/60 uppercase italic">
                                 {globalUser.image ? (
                                     <img src={globalUser.image} alt="Avatar" className="w-full h-full object-cover"/>
                                 ) : (
@@ -252,20 +247,20 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                         </div>
 
                         <div className="space-y-1">
-                            <h3 className="font-bold text-lg text-white">{profile.firstName} {profile.lastName}</h3>
-                            <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 font-mono">
+                            <h3 className="font-bold text-lg text-foreground">{profile.firstName} {profile.lastName}</h3>
+                            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground font-mono">
                                 <Mail size={12}/> {profile.email}
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-white/5 space-y-2">
+                        <div className="pt-4 border-t border-border space-y-2">
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-zinc-500">Global ID Reference</span>
+                                <span className="text-muted-foreground">Global ID Reference</span>
                                 <span
-                                    className="font-mono text-zinc-300 text-[10px] uppercase">{profile.id.substring(0, 13)}...</span>
+                                    className="font-mono text-foreground text-[10px] uppercase">{profile.id.substring(0, 13)}...</span>
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-zinc-500">Security Clearance</span>
+                                <span className="text-muted-foreground">Security Clearance</span>
                                 <Badge variant="outline"
                                        className="border-emerald-500/10 bg-emerald-500/5 text-emerald-400 text-[9px] font-black uppercase tracking-tight">
                                     Verified footprint
@@ -274,44 +269,41 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                         </div>
                     </Card>
 
-                    {/* Middle Column: Core Parameter Changes (NestJS System Data Modifiers) */}
+                    {/* Middle Column: Core Parameter Changes */}
                     <div className="lg:col-span-2 space-y-6">
-                        <Card className="bg-zinc-900 border-white/5 rounded-[2rem] overflow-hidden p-6">
+                        <Card className="bg-card border-border rounded-lg overflow-hidden p-6">
                             <form onSubmit={handleFormSubmit} className="space-y-6">
-                                <h2 className="text-base font-bold uppercase italic tracking-tight flex items-center gap-2 border-b border-white/5 pb-3">
+                                <h2 className="text-base font-bold uppercase italic tracking-tight flex items-center gap-2 border-b border-border pb-3 text-foreground">
                                     <User size={16} className="text-primary"/> Master Profile Specifications
                                 </h2>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">First
-                                            Name</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">First Name</label>
                                         <input
                                             type="text"
                                             name="firstName"
                                             defaultValue={profile.firstName}
                                             required
-                                            className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            className="w-full bg-background border border-border rounded-md px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Last
-                                            Name</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Last Name</label>
                                         <input
                                             type="text"
                                             name="lastName"
                                             defaultValue={profile.lastName}
                                             required
-                                            className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            className="w-full bg-background border border-border rounded-md px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label
-                                        className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                                        <Phone size={10}/> Contact Mobile (SL gateway schema structure format
-                                        requirement)
+                                        className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                                        <Phone size={10}/> Contact Mobile (SL gateway schema structure format requirement)
                                     </label>
                                     <input
                                         type="text"
@@ -320,17 +312,16 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                                         placeholder="+94771234567"
                                         pattern="^\+94\d{9}$"
                                         required
-                                        className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-primary/50 transition-all"
+                                        className="w-full bg-background border border-border rounded-md px-4 py-2.5 text-sm font-mono text-foreground focus:outline-none focus:border-primary/50 transition-all"
                                     />
-                                    <p className="text-[10px] text-zinc-600 italic">Required format profile matching Sri
-                                        Lankan SMS dispatch aggregators.</p>
+                                    <p className="text-[10px] text-muted-foreground/60 italic">Required format profile matching Sri Lankan SMS dispatch aggregators.</p>
                                 </div>
 
                                 <div className="flex justify-end pt-2">
                                     <Button
                                         type="submit"
                                         disabled={updateProfileMutation.isPending}
-                                        className="bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-tight px-6 rounded-xl h-10"
+                                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs uppercase tracking-tight px-6 rounded-md h-10"
                                     >
                                         {updateProfileMutation.isPending ?
                                             <Loader2 className="w-3 h-3 animate-spin mr-2"/> : null}
@@ -341,34 +332,32 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                         </Card>
 
                         {/* Security Form Block: Credentials Update Boundary */}
-                        <Card className="bg-zinc-900 border-white/5 rounded-[2rem] overflow-hidden p-6">
+                        <Card className="bg-card border-border rounded-lg overflow-hidden p-6">
                             <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                                <h2 className="text-base font-bold uppercase italic tracking-tight flex items-center gap-2 border-b border-white/5 pb-3">
-                                    <Lock size={16} className="text-orange-500"/> Authentication Authority Parameters
+                                <h2 className="text-base font-bold uppercase italic tracking-tight flex items-center gap-2 border-b border-border pb-3 text-foreground">
+                                    <Lock size={16} className="text-primary"/> Authentication Authority Parameters
                                 </h2>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Current
-                                            Password</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Current Password</label>
                                         <input
                                             type="password"
                                             value={currentPassword}
                                             onChange={(e) => setCurrentPassword(e.target.value)}
                                             required
-                                            className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            className="w-full bg-background border border-border rounded-md px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">New
-                                            Password Target</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">New Password Target</label>
                                         <input
                                             type="password"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             required
                                             minLength={8}
-                                            className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            className="w-full bg-background border border-border rounded-md px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -377,7 +366,8 @@ export default function SettingsDashboardClient({initialToken, globalUser}: Sett
                                     <Button
                                         type="submit"
                                         disabled={isChangingPassword}
-                                        className="bg-zinc-950 border border-white/5 hover:bg-zinc-900 text-white font-bold text-xs uppercase tracking-tight px-6 rounded-xl h-10 hover:text-primary"
+                                        variant="outline"
+                                        className="bg-background border-border hover:bg-accent hover:text-accent-foreground text-foreground font-bold text-xs uppercase tracking-tight px-6 rounded-md h-10"
                                     >
                                         {isChangingPassword ? <Loader2 className="w-3 h-3 animate-spin mr-2"/> : null}
                                         Update Password Passkey

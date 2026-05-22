@@ -1,3 +1,4 @@
+// components/tenant/member/WalletDashboardClient.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -18,6 +19,7 @@ import {
     Loader2,
     AlertCircle
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface InvoiceLineItem {
     description: string;
@@ -27,9 +29,9 @@ interface InvoiceLineItem {
 interface StriveInvoice {
     id: string;
     membershipId: string;
-    tenantName?: string; // Appended by gateway resolution or mapping
+    tenantName?: string;
     type: "SUBSCRIPTION" | "TOKEN";
-    status: "PAID" | "UNPAID" | "OVERDUE"; // Frontend mapped statuses
+    status: "PAID" | "UNPAID" | "OVERDUE";
     amount: number;
     createdAt: string;
     lineItems: InvoiceLineItem[];
@@ -77,7 +79,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
             }
             return res.json();
         },
-        staleTime: 1000 * 60 * 2, // 2 minutes
+        staleTime: 1000 * 60 * 2,
     });
 
     // 2. Direct Ledger Settlement Mutation via Web Fetch
@@ -113,7 +115,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
         }
     });
 
-    // 3. Dynamic State Machine Transition (Using SUSPENDED as compliant Unsubscribe action)
+    // 3. Dynamic State Machine Transition
     const toggleSubscriptionMutation = useMutation({
         mutationFn: async ({ membershipId, targetState }: { membershipId: string; targetState: "ACTIVE" | "SUSPENDED" }) => {
             const res = await fetch(`${BASE_URL}/api/v1/members/${membershipId}/transition`, {
@@ -164,7 +166,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
     }, [invoices]);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 text-foreground">
             {/* Header section */}
             <div className="flex flex-col gap-1">
                 <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
@@ -173,22 +175,22 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                 <h1 className="text-3xl font-black italic uppercase tracking-tighter">
                     Financial Core
                 </h1>
-                <p className="text-sm text-zinc-400 max-w-xl">
+                <p className="text-sm text-muted-foreground max-w-xl">
                     Unified wallet oversight across all Strive-powered sports environments and fitness domains.
                 </p>
             </div>
 
             {/* Critical Alert Warning Area for Outstanding Balances */}
             {absoluteTotalDue > 0 && (
-                <div className="relative overflow-hidden rounded-[2rem] border border-red-500/20 bg-red-950/20 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="relative overflow-hidden rounded-lg border border-destructive/20 bg-destructive/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                        <div className="w-12 h-12 rounded-md bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive shrink-0">
                             <AlertTriangle size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-white uppercase tracking-tight text-sm">Action Gated System Alert</h3>
-                            <p className="text-xs text-zinc-400">
-                                You have {overdueInvoices.length} outstanding invoices totaling <span className="text-red-400 font-mono font-bold">LKR {absoluteTotalDue.toLocaleString()}</span>. Outstanding deficits trigger immediate automation lockout rules.
+                            <h3 className="font-bold text-foreground uppercase tracking-tight text-sm">Action Gated System Alert</h3>
+                            <p className="text-xs text-muted-foreground">
+                                You have {overdueInvoices.length} outstanding invoices totaling <span className="text-destructive font-mono font-bold">LKR {absoluteTotalDue.toLocaleString()}</span>. Outstanding deficits trigger immediate automation lockout rules.
                             </p>
                         </div>
                     </div>
@@ -199,7 +201,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                             amount: overdueInvoices[0].amount
                         })}
                         disabled={settleInvoiceMutation.isPending}
-                        className="bg-red-500 hover:bg-red-600 font-bold text-white rounded-xl text-xs uppercase tracking-tight h-10 px-5 shrink-0"
+                        className="bg-destructive hover:bg-destructive/90 font-bold text-destructive-foreground rounded-md text-xs uppercase tracking-tight h-10 px-5 shrink-0"
                     >
                         {settleInvoiceMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
                         Clear Immediate Deficit
@@ -215,53 +217,56 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                         <h2 className="text-lg font-bold uppercase italic tracking-tight flex items-center gap-2">
                             <History size={16} className="text-primary" /> Invoice Ledger history
                         </h2>
-                        <Badge variant="outline" className="border-white/5 bg-zinc-900 text-zinc-500 text-[10px] uppercase font-mono">
+                        <Badge variant="outline" className="border-border bg-card text-muted-foreground text-[10px] uppercase font-mono">
                             Live Synchronization
                         </Badge>
                     </div>
 
                     {isLoading && (
-                        <div className="flex items-center justify-center py-12 gap-2 text-zinc-500 text-xs uppercase tracking-widest font-bold">
+                        <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground text-xs uppercase tracking-widest font-bold">
                             <Loader2 className="w-4 h-4 animate-spin text-primary" /> Processing Ledger Statements...
                         </div>
                     )}
 
                     {isError && (
-                        <div className="rounded-[2rem] border border-red-500/10 bg-red-500/5 p-6 text-center space-y-2">
-                            <AlertCircle className="w-6 h-6 text-red-500 mx-auto" />
-                            <p className="text-xs text-zinc-400">{(error as Error).message}</p>
+                        <div className="rounded-lg border border-destructive/10 bg-destructive/5 p-6 text-center space-y-2">
+                            <AlertCircle className="w-6 h-6 text-destructive mx-auto" />
+                            <p className="text-xs text-muted-foreground">{(error as Error).message}</p>
                         </div>
                     )}
 
                     {!isLoading && !isError && invoices && (
                         <div className="space-y-3">
                             {invoices.map((invoice) => (
-                                <Card key={invoice.id} className="bg-zinc-900 border-white/5 rounded-2xl overflow-hidden group">
+                                <Card key={invoice.id} className="bg-card border-border rounded-lg overflow-hidden group">
                                     <CardContent className="p-5 flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black italic tracking-tighter ${
-                                                invoice.status === "PAID" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
-                                            }`}>
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-md flex items-center justify-center text-xs font-black italic tracking-tighter border",
+                                                invoice.status === "PAID"
+                                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                            )}>
                                                 {invoice.status === "PAID" ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h4 className="font-bold text-sm text-white group-hover:text-primary transition-colors">
+                                                    <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                                                         {invoice.lineItems[0]?.description || "Cycle Statement Settlement"}
                                                     </h4>
-                                                    <span className="text-[10px] text-zinc-500">•</span>
-                                                    <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold italic">
+                                                    <span className="text-[10px] text-muted-foreground/60">•</span>
+                                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold italic">
                                                         {invoice.tenantName || "Strive Space"}
                                                     </span>
                                                 </div>
-                                                <p className="text-[11px] text-zinc-500 font-mono">
+                                                <p className="text-[11px] text-muted-foreground/60 font-mono">
                                                     {new Date(invoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • ID: {invoice.id.substring(0, 8).toUpperCase()}
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="text-right space-y-1.5">
-                                            <div className="text-sm font-black font-mono tracking-tighter text-white">
+                                            <div className="text-sm font-black font-mono tracking-tighter text-foreground">
                                                 LKR {invoice.amount.toLocaleString()}
                                             </div>
                                             {invoice.status !== "PAID" ? (
@@ -270,7 +275,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                                                     variant="outline"
                                                     onClick={() => settleInvoiceMutation.mutate({ invoiceId: invoice.id, amount: invoice.amount })}
                                                     disabled={settleInvoiceMutation.isPending}
-                                                    className="h-6 text-[10px] px-2 border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-black rounded-lg uppercase tracking-tighter font-bold"
+                                                    className="h-6 text-[10px] px-2 border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-primary-foreground rounded-sm uppercase tracking-tighter font-bold"
                                                 >
                                                     {settleInvoiceMutation.isPending && settleInvoiceMutation.variables?.invoiceId === invoice.id ? (
                                                         <Loader2 className="w-2.5 h-2.5 animate-spin mr-1" />
@@ -298,21 +303,21 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                             <h2 className="text-lg font-bold uppercase italic tracking-tight flex items-center gap-2">
                                 <CreditCard size={16} className="text-primary" /> Tokenized Vault
                             </h2>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-500 hover:text-white rounded-lg">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground rounded-md border border-border bg-card">
                                 <Plus size={14} />
                             </Button>
                         </div>
 
                         <div className="space-y-3">
                             {MOCK_VAULTED_CARDS.map((card) => (
-                                <div key={card.id} className="relative overflow-hidden bg-gradient-to-b from-zinc-900 to-zinc-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between group">
+                                <div key={card.id} className="relative overflow-hidden bg-gradient-to-b from-card to-background border border-border rounded-lg p-5 flex items-center justify-between group">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-8 rounded-lg bg-zinc-950 border border-white/10 flex items-center justify-center text-[10px] uppercase font-black italic tracking-widest text-zinc-400">
+                                        <div className="w-12 h-8 rounded-md bg-background border border-border flex items-center justify-center text-[10px] uppercase font-black italic tracking-widest text-muted-foreground">
                                             {card.brand}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white">•••• •••• •••• {card.last4}</p>
-                                            <p className="text-[10px] text-zinc-500 font-mono">EXPIRES {card.expiry}</p>
+                                            <p className="text-sm font-bold text-foreground">•••• •••• •••• {card.last4}</p>
+                                            <p className="text-[10px] text-muted-foreground/60 font-mono">EXPIRES {card.expiry}</p>
                                         </div>
                                     </div>
                                     {card.isDefault ? (
@@ -320,7 +325,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                                             Primary
                                         </Badge>
                                     ) : (
-                                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-zinc-500 hover:text-white uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground hover:text-foreground uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                                             Use Primary
                                         </Button>
                                     )}
@@ -330,20 +335,20 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                     </div>
 
                     {/* Operational Lifecycle Controller */}
-                    <Card className="bg-zinc-900/40 border-white/5 rounded-[2rem] overflow-hidden">
+                    <Card className="bg-card/40 border-border rounded-lg overflow-hidden">
                         <CardContent className="p-6 space-y-4">
                             <div>
-                                <h3 className="text-sm font-bold uppercase text-white tracking-tight flex items-center gap-2">
-                                    <RefreshCw size={14} className="text-orange-500" /> Subscription Actions
+                                <h3 className="text-sm font-bold uppercase text-foreground tracking-tight flex items-center gap-2">
+                                    <RefreshCw size={14} className="text-primary" /> Subscription Actions
                                 </h3>
-                                <p className="text-[11px] text-zinc-500 mt-0.5">Quickly suspend or reactivate workspace gate authorization scopes.</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">Quickly suspend or reactivate workspace gate authorization scopes.</p>
                             </div>
 
                             <div className="space-y-2 pt-2">
                                 {connectedMemberships.length > 0 ? (
                                     connectedMemberships.map((membership) => (
-                                        <div key={membership.membershipId} className="flex items-center justify-between text-xs border-b border-white/5 last:border-none pb-2 last:pb-0 pt-1">
-                                            <span className="font-medium text-zinc-300">{membership.tenantName}</span>
+                                        <div key={membership.membershipId} className="flex items-center justify-between text-xs border-b border-border last:border-none pb-2 last:pb-0 pt-1">
+                                            <span className="font-medium text-muted-foreground">{membership.tenantName}</span>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => toggleSubscriptionMutation.mutate({
@@ -351,11 +356,11 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                                                         targetState: "SUSPENDED"
                                                     })}
                                                     disabled={toggleSubscriptionMutation.isPending}
-                                                    className="text-red-400 hover:text-red-300 font-bold text-[10px] uppercase tracking-tighter disabled:opacity-50"
+                                                    className="text-destructive hover:text-destructive/80 font-bold text-[10px] uppercase tracking-tighter disabled:opacity-50"
                                                 >
                                                     Pause
                                                 </button>
-                                                <span className="text-zinc-700">|</span>
+                                                <span className="text-border">|</span>
                                                 <button
                                                     onClick={() => toggleSubscriptionMutation.mutate({
                                                         membershipId: membership.membershipId,
@@ -370,7 +375,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-[10px] text-zinc-600 italic py-2 text-center">No active environments linked.</p>
+                                    <p className="text-[10px] text-muted-foreground/60 italic py-2 text-center">No active environments linked.</p>
                                 )}
                             </div>
                         </CardContent>

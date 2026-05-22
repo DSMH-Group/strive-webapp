@@ -1,19 +1,30 @@
+// app/pricing/page.tsx
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function PricingPage() {
     return (
-        <div className="flex flex-col items-center py-24 px-6 max-w-7xl mx-auto">
-            <div className="text-center mb-20 space-y-4">
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Plans built to <span className="text-primary italic">scale.</span></h1>
-                <Badge variant="outline" className="border-primary/20 text-primary py-1 px-4">
-                    <ShieldCheck className="w-3 h-3 mr-2" /> Recovered payments cover the cost
-                </Badge>
+        /* Take over 100% of screen space layout width horizontally to clear blank edge gutters */
+        <div className="w-full min-h-screen bg-background text-foreground py-24 px-6 flex flex-col items-center">
+
+            {/* Header Content Section */}
+            <div className="text-center mb-20 space-y-4 max-w-3xl mx-auto">
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">
+                    Plans built to <span className="text-primary tracking-normal font-serif lowercase">scale.</span>
+                </h1>
+                <div className="flex justify-center">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-medium text-muted-foreground bg-card border border-border rounded-full shadow-sm">
+                        <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                        Recovered payments cover the cost
+                    </span>
+                </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 w-full items-end">
+            {/* Inner Content Grid Bound Layout Container */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl items-stretch">
                 <PriceTier
                     name="Starter"
                     price="LKR 4,500"
@@ -38,24 +49,57 @@ export default function PricingPage() {
     );
 }
 
-function PriceTier({ name, price, desc, features, highlight = false }: any) {
+interface PriceTierProps {
+    name: string;
+    price: string;
+    desc: string;
+    features: string[];
+    highlight?: boolean;
+}
+
+function PriceTier({ name, price, desc, features, highlight = false }: PriceTierProps) {
     return (
-        <Card className={`relative border-border ${highlight ? 'border-primary bg-secondary/40 scale-105 shadow-2xl' : 'bg-card'}`}>
-            {highlight && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">MOST POPULAR</Badge>}
-            <CardHeader>
-                <CardTitle>{name}</CardTitle>
-                <div className="text-3xl font-black py-4">{price}</div>
-                <CardDescription>{desc}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {features.map((f: never) => (
-                    <div key={f} className="flex items-center text-sm font-light">
-                        <Check className="w-4 h-4 mr-3 text-primary" /> {f}
+        <Card className={cn(
+            "relative bg-card border-border rounded-lg flex flex-col justify-between transition-all p-3",
+            highlight && "border-primary bg-card shadow-[0_0_40px_rgba(var(--primary),0.05)]"
+        )}>
+            {highlight && (
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-sm font-black text-[9px] tracking-widest px-3 py-0.5 uppercase">
+                    Most Popular
+                </Badge>
+            )}
+            <div>
+                <CardHeader className="space-y-1.5 pb-6">
+                    <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                        {name}
+                    </CardTitle>
+                    <div className="text-4xl font-black tracking-tight font-mono py-2 text-foreground">
+                        {price}
                     </div>
-                ))}
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full font-bold" variant={highlight ? "default" : "secondary"}>
+                    <CardDescription className="text-xs text-muted-foreground/80 font-light">
+                        {desc}
+                    </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-3.5 pb-8">
+                    {features.map((feature) => (
+                        <div key={feature} className="flex items-center text-xs font-medium text-muted-foreground">
+                            <Check className="w-3.5 h-3.5 mr-3 text-primary shrink-0 stroke-[3]" />
+                            <span>{feature}</span>
+                        </div>
+                    ))}
+                </CardContent>
+            </div>
+
+            <CardFooter className="pt-4">
+                <Button
+                    className={cn(
+                        "w-full font-black uppercase tracking-wider text-[11px] h-12 rounded-sm transition-all",
+                        highlight
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "bg-background border border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                >
                     {name === "Enterprise" ? "Contact Sales" : "Get Started"}
                 </Button>
             </CardFooter>

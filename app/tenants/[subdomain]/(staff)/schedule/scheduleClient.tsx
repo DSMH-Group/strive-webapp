@@ -5,13 +5,8 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-    CalendarDays,
     Clock,
-    CheckCircle2,
-    XCircle,
-    CalendarRange,
     RefreshCw,
-    User,
     Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,7 +20,7 @@ interface ScheduleClientProps {
 export default function ScheduleClient({ subdomain, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
 
-    // --- Core Timeline Data (Structured explicitly to match your uploaded design) ---
+    // --- Core Timeline Data (Structured explicitly to match your design) ---
     const [timeSlots, setTimeSlots] = useState([
         { id: "slot-1", time: "07:00", title: "Amara Silva — PT", type: "CLIENT", status: "DONE" },
         { id: "slot-2", time: "08:00", title: "Dilshan Raj — PT", type: "CLIENT", status: "DONE" },
@@ -74,27 +69,28 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
     };
 
     return (
-        <div className="space-y-6 text-white select-none">
+        <div className="space-y-6 text-foreground select-none">
 
             {/* Calendar Context Heading Row */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-0.5">
                     <h1 className="text-2xl font-bold tracking-tight">Today's Schedule</h1>
-                    <p className="text-xs text-zinc-500 font-medium">Thursday, May 8</p>
+                    <p className="text-xs text-muted-foreground font-medium">Thursday, May 8</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
                         onClick={handleExternalCalendarSync}
                         disabled={isSyncing}
                         variant="outline"
-                        className="h-10 border-white/5 bg-zinc-900 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-bold gap-2 px-3.5"
+                        className="h-10 border-border bg-card rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground text-xs font-bold gap-2 px-3.5"
                     >
                         <RefreshCw className={cn("w-3.5 h-3.5", isSyncing && "animate-spin")} />
                         {isSyncing ? "Syncing..." : "Sync Calendar"}
                     </Button>
                     <Button
                         onClick={() => toast.success("Configuring custom Out-Of-Office blocking window...")}
-                        className="bg-zinc-900 text-primary border border-primary/20 hover:bg-zinc-800 rounded-xl h-10 text-xs font-bold gap-1.5 px-4 shadow-[0_0_20px_rgba(234,88,12,0.02)]"
+                        variant="outline"
+                        className="bg-card text-primary border border-primary/20 hover:bg-accent hover:text-accent-foreground rounded-md h-10 text-xs font-bold gap-1.5 px-4 shadow-sm"
                     >
                         <Plus className="w-3.5 h-3.5" /> Block Time
                     </Button>
@@ -118,25 +114,25 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                 key={slot.id}
                                 onClick={() => handleSlotAction(slot.id, slot.status)}
                                 className={cn(
-                                    "flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer bg-zinc-950/20",
-                                    isOpen && "border-zinc-900/60 opacity-60 hover:opacity-100",
-                                    isNow && "border-primary/50 bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_25px_rgba(234,88,12,0.05)]",
-                                    isSoon && "border-amber-500/10 hover:border-amber-500/30",
-                                    isDone && "border-white/5 opacity-40 hover:opacity-70",
-                                    isBreak && "border-zinc-900 bg-zinc-900/10 opacity-50 cursor-default"
+                                    "flex items-center justify-between p-3.5 rounded-lg border transition-all cursor-pointer bg-card/20 border-border",
+                                    isOpen && "opacity-60 hover:opacity-100",
+                                    isNow && "border-primary/50 bg-primary/5 ring-1 ring-primary/20 shadow-sm",
+                                    isSoon && "border-border hover:border-accent-foreground/30",
+                                    isDone && "opacity-40 hover:opacity-70",
+                                    isBreak && "bg-muted/40 opacity-50 cursor-default"
                                 )}
                             >
                                 <div className="flex items-center gap-4 min-w-0">
                                     {/* Temporal Stamp Column */}
-                                    <span className="font-mono text-xs font-bold tracking-tight text-zinc-600 w-10 shrink-0">
+                                    <span className="font-mono text-xs font-bold tracking-tight text-muted-foreground/60 w-10 shrink-0">
                                         {slot.time}
                                     </span>
 
                                     {/* Slot Descriptive Title */}
                                     <span className={cn(
                                         "text-sm font-bold truncate",
-                                        isOpen ? "text-zinc-600 font-medium" : "text-zinc-100",
-                                        isNow && "text-white"
+                                        isOpen ? "text-muted-foreground font-medium" : "text-foreground",
+                                        isNow && "text-foreground"
                                     )}>
                                         {slot.title}
                                     </span>
@@ -146,24 +142,24 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                 <div className="flex items-center gap-3 shrink-0 pl-2">
                                     {isOpen && (
                                         <div className="flex items-center gap-1.5">
-                                            <span className="font-mono text-[9px] font-black tracking-wider text-zinc-600 bg-zinc-900/60 border border-white/5 px-2 py-0.5 rounded">OOO</span>
-                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight">Open</span>
+                                            <span className="font-mono text-[9px] font-black tracking-wider text-muted-foreground/80 bg-background border border-border px-2 py-0.5 rounded-sm">OOO</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Open</span>
                                         </div>
                                     )}
                                     {isNow && (
-                                        <span className="text-[10px] font-extrabold text-primary uppercase tracking-tight animate-pulse bg-primary/10 px-2 py-0.5 rounded border border-primary/20">Now</span>
+                                        <span className="text-[10px] font-extrabold text-primary uppercase tracking-tight animate-pulse bg-primary/10 px-2 py-0.5 rounded-sm border border-primary/20">Now</span>
                                     )}
                                     {isSoon && (
                                         <div className="flex items-center gap-1.5">
-                                            <span className="font-mono text-[9px] font-black tracking-wider text-zinc-600 bg-zinc-900/60 border border-white/5 px-2 py-0.5 rounded">OOO</span>
+                                            <span className="font-mono text-[9px] font-black tracking-wider text-muted-foreground/80 bg-background border border-border px-2 py-0.5 rounded-sm">OOO</span>
                                             <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tight">Soon</span>
                                         </div>
                                     )}
                                     {isDone && (
-                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight">Done</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Done</span>
                                     )}
                                     {isBreak && (
-                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight bg-zinc-900 px-2 py-0.5 border border-white/5 rounded-md">Break</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight bg-background px-2 py-0.5 border border-border rounded-sm">Break</span>
                                     )}
                                 </div>
                             </div>
@@ -173,8 +169,8 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
 
                 {/* Right Side Schedule Summary Aggregator Widget Panel */}
                 <div className="space-y-4 lg:sticky lg:top-24">
-                    <Card className="bg-zinc-900/30 border-white/5 rounded-2xl p-5 space-y-4">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Summary</span>
+                    <Card className="bg-card/30 border-border rounded-lg p-5 space-y-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Summary</span>
 
                         <div className="space-y-3 font-mono text-xs">
                             <SummaryMetricRow label="Sessions" value={summaryStats.sessions} />
@@ -185,11 +181,11 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                     </Card>
 
                     {/* Quick Shift Handover Insights */}
-                    <Card className="bg-zinc-900/10 border-dashed border-white/5 rounded-2xl p-4 flex gap-3 items-start">
-                        <Clock className="w-4 h-4 text-zinc-500 mt-0.5 shrink-0" />
+                    <Card className="bg-card/10 border-dashed border-border rounded-lg p-4 flex gap-3 items-start">
+                        <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="space-y-1">
-                            <h4 className="text-xs font-bold text-zinc-400">Conflict Mitigation</h4>
-                            <p className="text-[11px] text-zinc-600 leading-normal">
+                            <h4 className="text-xs font-bold text-muted-foreground">Conflict Mitigation</h4>
+                            <p className="text-[11px] text-muted-foreground/80 leading-normal">
                                 Resource rules protect your blocks. Cross-tenant asset overlapping controls are active.
                             </p>
                         </div>
@@ -213,11 +209,11 @@ function SummaryMetricRow({
     isHighlight?: boolean;
 }) {
     return (
-        <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 last:pb-0">
-            <span className="text-zinc-400 font-sans font-medium">{label}</span>
+        <div className="flex items-center justify-between py-2 border-b border-border last:border-0 last:pb-0">
+            <span className="text-muted-foreground font-sans font-medium">{label}</span>
             <span className={cn(
                 "text-sm font-bold",
-                isHighlight ? "text-primary font-black" : "text-zinc-200"
+                isHighlight ? "text-primary font-black" : "text-foreground"
             )}>
                 {value}
             </span>

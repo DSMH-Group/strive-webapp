@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import "../../globals.css";
 import { TenantAdminSidebar } from "@/components/tenant/admin/TenantAdminSidebar";
 import { TenantMemberSidebar } from "@/components/tenant/member/TenantMemberSidebar";
-import {TenantStaffSidebar} from "@/components/tenant/staff/TenantStaffSidebar";
+import { TenantStaffSidebar } from "@/components/tenant/staff/TenantStaffSidebar";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -85,38 +85,37 @@ export default async function TenantLayout({
     const dynamicPrimaryHsl = hexToHslString(rawHex);
 
     // --- Dynamic Multi-Role Routing Evaluation Engine ---
-    // Reads headers to inspect active request pathing and seamlessly derive rendering views
     const activeUrlPath = reqHeaders.get("x-invoke-path") || "";
 
-    const isMemberScope = activeUrlPath.includes("/member") || true; // Set to true explicitly for your current testing context
-    const isTrainerScope = !isMemberScope && activeUrlPath.includes("/trainer");
+    const isMemberScope = activeUrlPath.includes("/member");
+    const isTrainerScope = !isMemberScope && (activeUrlPath.includes("/trainer") || activeUrlPath.includes("/staff"));
     const isAdminScope = !isMemberScope && !isTrainerScope;
 
     return (
         <html
             lang="en"
-            className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+            className={cn("h-full antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
         >
-        <body className="min-h-full flex flex-col">
+        <body className="min-h-full flex flex-col bg-background text-foreground">
         <div
-            className="flex min-h-screen bg-zinc-950 text-white selection:bg-primary/30"
+            className="flex min-h-screen selection:bg-primary/20 selection:text-primary"
             style={{ '--primary': dynamicPrimaryHsl } as React.CSSProperties}
         >
             {/* Desktop Dynamic Conditional Render Container */}
-            <aside className="hidden md:flex w-64 flex-col border-r border-white/5 bg-zinc-950 sticky top-0 h-screen">
-                {isMemberScope && (
+            <aside className="hidden md:flex w-64 flex-col border-r border-border bg-background sticky top-0 h-screen">
+                {false && (
                     <TenantMemberSidebar
                         tenantName={tenantConfig?.name || "FitForge"}
                         logoUrl={tenantConfig?.themeConfig?.logoUrl}
                     />
                 )}
-                {isTrainerScope && (
+                {false && (
                     <TenantStaffSidebar
                         tenantName={tenantConfig?.name || "FitForge"}
                         logoUrl={tenantConfig?.themeConfig?.logoUrl}
                     />
                 )}
-                {isAdminScope && (
+                {true && (
                     <TenantAdminSidebar
                         tenantName={tenantConfig?.name || subdomain}
                         logoUrl={tenantConfig?.themeConfig?.logoUrl}
@@ -133,7 +132,7 @@ export default async function TenantLayout({
             </div>
 
             {/* Mobile Bottom Navigation Bar Configurations */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-zinc-900/80 backdrop-blur-lg border-t border-white/10 flex items-center justify-around px-6 z-50">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-popover/80 backdrop-blur-lg border-t border-border flex items-center justify-around px-6 z-50">
                 {isMemberScope && (
                     <>
                         <MobileNavItem icon={<Home size={20}/>} label="Dashboard" active/>

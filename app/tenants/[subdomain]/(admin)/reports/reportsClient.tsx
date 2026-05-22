@@ -24,11 +24,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
     TrendingUp,
     Download,
-    Layers,
-    Clock,
-    AlertTriangle,
-    CheckCircle2,
-    RefreshCcw
+    AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,7 +42,7 @@ const chartConfig = {
     },
     cashManual: {
         label: "Manual/Cash Entries",
-        color: "#52525b",
+        color: "var(--color-muted-foreground)",
     }
 } satisfies ChartConfig;
 
@@ -89,10 +85,10 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 text-white">
+        <div className="space-y-8 animate-in fade-in duration-500 text-foreground">
 
             {/* Context Header Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
                 <div className="space-y-1">
                     <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
                         Analytical Overview
@@ -106,7 +102,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                         onClick={handleCsvExport}
                         disabled={isExporting}
                         variant="outline"
-                        className="h-10 border-white/5 bg-zinc-900 rounded-xl hover:bg-zinc-800 text-zinc-300 text-xs font-semibold gap-2 px-4"
+                        className="h-10 border-border bg-card rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground text-xs font-semibold gap-2 px-4"
                     >
                         <Download className="w-3.5 h-3.5" /> {isExporting ? "Compiling..." : "Export Financial Ledger"}
                     </Button>
@@ -143,22 +139,22 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
 
                 {/* Visual Chart Infrastructure Block */}
                 <div className="xl:col-span-2 space-y-6">
-                    <Card className="bg-zinc-900/50 border-white/5 rounded-[2rem] p-6">
+                    <Card className="bg-card border-border rounded-lg p-6">
                         <CardHeader className="p-0 pb-6 flex flex-row items-center justify-between space-y-0">
                             <div className="space-y-1">
-                                <CardTitle className="text-sm font-bold uppercase tracking-widest text-zinc-400">Stream Allocations</CardTitle>
-                                <CardDescription className="text-zinc-500 text-xs">Comparing automatic gateway collections vs manual cash</CardDescription>
+                                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Stream Allocations</CardTitle>
+                                <CardDescription className="text-muted-foreground/60 text-xs">Comparing automatic gateway collections vs manual cash</CardDescription>
                             </div>
-                            <span className="text-xs text-emerald-400 font-mono bg-emerald-500/5 border border-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                            <span className="text-xs text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
                                 <TrendingUp className="w-3 h-3" /> Healthy Margin
                             </span>
                         </CardHeader>
                         <CardContent className="p-0">
                             <ChartContainer config={chartConfig} className="h-[280px] w-full">
                                 <BarChart accessibilityLayer data={billingStreamData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#1f1f23" vertical={false} />
-                                    <XAxis dataKey="month" stroke="#52525b" tickLine={false} axisLine={false} tickMargin={8} />
-                                    <YAxis stroke="#52525b" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" vertical={false} />
+                                    <XAxis dataKey="month" stroke="currentColor" className="text-muted-foreground" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis stroke="currentColor" className="text-muted-foreground" tickLine={false} axisLine={false} tickMargin={8} />
                                     <ChartTooltip content={<ChartTooltipContent />} />
                                     <ChartLegend content={<ChartLegendContent />} />
                                     <Bar dataKey="subscriptions" fill="var(--color-subscriptions)" radius={[4, 4, 0, 0]} stackId="a" />
@@ -169,19 +165,19 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                     </Card>
 
                     {/* Manual Bank/Cash Reconciliation Module */}
-                    <Card className="bg-zinc-900/50 border-white/5 rounded-[2rem] p-6">
+                    <Card className="bg-card border-border rounded-lg p-6">
                         <div className="space-y-1 mb-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Manual Payment Verification</h3>
-                            <p className="text-xs text-zinc-500">Cross-reference incoming offline bank transfers with corresponding billing schedules</p>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Manual Payment Verification</h3>
+                            <p className="text-xs text-muted-foreground/60">Cross-reference incoming offline bank transfers with corresponding billing schedules</p>
                         </div>
-                        <div className="border border-white/5 rounded-xl overflow-hidden bg-zinc-950/40">
+                        <div className="border border-border rounded-md overflow-hidden bg-background/40">
                             <Table>
-                                <TableHeader className="bg-zinc-950">
-                                    <TableRow className="border-b border-white/5 hover:bg-transparent">
-                                        <TableHead className="text-zinc-500 text-xs py-3.5 pl-4">Target Account/Member</TableHead>
-                                        <TableHead className="text-zinc-500 text-xs">Method</TableHead>
-                                        <TableHead className="text-zinc-500 text-xs">Amount</TableHead>
-                                        <TableHead className="text-zinc-500 text-xs text-right pr-4">Action Context</TableHead>
+                                <TableHeader className="bg-background">
+                                    <TableRow className="border-b border-border hover:bg-transparent">
+                                        <TableHead className="text-muted-foreground text-xs py-3.5 pl-4">Target Account/Member</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs">Method</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs">Amount</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs text-right pr-4">Action Context</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -190,15 +186,15 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                         { id: "tx-2", name: "M. F. Perera (Cash at Counter)", method: "CASH", amount: 15000 },
                                         { id: "tx-3", name: "Studio Core Sri Lanka (Corporate Cheque)", method: "BANK_TRANSFER", amount: 45500 }
                                     ].map((tx) => (
-                                        <TableRow key={tx.id} className="border-b border-white/5 hover:bg-zinc-900/40 group">
-                                            <TableCell className="py-3.5 pl-4 font-bold text-sm text-zinc-200">{tx.name}</TableCell>
-                                            <TableCell className="text-zinc-400 text-xs font-mono">{tx.method}</TableCell>
-                                            <TableCell className="text-zinc-200 text-xs font-mono font-bold">LKR {tx.amount.toLocaleString()}</TableCell>
+                                        <TableRow key={tx.id} className="border-b border-border hover:bg-accent/40 group">
+                                            <TableCell className="py-3.5 pl-4 font-bold text-sm text-foreground">{tx.name}</TableCell>
+                                            <TableCell className="text-muted-foreground text-xs font-mono">{tx.method}</TableCell>
+                                            <TableCell className="text-foreground text-xs font-mono font-bold">LKR {tx.amount.toLocaleString()}</TableCell>
                                             <TableCell className="text-right pr-4 py-3.5">
                                                 <Button
                                                     size="sm"
                                                     onClick={() => toast.success("Ledger transactional match recorded successfully.")}
-                                                    className="h-7 bg-zinc-900 hover:bg-emerald-950/40 hover:text-emerald-400 hover:border-emerald-500/30 text-[10px] font-bold uppercase tracking-tight border border-white/5 rounded-lg text-zinc-400 transition-all"
+                                                    className="h-7 bg-background border border-border rounded-sm hover:bg-accent hover:text-accent-foreground text-[10px] font-bold uppercase tracking-tight text-muted-foreground transition-all"
                                                 >
                                                     Reconcile
                                                 </Button>
@@ -215,10 +211,10 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                 <div className="space-y-6">
 
                     {/* Hourly Traffic Load Monitoring */}
-                    <Card className="bg-zinc-900/50 border-white/5 rounded-[2rem] p-6">
+                    <Card className="bg-card border-border rounded-lg p-6">
                         <div className="space-y-1 mb-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Peak Load Heatmaps</h3>
-                            <p className="text-xs text-zinc-500">Hourly facility capacity and hardware check-in traffic loads</p>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Peak Load Heatmaps</h3>
+                            <p className="text-xs text-muted-foreground/60">Hourly facility capacity and hardware check-in traffic loads</p>
                         </div>
                         <div className="space-y-2">
                             {[
@@ -227,19 +223,19 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                 { hour: "12:00 PM - 04:00 PM (Steady Baseline)", load: 58, status: "MODERATE" },
                                 { hour: "04:00 PM - 08:00 PM (Evening Surge)", load: 88, status: "HIGH" },
                             ].map((slot, i) => (
-                                <div key={i} className="p-3 bg-zinc-950/60 rounded-xl border border-white/5 space-y-2">
+                                <div key={i} className="p-3 bg-background/60 rounded-md border border-border space-y-2">
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="font-bold text-zinc-300">{slot.hour}</span>
+                                        <span className="font-bold text-foreground">{slot.hour}</span>
                                         <span className={cn(
-                                            "font-mono text-[9px] font-bold px-1.5 py-0.5 rounded",
-                                            slot.status === "CRITICAL" || slot.status === "HIGH" ? "text-amber-400 bg-amber-500/10" : "text-zinc-500 bg-zinc-900"
+                                            "font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-sm border",
+                                            slot.status === "CRITICAL" || slot.status === "HIGH" ? "text-amber-500 bg-amber-500/10 border-amber-500/20" : "text-muted-foreground bg-muted border-border"
                                         )}>{slot.load}% Capacity</span>
                                     </div>
-                                    <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+                                    <div className="h-1.5 w-full bg-muted border border-border rounded-full overflow-hidden">
                                         <div
                                             className={cn(
                                                 "h-full rounded-full transition-all",
-                                                slot.load > 85 ? "bg-primary" : slot.load > 50 ? "bg-cyan-500" : "bg-zinc-700"
+                                                slot.load > 85 ? "bg-primary" : slot.load > 50 ? "bg-cyan-500" : "bg-muted-foreground/40"
                                             )}
                                             style={{ width: `${slot.load}%` }}
                                         />
@@ -250,17 +246,17 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                     </Card>
 
                     {/* Operational Risk Management Notification Panel */}
-                    <Card className="bg-zinc-900 border border-white/5 rounded-[2rem] p-6 space-y-4">
+                    <Card className="bg-card border-border rounded-lg p-6 space-y-4">
                         <div className="flex items-center gap-2.5">
                             <AlertTriangle className="w-5 h-5 text-amber-500" />
-                            <h3 className="text-base font-black italic uppercase tracking-tight text-white">Retention Risk Warnings</h3>
+                            <h3 className="text-base font-black italic uppercase tracking-tight text-foreground">Retention Risk Warnings</h3>
                         </div>
-                        <p className="text-xs text-zinc-400 leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                             The core platform identified **3 profiles** stuck inside active `GRACE_PERIOD` parameters due to repeated recurring payment failures on local gateways.
                         </p>
                         <Button
                             onClick={() => toast.info("Opening SMS communication broadcasting queue...")}
-                            className="w-full bg-zinc-950 hover:bg-zinc-800 border border-white/5 rounded-xl h-10 text-xs font-bold gap-2 text-zinc-300 transition-colors"
+                            className="w-full bg-background border border-border rounded-md h-10 text-xs font-bold gap-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                             Review Lockout Buffer Queue
                         </Button>
@@ -276,13 +272,13 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
 function ReportStatCard({ title, value, subtext, isHighlight = false }: { title: string; value: string; subtext: string; isHighlight?: boolean }) {
     return (
         <Card className={cn(
-            "bg-zinc-900/40 border-white/5 rounded-2xl p-5 flex flex-col gap-3 transition-all hover:border-white/10",
-            isHighlight && "ring-1 ring-amber-500/20 bg-amber-950/5"
+            "bg-card border-border rounded-md p-5 flex flex-col gap-3 transition-all hover:border-muted-foreground/20",
+            isHighlight && "ring-1 ring-amber-500/20 bg-amber-500/5"
         )}>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{title}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{title}</span>
             <div className="space-y-1">
-                <div className={cn("text-xl font-black font-mono tracking-tight", isHighlight ? "text-amber-400" : "text-white")}>{value}</div>
-                <p className="text-[10px] text-zinc-500 font-medium">{subtext}</p>
+                <div className={cn("text-xl font-black font-mono tracking-tight", isHighlight ? "text-amber-500" : "text-foreground")}>{value}</div>
+                <p className="text-[10px] text-muted-foreground font-medium">{subtext}</p>
             </div>
         </Card>
     );

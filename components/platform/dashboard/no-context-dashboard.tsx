@@ -53,7 +53,7 @@ export function NoContextDashboard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <Link href="/explore" passHref >
+                        <Link href="/discover" passHref >
                             <Button
                                 className="w-full h-12 bg-white hover:bg-zinc-200 text-zinc-950 font-black uppercase tracking-wider rounded-xl transition-all">
                                 Explore Partner Gyms
