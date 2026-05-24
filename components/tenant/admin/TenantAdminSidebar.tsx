@@ -93,6 +93,12 @@ export function TenantAdminSidebar({ tenantName, logoUrl }: TenantAdminSidebarPr
                     active={pathname.startsWith(`${baseAdminUrl}/members`)}
                 />
                 <SidebarItem
+                    icon={<Users size={18} />}
+                    label="Invites"
+                    href={`${baseAdminUrl}/invites`}
+                    active={pathname.startsWith(`${baseAdminUrl}/invites`)}
+                />
+                <SidebarItem
                     icon={<BarChart3 size={18} />}
                     label="Reports"
                     href={`${baseAdminUrl}/reports`}
