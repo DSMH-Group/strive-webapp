@@ -13,7 +13,14 @@ export const auth = betterAuth({
         camelCase: false
     }),
 
-    baseURL: "https://dsmhgroup.com",
+    baseURL: {
+        allowedHosts: [
+            "dsmhgroup.com",
+            "*.dsmhgroup.com"
+        ],
+        protocol: "https",
+        fallback: "https://dsmhgroup.com"
+    },
 
     // FIXED: Correct nested { create: { before: ... } } modern signature format
     databaseHooks: {
@@ -93,7 +100,9 @@ export const auth = betterAuth({
 
     trustedOrigins: [
         "https://dsmhgroup.com",
-        "https://*.dsmhgroup.com"
+        "https://*.dsmhgroup.com",
+        "http://localhost:3000",
+        "http://*.localhost:3000"
     ],
 
     user: {

@@ -18,11 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost.">
-      <change afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(tenants): move tenant layout to subdomain-specific folder for better structure">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,11 +94,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\tenants\[subdomain]" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\tenants" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\components\platform" />
-      <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\(platform)" />
     </key>
   </component>
   <component name="RunManager" selected="npm.dev">
@@ -138,7 +136,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="4406000" />
+      <workItem from="1779603426492" duration="5137000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -284,7 +282,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779607820981</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering.">
+      <option name="closed" value="true" />
+      <created>1779609291862</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1779609291862</updated>
+    </task>
+    <task id="LOCAL-00020" summary="refactor(tenants): move tenant layout to subdomain-specific folder for better structure">
+      <option name="closed" value="true" />
+      <created>1779609503603</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1779609503603</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -310,6 +324,9 @@
     <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
     <MESSAGE value="feat(dashboard): refactor tenant URL generation logic for improved readability and flexibility&#10;&#10;- Replaced hardcoded URLs with a dynamic `NEXT_PUBLIC_APP_URL` environment variable. &#10;- Updated URL construction for admin console links to use `URL` object." />
     <MESSAGE value="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost." />
+    <MESSAGE value="feat(tenants): integrate QueryProvider and clean up tenant layout code&#10;&#10;- Added `QueryProvider` for consistent query state management across tenant layouts.&#10;- Improved code readability by adjusting formatting and structure in `layout.tsx`.&#10;- Optimized imports and eliminated redundant file paths." />
+    <MESSAGE value="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering." />
+    <MESSAGE value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
   </component>
 </project>
