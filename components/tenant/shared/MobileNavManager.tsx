@@ -1,13 +1,15 @@
 // src/components/tenant/MobileNavManager.tsx
-import {getMembershipRole} from "@/lib/membership";
+import {parseMembershipRole} from "@/lib/membership";
 import {Calendar, CreditCard, Dumbbell, Home, LayoutDashboard, Settings, Users} from "lucide-react";
 
 interface MobileNavProps {
+    user: { id: string; name: string };
     tenantId: string;
+    config: any;
 }
 
-export async function MobileNavManager({tenantId}: MobileNavProps) {
-    const role = await getMembershipRole(tenantId);
+export async function MobileNavManager({user, tenantId, config}: MobileNavProps) {
+    const role = parseMembershipRole(user, tenantId);
 
     return (
         <nav

@@ -95,7 +95,7 @@ export default async function TenantLayout({
                 <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
                     {children}
                 </main>
-                <MobileNavManager tenantId={tenantId} />
+                <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig} />
             </div>
         </div>
     );
