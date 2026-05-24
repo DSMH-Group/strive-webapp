@@ -66,7 +66,7 @@ export default async function MembersPage({
 
     if (!tenantId) {
         // Safe structural fallback to cluster discovery if multi-tenant payload parsing missing
-        redirect("https://strive.lk/explore");
+        redirect("https://dsmhgroup.com/explore");
     }
 
     // 2. Session extraction via better-auth or custom JWT verification logic

@@ -109,7 +109,7 @@ export default function DiscoverGymsClient({ initialToken, globalUser }: Discove
             queryClient.invalidateQueries({ queryKey: ["tenants"] });
 
             setTimeout(() => {
-                window.location.href = `https://${variables.subdomain}.stride.lk/dashboard`;
+                window.location.href = `https://${variables.subdomain}.dsmhgroup.com/dashboard`;
             }, 1200);
         },
         onError: (err: Error) => {
@@ -123,7 +123,7 @@ export default function DiscoverGymsClient({ initialToken, globalUser }: Discove
         if (tenant.membershipStatus === "NONE") {
             linkMembershipMutation.mutate({ tenantId: tenant.id, subdomain: tenant.subdomain });
         } else {
-            window.location.href = `https://${tenant.subdomain}.stride.lk/dashboard`;
+            window.location.href = `https://${tenant.subdomain}.dsmhgroup.com/dashboard`;
         }
     };
 
@@ -224,7 +224,7 @@ export default function DiscoverGymsClient({ initialToken, globalUser }: Discove
                                             {gym.name}
                                         </h3>
                                         <p className="text-xs text-muted-foreground font-mono tracking-tighter">
-                                            {gym.subdomain}.stride.lk
+                                            {gym.subdomain}.dsmhgroup.com
                                         </p>
                                     </div>
                                 </div>

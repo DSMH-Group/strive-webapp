@@ -55,7 +55,7 @@ export default async function MemberDashboardPage({
     const tenantId = requestHeaders.get("x-tenant-id");
 
     if (!tenantId) {
-        redirect("https://strive.lk/explore");
+        redirect("https://dsmhgroup.com/explore");
     }
 
     // Server-side active session check placeholders

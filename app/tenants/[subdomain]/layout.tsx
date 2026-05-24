@@ -63,7 +63,7 @@ export default async function TenantLayout({
     const tenantId = reqHeaders.get("x-tenant-id");
 
     // Route to marketplace/exploration if tenant context handshake fails
-    const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'stride.lk';
+    const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'dsmhgroup.com';
 
     if (!tenantId) redirect(`https://${rootDomain}/explore`);
 

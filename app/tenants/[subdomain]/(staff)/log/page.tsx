@@ -49,7 +49,7 @@ export default async function TrainerLogPage({
     const tenantId = requestHeaders.get("x-tenant-id");
 
     if (!tenantId) {
-        redirect("https://strive.lk/explore");
+        redirect("https://dsmhgroup.com/explore");
     }
 
     // Server-side session extraction frameworks

@@ -38,7 +38,7 @@ export default async function SettingsPage({
     const tenantId = requestHeaders.get("x-tenant-id");
 
     if (!tenantId) {
-        redirect("https://strive.lk/explore");
+        redirect("https://dsmhgroup.com/explore");
     }
 
     // Server session token parsing frameworks

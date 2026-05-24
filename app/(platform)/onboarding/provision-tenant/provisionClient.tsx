@@ -82,7 +82,7 @@ export default function ProvisionTenantClient({ownerId}: { ownerId: string }) {
             toast.success("Gym workspace provisioned successfully!");
 
             const port = process.env.NODE_ENV === 'development' ? ':3000' : '';
-            const targetDomain = process.env.NODE_ENV === 'development' ? 'localhost' : 'stride.lk';
+            const targetDomain = process.env.NODE_ENV === 'development' ? 'localhost' : 'dsmhgroup.com';
 
             window.location.href = `http://${values.subdomain}.${targetDomain}${port}`;
         } catch (err) {
@@ -118,7 +118,7 @@ export default function ProvisionTenantClient({ownerId}: { ownerId: string }) {
                                     <Input placeholder="powerworld" {...register("subdomain")}
                                            className="h-11 bg-zinc-950 border-white/10 rounded-xl pr-28 focus:ring-1 focus:ring-primary/30 text-sm font-semibold"/>
                                     <span
-                                        className="absolute right-4 text-xs font-bold text-zinc-500 bg-zinc-900 border border-white/5 px-2 py-1 rounded-md">.stride.lk</span>
+                                        className="absolute right-4 text-xs font-bold text-zinc-500 bg-zinc-900 border border-white/5 px-2 py-1 rounded-md">.dsmhgroup.com</span>
                                 </div>
                                 {errors.subdomain &&
                                     <p className="text-red-500 text-xs font-medium">{errors.subdomain.message}</p>}

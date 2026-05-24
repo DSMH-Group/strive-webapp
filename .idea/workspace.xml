@@ -18,9 +18,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(proxy): adjust matcher configuration and update internal workspace changes&#10;&#10;- Migrated `/auth` pages to a simplified folder structure for better routing organization.&#10;- Updated IntelliJ workspace files to reflect recent task history and cached file changes.">
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/layout.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/layout.tsx" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation.">
+      <change beforePath="$PROJECT_DIR$/app/(platform)/discover/discoverClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/discover/discoverClient.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/onboarding/provision-tenant/provisionClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/onboarding/provision-tenant/provisionClient.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/reports/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/reports/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/activities/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/activities/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/progress/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/progress/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/clients/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/clients/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/log/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/log/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/schedule/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(staff)/schedule/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +39,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="116" />
+    <option name="cachedIndexableFilesCount" value="115" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -139,6 +150,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
+      <workItem from="1779613270757" duration="1345000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -404,7 +416,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779613133367</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="refactor(dashboard): remove unused client components for dashboard and gym discovery&#10;&#10;- Deleted `dashboardClient.tsx` and `discoverClient.tsx` to clean up unused code and improve project structure.">
+      <option name="closed" value="true" />
+      <created>1779613282642</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1779613282642</updated>
+    </task>
+    <task id="LOCAL-00035" summary="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation.">
+      <option name="closed" value="true" />
+      <created>1779613520443</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1779613520443</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -412,8 +440,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(dashboard): integrate dynamic tenant-specific data and discovery directory&#10;&#10;- Replaced static dashboard logic with tenant-specific membership, attendance, and metric data fetched from the backend.&#10;- Added secure server-to-server call utilities using Bearer tokens.&#10;- Introduced `DiscoverGymsPage` for exploring partner gyms with search and filter functionality.&#10;- Removed deprecated ESLint configuration." />
-    <MESSAGE value="feat(dashboard): import `headers` from Next.js for server-side functionality" />
     <MESSAGE value="feat(dashboard): import `headers` from Next.js for future enhancements  &#10;&#10;- Added `headers` import to `page.tsx` for improved request handling flexibility.  &#10;- Updated project workspace configurations for IDE enhancements and indexing." />
     <MESSAGE value="feat(discover): implement dynamic gym discovery with backend integration&#10;&#10;- Replaced mock data with dynamic tenant fetching using `react-query`.&#10;- Integrated secure API calls leveraging user session tokens.&#10;- Introduced membership linking and portal redirection logic.&#10;- Enhanced UI/UX with loading/error states and deferred search input handling.&#10;- Updated dependencies: added `sonner` for toasts and `next-themes` for theming." />
     <MESSAGE value="feat(discover): modularize client and server logic for gym discovery&#10;&#10;- Extracted client-side gym discovery logic to `DiscoverGymsClient`.&#10;- Improved server-side session validation and token forwarding.&#10;- Removed deprecated logic and simplified `DiscoverGymsPage` structure.&#10;- Updated `Header` and `Sidebar` for UI consistency.&#10;- Removed unused sidebar item `Favorites`." />
@@ -437,6 +463,8 @@
     <MESSAGE value="refactor(proxy): exclude `/login` from proxy matcher configuration" />
     <MESSAGE value="refactor(proxy): update matcher logic to exclude `/login` and `/dashboard` paths&#10;&#10;- Broadened internal asset guards to bypass additional routes from custom re-writes.&#10;- Updated hostname handling for consistency across local and production environments." />
     <MESSAGE value="refactor(proxy): adjust matcher configuration and update internal workspace changes&#10;&#10;- Migrated `/auth` pages to a simplified folder structure for better routing organization.&#10;- Updated IntelliJ workspace files to reflect recent task history and cached file changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor(proxy): adjust matcher configuration and update internal workspace changes&#10;&#10;- Migrated `/auth` pages to a simplified folder structure for better routing organization.&#10;- Updated IntelliJ workspace files to reflect recent task history and cached file changes." />
+    <MESSAGE value="refactor(dashboard): remove unused client components for dashboard and gym discovery&#10;&#10;- Deleted `dashboardClient.tsx` and `discoverClient.tsx` to clean up unused code and improve project structure." />
+    <MESSAGE value="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation." />
   </component>
 </project>
