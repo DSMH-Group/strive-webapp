@@ -18,7 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Obscene logs">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,6 +31,7 @@
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
+    <option name="PREVIEW_PUSH_PROTECTED_ONLY" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="master" />
@@ -138,23 +139,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="8026000" />
-    </task>
-    <task id="LOCAL-00001" summary="initial commit">
-      <option name="closed" value="true" />
-      <created>1778564634738</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1778564634738</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Added necessary files">
-      <option name="closed" value="true" />
-      <created>1778571595825</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1778571595825</updated>
+      <workItem from="1779613270757" duration="9451000" />
     </task>
     <task id="LOCAL-00003" summary="Added necessary files">
       <option name="closed" value="true" />
@@ -532,7 +517,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779625748381</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Updated stuff">
+      <option name="closed" value="true" />
+      <created>1779626336553</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1779626336553</updated>
+    </task>
+    <task id="LOCAL-00051" summary="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths.">
+      <option name="closed" value="true" />
+      <created>1779626585915</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1779626585915</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -540,8 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
-    <MESSAGE value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
     <MESSAGE value="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment." />
     <MESSAGE value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
     <MESSAGE value="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development." />
@@ -565,6 +564,8 @@
     <MESSAGE value="Fixed sidebar error again" />
     <MESSAGE value="Moved to client side" />
     <MESSAGE value="Obscene logs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Obscene logs" />
+    <MESSAGE value="Updated stuff" />
+    <MESSAGE value="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths." />
   </component>
 </project>
