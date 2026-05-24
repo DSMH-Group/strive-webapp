@@ -19,6 +19,7 @@ interface PrismaTenantDto {
     id: string;
     name: string;
     slug: string;
+    domain: string;
 }
 
 interface PrismaMembershipRoleDto {
@@ -68,7 +69,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         }
     });
 
-    const targetMembership = userProfile?.memberships?.find(m => m.tenant.id === tenantId || m.tenant.slug === subdomain);
+    const targetMembership = userProfile?.memberships?.find(m => m.tenant.id === tenantId || m.tenant.domain === subdomain);
     const hasAdminAccess = targetMembership?.roles.some(r => r.role === "ORG_ADMIN" || r.role === "MANAGER");
 
     // 3. Parallel Operational Admin Data Core Loader
