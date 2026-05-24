@@ -64,7 +64,7 @@ export function NoContextDashboard({ hideOnboardingBanner = false }: NoContextDa
                                 Explore Partner Gyms
                             </Button>
                         </Link>
-                        <Link href="/support/find-subdomain" passHref>
+                        <Link href="/support/pfind-subdomain" passHref>
                             <Button variant="ghost" className="w-full h-11 text-muted-foreground hover:text-foreground hover:bg-accent font-bold text-xs uppercase tracking-tight rounded-md">
                                 My gym uses Strive - Find my club URL
                             </Button>

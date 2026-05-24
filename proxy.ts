@@ -32,9 +32,8 @@ export async function proxy(request: NextRequest) {
         subdomain = hostname.replace('.dsmhgroup.local', '');
     } else {
         const parts = hostname.split('.');
-        // Check if we have a valid subdomain configuration layout (e.g., test.dsmhgroup.com -> length 3)
-        // Ensure that the middle segment is not our root domain word flag!
-        if (parts.length >= 3 && parts[parts.length - 2] !== 'dsmhgroup') {
+
+        if (parts.length >= 3) {
             subdomain = parts[0];
         }
     }
