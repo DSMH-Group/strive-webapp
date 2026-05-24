@@ -6,11 +6,14 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl;
 
     // 1. BROADEN INTERNAL ASSET GUARDS: Ensure all NextJS manifests, dev assets, and static files pass safely
+    // 🚀 INJECTED FORCE BYPASS: Exclude main root landing layout blocks completely from custom re-writes
     if (
         url.pathname.startsWith('/_next') ||
         url.pathname.startsWith('/api') ||
         url.pathname.includes('.') ||
-        url.pathname.startsWith('/favicon')
+        url.pathname.startsWith('/favicon') ||
+        url.pathname === '/login' ||
+        url.pathname === '/dashboard'
     ) {
         return NextResponse.next();
     }
@@ -22,30 +25,29 @@ export async function proxy(request: NextRequest) {
 
     let subdomain: string | null = null;
 
+    // 🚀 FIX: Swapped out old local domain references for clean dsmhgroup namespaces
     if (hostname.endsWith('.localhost')) {
         subdomain = hostname.replace('.localhost', '');
-    } else if (hostname.endsWith('.stride.local')) {
-        subdomain = hostname.replace('.stride.local', '');
+    } else if (hostname.endsWith('.dsmhgroup.local')) {
+        subdomain = hostname.replace('.dsmhgroup.local', '');
     } else {
         const parts = hostname.split('.');
-        if (parts.length >= 3 && parts[parts.length - 2] !== 'stride') {
+        // Check if we have a valid subdomain configuration layout (e.g., test.dsmhgroup.com -> length 3)
+        // Ensure that the middle segment is not our root domain word flag!
+        if (parts.length >= 3 && parts[parts.length - 2] !== 'dsmhgroup') {
             subdomain = parts[0];
         }
     }
 
-    // 2. ROOT HOST SYNC: Explicitly treat BOTH localhost and stride.local as the root site platforms
+    // 2. ROOT HOST SYNC: Treat localhost, local test domains, and live apex as the primary admin platform
     const isMainSite =
         !subdomain ||
         subdomain === 'www' ||
         subdomain === 'strive' ||
         hostname === 'localhost' ||
-        hostname === 'stride.local' ||
-        hostname === 'dsmhgroup.com' || // 🚀 FIX: Add your live production root domain here!
-        hostname.startsWith('strive-webapp-development');
-
-    if (isMainSite) {
-        return NextResponse.next();
-    }
+        hostname === 'dsmhgroup.local' ||
+        hostname === 'dsmhgroup.com' ||
+        hostname.startsWith('strive-webapp-development'); // Keeping this if your staging container relies on it
 
     if (isMainSite) {
         return NextResponse.next();

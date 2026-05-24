@@ -18,10 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(auth): remove redundant comments in baseURL logic">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/proxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(proxy): exclude `/login` from proxy matcher configuration" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -136,7 +133,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="6937000" />
+      <workItem from="1779603426492" duration="7439000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -370,7 +367,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779611210483</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="refactor(proxy): exclude `/login` from proxy matcher configuration">
+      <option name="closed" value="true" />
+      <created>1779611859129</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1779611859129</updated>
+    </task>
+    <task id="LOCAL-00031" summary="refactor(proxy): exclude `/login` from proxy matcher configuration">
+      <option name="closed" value="true" />
+      <created>1779612132322</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1779612132322</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -378,7 +391,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="Added necessary files" />
     <MESSAGE value="changed middleware to proxy.ts" />
     <MESSAGE value="Basic dashboard up" />
     <MESSAGE value="feat(dashboard): integrate dynamic tenant-specific data and discovery directory&#10;&#10;- Replaced static dashboard logic with tenant-specific membership, attendance, and metric data fetched from the backend.&#10;- Added secure server-to-server call utilities using Bearer tokens.&#10;- Introduced `DiscoverGymsPage` for exploring partner gyms with search and filter functionality.&#10;- Removed deprecated ESLint configuration." />
@@ -403,6 +415,7 @@
     <MESSAGE value="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development." />
     <MESSAGE value="fix(proxy): add production domain to hostname check" />
     <MESSAGE value="refactor(auth): remove redundant comments in baseURL logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor(auth): remove redundant comments in baseURL logic" />
+    <MESSAGE value="refactor(proxy): exclude `/login` from proxy matcher configuration" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(proxy): exclude `/login` from proxy matcher configuration" />
   </component>
 </project>
