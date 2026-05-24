@@ -6,7 +6,7 @@ import {genericOAuth, keycloak} from "better-auth/plugins";
 import {db} from "@/db/db";
 import {eq} from "drizzle-orm";
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = true;
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {

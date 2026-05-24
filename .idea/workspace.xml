@@ -18,9 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility.">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): add production domain to hostname check">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +136,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="5526000" />
+      <workItem from="1779603426492" duration="5964000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -322,7 +322,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779610157078</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development.">
+      <option name="closed" value="true" />
+      <created>1779610409697</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1779610409697</updated>
+    </task>
+    <task id="LOCAL-00025" summary="fix(proxy): add production domain to hostname check">
+      <option name="closed" value="true" />
+      <created>1779610689190</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1779610689190</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -330,7 +346,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="initial commit" />
     <MESSAGE value="OAUTH authentication works" />
     <MESSAGE value="Added necessary files" />
     <MESSAGE value="changed middleware to proxy.ts" />
@@ -354,6 +369,8 @@
     <MESSAGE value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
     <MESSAGE value="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment." />
     <MESSAGE value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
+    <MESSAGE value="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development." />
+    <MESSAGE value="fix(proxy): add production domain to hostname check" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): add production domain to hostname check" />
   </component>
 </project>
