@@ -18,10 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): update dashboard link to use custom domain&#10;&#10;- Replaced subdomain logic for generating admin URLs, switching from `slug` to `domain`.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -139,7 +136,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="3156000" />
+      <workItem from="1779613270757" duration="3513000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -453,7 +450,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779616756167</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="fix(proxy): add debug logging for profile fetch in admin console&#10;&#10;- Introduced temporary debug logging to inspect profile matrix output.&#10;- Adjusted JSON parsing logic in `consoleClient.tsx`.">
+      <option name="closed" value="true" />
+      <created>1779617770239</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1779617770239</updated>
+    </task>
+    <task id="LOCAL-00041" summary="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests.">
+      <option name="closed" value="true" />
+      <created>1779618037593</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1779618037593</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -461,8 +474,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests." />
-    <MESSAGE value="feat(member): implement dynamic member dashboard, sidebar, and activity tracking&#10;&#10;- Added a tenant-specific member dashboard with server-to-server metrics integration and mock fallback data.&#10;- Introduced an activity tracking feature with extensible filters and detailed workout tracking.&#10;- Implemented a responsive sidebar for navigation with logout functionality and badge support.&#10;- Enhanced UI/UX with interactive charts, gamification elements, and progress visualization." />
     <MESSAGE value="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design." />
     <MESSAGE value="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins." />
     <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
@@ -486,6 +497,8 @@
     <MESSAGE value="fix(auth): update login redirect to use HTTPS" />
     <MESSAGE value="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component." />
     <MESSAGE value="fix(proxy): update dashboard link to use custom domain&#10;&#10;- Replaced subdomain logic for generating admin URLs, switching from `slug` to `domain`." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): update dashboard link to use custom domain&#10;&#10;- Replaced subdomain logic for generating admin URLs, switching from `slug` to `domain`." />
+    <MESSAGE value="fix(proxy): add debug logging for profile fetch in admin console&#10;&#10;- Introduced temporary debug logging to inspect profile matrix output.&#10;- Adjusted JSON parsing logic in `consoleClient.tsx`." />
+    <MESSAGE value="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
   </component>
 </project>

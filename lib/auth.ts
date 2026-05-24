@@ -14,7 +14,17 @@ export const auth = betterAuth({
     }),
 
     // 1. Dynamic Host Routing Core
-    baseURL: "https://dsmhgroup.com",
+    baseURL: {
+        allowedHosts: [
+            "dsmhgroup.com",
+            "www.dsmhgroup.com",
+            "*.dsmhgroup.com",        // 🌟 Tells Better-Auth to actively accept and route subdomains!
+            "localhost",
+            "*.localhost"
+        ],
+        protocol: process.env.NODE_ENV === "development" ? "http" : "https",
+        fallback: "https://dsmhgroup.com"
+    },
 
     databaseHooks: {
         user: {
