@@ -6,7 +6,7 @@ import {genericOAuth, keycloak} from "better-auth/plugins";
 import {db} from "@/db/db";
 import {eq} from "drizzle-orm";
 
-const isProd = true;
+const isProd = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -16,13 +16,9 @@ export const auth = betterAuth({
     }),
 
     // 1. Dynamic Host Routing Core
-    baseURL: isProd
-        ? {
-            allowedHosts: ["dsmhgroup.com", "*.dsmhgroup.com"],
-            protocol: "https",
-            fallback: "https://dsmhgroup.com"
-        }
-        : "http://localhost:3000",
+// Standardize to absolute string origins.
+    // Better-Auth natively parses subdomains correctly via trustedOrigins alone!
+    baseURL: isProd ? "https://dsmhgroup.com" : "http://localhost:3000",
 
     databaseHooks: {
         user: {
