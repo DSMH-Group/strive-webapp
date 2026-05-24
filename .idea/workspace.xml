@@ -18,8 +18,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests.">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tenant/shared/TenantSidebarManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/shared/TenantSidebarManager.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/membership.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/membership.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -138,7 +140,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="4675000" />
+      <workItem from="1779613270757" duration="5121000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -476,7 +478,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779618305954</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes.">
+      <option name="closed" value="true" />
+      <created>1779619569531</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1779619569531</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -484,7 +494,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design." />
     <MESSAGE value="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins." />
     <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
     <MESSAGE value="feat(dashboard): refactor tenant URL generation logic for improved readability and flexibility&#10;&#10;- Replaced hardcoded URLs with a dynamic `NEXT_PUBLIC_APP_URL` environment variable. &#10;- Updated URL construction for admin console links to use `URL` object." />
@@ -509,6 +518,7 @@
     <MESSAGE value="fix(proxy): update dashboard link to use custom domain&#10;&#10;- Replaced subdomain logic for generating admin URLs, switching from `slug` to `domain`." />
     <MESSAGE value="fix(proxy): add debug logging for profile fetch in admin console&#10;&#10;- Introduced temporary debug logging to inspect profile matrix output.&#10;- Adjusted JSON parsing logic in `consoleClient.tsx`." />
     <MESSAGE value="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
+    <MESSAGE value="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes." />
   </component>
 </project>

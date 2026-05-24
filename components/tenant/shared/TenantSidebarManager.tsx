@@ -18,25 +18,10 @@ export async function TenantSidebarManager({user, tenantId, config}: SidebarMana
 
     switch (role) {
         case 'ADMIN':
-            return (
-                <TenantAdminSidebar
-                    tenantName={tenantName}
-                    logoUrl={logoUrl}
-                />
-            );
+            return <TenantAdminSidebar tenantName={tenantName} logoUrl={logoUrl} />;
         case 'STAFF':
-            return (
-                <TenantStaffSidebar
-                    tenantName={tenantName}
-                    logoUrl={logoUrl}
-                />
-            );
+            return <TenantStaffSidebar tenantName={tenantName} logoUrl={logoUrl} />;
         default:
-            return (
-                <TenantMemberSidebar
-                    tenantName={tenantName}
-                    logoUrl={logoUrl}
-                />
-            );
+            return <TenantMemberSidebar tenantName={tenantName} logoUrl={logoUrl} />;
     }
 }
