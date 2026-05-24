@@ -6,8 +6,6 @@ import {genericOAuth, keycloak} from "better-auth/plugins";
 import {db} from "@/db/db";
 import {eq} from "drizzle-orm";
 
-const isProd = process.env.NODE_ENV === "production";
-
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg",
@@ -16,7 +14,7 @@ export const auth = betterAuth({
     }),
 
     // 1. Dynamic Host Routing Core
-    baseURL: isProd ? "https://dsmhgroup.com" : "http://localhost:3000",
+    baseURL: "https://dsmhgroup.com",
 
     databaseHooks: {
         user: {
@@ -63,17 +61,17 @@ export const auth = betterAuth({
 
     // 2. Automated Production Cookie Isolation Policy
     advanced: {
-        useSecureCookies: isProd,
+        useSecureCookies: true,
         crossSubDomainCookies: {
             enabled: true,
             additionalCookies: ["better-auth.session_data"],
-            domain: isProd ? "dsmhgroup.com" : "localhost"
+            domain: "dsmhgroup.com"
         },
         defaultCookieAttributes: {
             sameSite: "lax",
-            secure: isProd,
+            secure: true,
             httpOnly: true,
-            domain: isProd ? ".dsmhgroup.com" : undefined,
+            domain: ".dsmhgroup.com",
         }
     },
 
