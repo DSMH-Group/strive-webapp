@@ -20,7 +20,8 @@ import {
     ArrowLeft,
     Loader2,
     AlertCircle,
-    Clock
+    Clock,
+    Copy // 🚀 Added the Copy icon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -84,6 +85,26 @@ export default function InvitesClient({ subdomain, tenantId }: InvitesClientProp
             toast.error(`Revoke operation aborted: ${err.message}`);
         }
     });
+
+    // 🚀 4. NEW: Construct and copy the magic link to the clipboard
+    const handleCopyMagicLink = (invite: any) => {
+        // Fallback to localhost:3000 if the env var isn't set
+        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "http://localhost:3000";
+        // Grab the current tenant domain so the redirect works after they register
+        const currentDomain = typeof window !== "undefined" ? window.location.host : `${subdomain}.dsmhgroup.com`;
+
+        // Build the query string securely
+        const url = new URL(`${baseUrl}/register`);
+        url.searchParams.set("inviteToken", invite.id);
+        url.searchParams.set("domain", currentDomain);
+        if (invite.email) {
+            url.searchParams.set("email", invite.email);
+        }
+
+        navigator.clipboard.writeText(url.toString())
+            .then(() => toast.success("Magic link copied! You can now paste this into WhatsApp or SMS."))
+            .catch(() => toast.error("Failed to copy link. Please check your browser permissions."));
+    };
 
     if (isLoading) {
         return (
@@ -189,16 +210,27 @@ export default function InvitesClient({ subdomain, tenantId }: InvitesClientProp
 
                                 {/* Quick Administrative Buttons */}
                                 <TableCell className="py-4 pr-6 text-right">
-                                    <div className="flex items-center justify-end gap-2">
+                                    <div className="flex items-center justify-end gap-1.5">
                                         <Button
                                             size="sm"
                                             variant="outline"
                                             onClick={() => resendMutation.mutate(invite.id)}
                                             disabled={resendMutation.isPending}
                                             className="h-8 text-[11px] font-bold border-border bg-card hover:bg-accent text-foreground gap-1.5"
-                                            title="Resend verification link code notice."
+                                            title="Resend verification link via system."
                                         >
                                             <Send className="w-3 h-3 text-primary" /> Resend
+                                        </Button>
+
+                                        {/* 🚀 NEW: The Copy Magic Link Button */}
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleCopyMagicLink(invite)}
+                                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                            title="Copy direct magic link to clipboard"
+                                        >
+                                            <Copy className="w-3.5 h-3.5" />
                                         </Button>
 
                                         <Button
