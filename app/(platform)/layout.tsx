@@ -13,8 +13,8 @@ export default async function PlatformDashboardLayout({
   // Global auth verification check for the main console hub
   const authData = await auth.api.getSession({ headers: await headers() });
   if (!authData) {
-    const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'stride.lk';
-    redirect(`http://${rootDomain}/login`);
+    const rootDomain = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : process.env.NEXT_PUBLIC_APP_URL;
+    redirect(`${rootDomain}/login`);
   }
 
   return (

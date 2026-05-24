@@ -18,9 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing.">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/layout.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +136,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="5192000" />
+      <workItem from="1779603426492" duration="5526000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -306,7 +306,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779610018309</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment.">
+      <option name="closed" value="true" />
+      <created>1779610071468</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1779610071468</updated>
+    </task>
+    <task id="LOCAL-00023" summary="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility.">
+      <option name="closed" value="true" />
+      <created>1779610157078</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1779610157078</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -336,6 +352,8 @@
     <MESSAGE value="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering." />
     <MESSAGE value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
     <MESSAGE value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
+    <MESSAGE value="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment." />
+    <MESSAGE value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
   </component>
 </project>
