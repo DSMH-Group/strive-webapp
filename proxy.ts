@@ -4,9 +4,9 @@ import type { NextRequest } from 'next/server';
 
 export async function proxy(request: NextRequest) {
     const url = request.nextUrl;
+    const origin = request.headers.get("origin") || "";
 
-    // 1. BROADEN INTERNAL ASSET GUARDS: Ensure all NextJS manifests, dev assets, and static files pass safely
-    // 🚀 INJECTED FORCE BYPASS: Exclude main root landing layout blocks completely from custom re-writes
+    // 1. BROADEN INTERNAL ASSET GUARDS
     if (
         url.pathname.startsWith('/_next') ||
         url.pathname.startsWith('/api') ||
@@ -15,6 +15,20 @@ export async function proxy(request: NextRequest) {
         url.pathname === '/login' ||
         url.pathname === '/dashboard'
     ) {
+        // 🚀 FIX: Catch cross-origin /api/auth requests here and attach CORS headers instantly!
+        if (url.pathname.startsWith('/api/auth')) {
+            const response = NextResponse.next();
+
+            // Explicitly allow subdomains to read this response
+            if (origin === "https://dsmhgroup.com" || origin.endsWith(".dsmhgroup.com")) {
+                response.headers.set("Access-Control-Allow-Origin", origin);
+                response.headers.set("Access-Control-Allow-Credentials", "true");
+                response.headers.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+                response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            }
+            return response;
+        }
+
         return NextResponse.next();
     }
 
