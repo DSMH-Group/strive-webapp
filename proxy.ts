@@ -1,6 +1,6 @@
 // src/proxy.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type {NextRequest} from 'next/server';
+import {NextResponse} from 'next/server';
 
 export async function proxy(request: NextRequest) {
     const url = request.nextUrl;
@@ -71,25 +71,24 @@ export async function proxy(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
 
     try {
-        if (subdomain === 'test') {
-            requestHeaders.set('x-tenant-id', 'test-gym-one');
-        } else {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://strive-core-development.up.railway.app";
+        // 🚀 THE FIX: Stripped out the `if (subdomain === 'test')` hardcoded bypass block completely!
+        // This forces test.dsmhgroup.com to resolve its true database UUID through the meta/resolve API.
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://strive-core-development.up.railway.app";
 
-            const resolveRes = await fetch(`${backendUrl}/api/v1/meta/resolve?domain=${hostname}`, {
-                headers: {
-                    'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
-                }
-            });
-
-            if (resolveRes.ok) {
-                const tenantData = await resolveRes.json();
-                if (tenantData?.id) {
-                    requestHeaders.set('x-tenant-id', tenantData.id);
-                }
-            } else {
-                console.error("[proxy] Core Engine rejected domain mapping parameters:", await resolveRes.text());
+        const resolveRes = await fetch(`${backendUrl}/api/v1/meta/resolve?domain=${hostname}`, {
+            headers: {
+                'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
             }
+        });
+
+        if (resolveRes.ok) {
+            const tenantData = await resolveRes.json();
+            if (tenantData?.id) {
+                console.log(`[proxy] Domain successfully resolved. Setting x-tenant-id: ${tenantData.id}`);
+                requestHeaders.set('x-tenant-id', tenantData.id);
+            }
+        } else {
+            console.error("[proxy] Core Engine rejected domain mapping parameters:", await resolveRes.text());
         }
     } catch (error) {
         console.error("[proxy] Tenant configuration footprint lookup breakdown:", error);
@@ -99,7 +98,7 @@ export async function proxy(request: NextRequest) {
     console.log('[proxy] Redirecting lifecycle execution layer down to target route path:', rewriteUrl.pathname);
 
     return NextResponse.rewrite(rewriteUrl, {
-        request: { headers: requestHeaders },
+        request: {headers: requestHeaders},
     });
 }
 

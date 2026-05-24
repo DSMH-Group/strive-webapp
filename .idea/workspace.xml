@@ -18,7 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Moved to client side" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Obscene logs">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -136,7 +138,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="7379000" />
+      <workItem from="1779613270757" duration="8026000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -522,7 +524,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779625423500</updated>
     </task>
-    <option name="localTasksCounter" value="49" />
+    <task id="LOCAL-00049" summary="Obscene logs">
+      <option name="closed" value="true" />
+      <created>1779625748381</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1779625748381</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -530,7 +540,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering." />
     <MESSAGE value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
     <MESSAGE value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
     <MESSAGE value="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment." />
@@ -555,6 +564,7 @@
     <MESSAGE value="Fixed sidebar error" />
     <MESSAGE value="Fixed sidebar error again" />
     <MESSAGE value="Moved to client side" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved to client side" />
+    <MESSAGE value="Obscene logs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Obscene logs" />
   </component>
 </project>
