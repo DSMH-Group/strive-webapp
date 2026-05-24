@@ -40,7 +40,12 @@ export async function proxy(request: NextRequest) {
         subdomain === 'strive' ||
         hostname === 'localhost' ||
         hostname === 'stride.local' ||
+        hostname === 'dsmhgroup.com' || // 🚀 FIX: Add your live production root domain here!
         hostname.startsWith('strive-webapp-development');
+
+    if (isMainSite) {
+        return NextResponse.next();
+    }
 
     if (isMainSite) {
         return NextResponse.next();
