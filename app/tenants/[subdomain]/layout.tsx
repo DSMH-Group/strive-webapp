@@ -72,7 +72,7 @@ export default async function TenantLayout({
 
     const authData = await auth.api.getSession({ headers: await headers() });
     if (!authData) {
-        redirect(`http://${rootDomain}/login`);
+        redirect(`https://${rootDomain}/login`);
     }
 
     return (
