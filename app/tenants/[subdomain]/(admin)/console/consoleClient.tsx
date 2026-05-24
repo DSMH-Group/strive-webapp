@@ -58,8 +58,13 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         queryKey: ["adminProfileHandshake"],
         queryFn: async () => {
             const res = await striveClientFetch("/api/v1/users/me", { method: "GET" });
+            const data = await res.json();
+
+            // 🚀 TEMP DEBUG: Look at this in your browser Inspect Console!
+            console.log("[Debug Profile Matrix Output]:", data);
+
             if (!res.ok) throw new Error("Clearance identity matrix rejected.");
-            return res.json();
+            return data;
         }
     });
 
