@@ -89,5 +89,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    // 🚀 EXCLUDE /login completely from proxy mapping evaluations
+    matcher: ['/((?!api|login|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -18,9 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): add production domain to hostname check">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(auth): remove redundant comments in baseURL logic">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +136,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="5964000" />
+      <workItem from="1779603426492" duration="6937000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -338,7 +338,39 @@
       <option name="project" value="LOCAL" />
       <updated>1779610689190</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="fix(proxy): add production domain to hostname check">
+      <option name="closed" value="true" />
+      <created>1779610848877</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1779610848877</updated>
+    </task>
+    <task id="LOCAL-00027" summary="fix(proxy): add production domain to hostname check">
+      <option name="closed" value="true" />
+      <created>1779611033423</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1779611033423</updated>
+    </task>
+    <task id="LOCAL-00028" summary="refactor(auth): remove redundant comments in baseURL logic">
+      <option name="closed" value="true" />
+      <created>1779611043354</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1779611043354</updated>
+    </task>
+    <task id="LOCAL-00029" summary="refactor(auth): remove redundant comments in baseURL logic">
+      <option name="closed" value="true" />
+      <created>1779611210483</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1779611210483</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -346,7 +378,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="OAUTH authentication works" />
     <MESSAGE value="Added necessary files" />
     <MESSAGE value="changed middleware to proxy.ts" />
     <MESSAGE value="Basic dashboard up" />
@@ -371,6 +402,7 @@
     <MESSAGE value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
     <MESSAGE value="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development." />
     <MESSAGE value="fix(proxy): add production domain to hostname check" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): add production domain to hostname check" />
+    <MESSAGE value="refactor(auth): remove redundant comments in baseURL logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(auth): remove redundant comments in baseURL logic" />
   </component>
 </project>
