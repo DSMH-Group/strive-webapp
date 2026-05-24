@@ -18,36 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design.">
-      <change afterPath="$PROJECT_DIR$/app/(platform)/(auth)/register/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/dashboardClient.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/register-form.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/tenant/shared/MobileNavManager.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/tenant/shared/TenantSidebarManager.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/membership.ts" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(auth)/login/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/(user)/settings/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/(user)/settings/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/(user)/settings/settingsClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/(user)/settings/settingsClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/provisionClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/onboarding/provision-tenant/provisionClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/wallet/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/wallet/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/wallet/walletClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/wallet/walletClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/consoleClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/console/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/Header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/Header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/Header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/Header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/login-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/login-form.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/db.ts" beforeDir="false" afterPath="$PROJECT_DIR$/db/db.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/auth-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth-client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/proxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/dashboardClient.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -163,7 +136,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="1262000" />
+      <workItem from="1779603426492" duration="3371000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -277,7 +250,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779441910906</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins.">
+      <option name="closed" value="true" />
+      <created>1779604775557</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1779604775557</updated>
+    </task>
+    <task id="LOCAL-00016" summary="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support.">
+      <option name="closed" value="true" />
+      <created>1779604852742</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1779604852742</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -299,6 +288,8 @@
     <MESSAGE value="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests." />
     <MESSAGE value="feat(member): implement dynamic member dashboard, sidebar, and activity tracking&#10;&#10;- Added a tenant-specific member dashboard with server-to-server metrics integration and mock fallback data.&#10;- Introduced an activity tracking feature with extensible filters and detailed workout tracking.&#10;- Implemented a responsive sidebar for navigation with logout functionality and badge support.&#10;- Enhanced UI/UX with interactive charts, gamification elements, and progress visualization." />
     <MESSAGE value="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design." />
+    <MESSAGE value="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins." />
+    <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
   </component>
 </project>
