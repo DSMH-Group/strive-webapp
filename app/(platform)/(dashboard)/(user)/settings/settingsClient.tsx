@@ -3,14 +3,14 @@
 
 import React, { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authClient } from "@/lib/auth-client"; // Native better-auth frontend reference hook
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { AlertCircle, Camera, Loader2, Lock, Mail, Phone, ShieldCheck, User, Wallet } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { striveClientFetch } from "@/lib/api"; // 👈 Import your enterprise fetch wrapper
 
 interface UserResponseDto {
     id: string;
@@ -27,43 +27,30 @@ interface SettingsDashboardClientProps {
     globalUser: { id: string; image?: string | null };
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-
-export default function SettingsDashboardClient({ initialToken, globalUser }: SettingsDashboardClientProps) {
+export default function SettingsDashboardClient({ globalUser }: SettingsDashboardClientProps) {
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    // Password State Fields (Routed through Better-Auth/Keycloak client)
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-    // 1. Fetch Global Core Identity Profile
-    const { data: profile, isLoading, isError} = useQuery<UserResponseDto>({
+    // 1. Fetch Global Core Identity Profile using your centralized fetch wrapper
+    const { data: profile, isLoading, isError } = useQuery<UserResponseDto>({
         queryKey: ["userProfile"],
         queryFn: async () => {
-            const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                }
-            });
+            const res = await striveClientFetch("/api/v1/users/me", { method: "GET" });
             if (!res.ok) throw new Error("Could not fetch global profile details.");
             return res.json();
         }
     });
 
-    // 2. Profile Details Modification Mutation (NestJS Core Base Engine)
+    // 2. Profile Modification Mutation utilizing striveClientFetch
     const updateProfileMutation = useMutation({
         mutationFn: async (updatedData: { firstName: string; lastName: string; phone: string }) => {
-            const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
+            const res = await striveClientFetch("/api/v1/users/me", {
                 method: "PATCH",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify(updatedData)
             });
             if (!res.ok) {
@@ -74,7 +61,7 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
         },
         onSuccess: () => {
             toast.success("Profile Updated Successfully", {
-                description: "Core environment variables propagated globally across all tenant modules.",
+                description: "Core variables propagated globally across all tenant modules.",
             });
             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         },
@@ -83,7 +70,7 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
         }
     });
 
-    // 3. Pre-signed Asset S3 Pipeline Upload Handshake
+    // 3. Pre-signed Asset S3 Pipeline Handshake using striveClientFetch
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -95,12 +82,8 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
 
         setIsUploading(true);
         try {
-            const urlRequest = await fetch(`${BASE_URL}/api/v1/files/upload-url`, {
+            const urlRequest = await striveClientFetch("/api/v1/files/upload-url", {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify({
                     fileName: file.name,
                     fileType: file.type,
@@ -111,6 +94,7 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
             if (!urlRequest.ok) throw new Error("Cloud boundary rejection of object allocation parameters.");
             const { uploadUrl, fileUrl } = await urlRequest.json();
 
+            // S3/DigitalOcean storage uploads bypass the guard header mapping context rules
             const storageStream = await fetch(uploadUrl, {
                 method: "PUT",
                 body: file,
@@ -119,14 +103,9 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
 
             if (!storageStream.ok) throw new Error("Object boundary transmission protocol failure.");
 
-            await authClient.updateUser({
-                image: fileUrl
-            });
+            await authClient.updateUser({ image: fileUrl });
 
-            toast.success("Avatar uploaded successfully!", {
-                description: "New image synced across identity headers."
-            });
-
+            toast.success("Avatar uploaded successfully!", { description: "New image synced across identity headers." });
             window.location.reload();
         } catch (err: any) {
             toast.error("Upload Handshake Interrupted", { description: err.message });
@@ -191,7 +170,7 @@ export default function SettingsDashboardClient({ initialToken, globalUser }: Se
                     </p>
                 </div>
 
-                <Link href="/dashboard/payments" passHref>
+                <Link href="/wallet" passHref>
                     <Button variant="outline"
                             className="rounded-md border-border bg-card hover:bg-accent hover:text-accent-foreground gap-2 text-xs uppercase font-bold tracking-tight h-11 px-5">
                         <Wallet size={14} className="text-primary"/> Manage Wallet

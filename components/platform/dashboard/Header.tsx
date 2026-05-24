@@ -1,5 +1,3 @@
-import {auth} from "@/lib/auth";
-import {headers} from "next/headers";
 import {Bell, Menu, Search} from "lucide-react";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -7,13 +5,7 @@ import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
 import {UserAccountNav} from "@/components/platform/user-account-nav";
 import {Sidebar} from "@/components/platform/dashboard/Sidebar";
 
-export async function DashboardHeader() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
-
-    if (!session) return null;
-
+export function DashboardHeader({user}: { user: any }) {
     return (
         <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-zinc-950/80 backdrop-blur-md">
             <div className="flex h-16 items-center justify-between px-4 md:px-8">
@@ -21,8 +13,9 @@ export async function DashboardHeader() {
                 {/* 1. Mobile Sidebar Trigger & Brand (Visible on mobile only) */}
                 <div className="flex items-center gap-4 md:hidden">
                     <Sheet>
-                        <SheetTrigger className="group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 p-2 text-zinc-400 hover:bg-zinc-800">
-                            <Menu size={20} />
+                        <SheetTrigger
+                            className="group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 p-2 text-zinc-400 hover:bg-zinc-800">
+                            <Menu size={20}/>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 bg-zinc-950 border-r-white/10 w-64">
                             <Sidebar/>
@@ -56,12 +49,12 @@ export async function DashboardHeader() {
                     {/* Identity - Integrated with our UserAccountNav */}
                     <div className="flex items-center gap-3">
                         <div className="hidden md:flex flex-col items-end text-right">
-                            <span className="text-xs font-bold leading-none">{session.user.name}</span>
+                            <span className="text-xs font-bold leading-none">{user.name}</span>
                             <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-tighter mt-1">
                                 Global Account
                             </span>
                         </div>
-                        <UserAccountNav user={session.user}/>
+                        <UserAccountNav user={user}/>
                     </div>
                 </div>
             </div>

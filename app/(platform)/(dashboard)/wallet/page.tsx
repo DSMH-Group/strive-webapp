@@ -16,7 +16,7 @@ export default async function WalletDashboardPage() {
 
     return (
         <WalletDashboardClient
-            initialToken={session.token}
+            initialToken={session.id}
             globalUser={user}
         />
     );

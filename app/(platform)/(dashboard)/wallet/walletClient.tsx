@@ -1,7 +1,7 @@
 // components/tenant/member/WalletDashboardClient.tsx
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
     AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { striveClientFetch } from "@/lib/api"; // 👈 Integrated centralized fetch tool
 
 interface InvoiceLineItem {
     description: string;
@@ -50,29 +51,19 @@ interface WalletDashboardClientProps {
     globalUser: { id: string };
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-
-// Kept client-side optimized to maintain zero-PCI footprint out of backend scope
 const MOCK_VAULTED_CARDS: VaultedCard[] = [
     { id: "card-1", brand: "visa", last4: "4321", expiry: "09/29", isDefault: true },
     { id: "card-2", brand: "mastercard", last4: "8899", expiry: "12/27", isDefault: false }
 ];
 
-export default function WalletDashboardClient({ initialToken, globalUser }: WalletDashboardClientProps) {
+export default function WalletDashboardClient({ globalUser }: WalletDashboardClientProps) {
     const queryClient = useQueryClient();
 
-    // 1. Fetch platform-wide unified invoice ledger
+    // 1. Fetch platform-wide unified invoice ledger using centralized wrapper
     const { data: invoices, isLoading, isError, error } = useQuery<StriveInvoice[]>({
         queryKey: ["invoices"],
         queryFn: async () => {
-            const res = await fetch(`${BASE_URL}/api/v1/billing/invoices`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                }
-            });
-
+            const res = await striveClientFetch("/api/v1/billing/invoices", { method: "GET" });
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
                 throw new Error(errorData.message || "Failed to parse platform-wide financial parameters.");
@@ -82,15 +73,11 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
         staleTime: 1000 * 60 * 2,
     });
 
-    // 2. Direct Ledger Settlement Mutation via Web Fetch
+    // 2. Direct Ledger Settlement Mutation utilizing striveClientFetch
     const settleInvoiceMutation = useMutation({
         mutationFn: async ({ invoiceId, amount }: { invoiceId: string; amount: number }) => {
-            const res = await fetch(`${BASE_URL}/api/v1/billing/payments/manual`, {
+            const res = await striveClientFetch("/api/v1/billing/payments/manual", {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify({
                     invoiceId,
                     method: "BANK_TRANSFER",
@@ -115,15 +102,11 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
         }
     });
 
-    // 3. Dynamic State Machine Transition
+    // 3. Dynamic State Machine Transition using striveClientFetch
     const toggleSubscriptionMutation = useMutation({
         mutationFn: async ({ membershipId, targetState }: { membershipId: string; targetState: "ACTIVE" | "SUSPENDED" }) => {
-            const res = await fetch(`${BASE_URL}/api/v1/members/${membershipId}/transition`, {
+            const res = await striveClientFetch(`/api/v1/members/${membershipId}/transition`, {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${initialToken}`,
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify({ targetState })
             });
 
@@ -145,11 +128,9 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
         }
     });
 
-    // Process structural metrics from runtime queries
     const overdueInvoices = invoices?.filter(i => i.status === "OVERDUE" || i.status === "UNPAID") || [];
     const absoluteTotalDue = overdueInvoices.reduce((sum, current) => sum + current.amount, 0);
 
-    // Extract unique active tenant profiles from loaded invoice logs to handle actions cleanly
     const connectedMemberships = React.useMemo(() => {
         if (!invoices) return [];
         const seen = new Set<string>();
@@ -180,7 +161,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                 </p>
             </div>
 
-            {/* Critical Alert Warning Area for Outstanding Balances */}
+            {/* System Alerts */}
             {absoluteTotalDue > 0 && (
                 <div className="relative overflow-hidden rounded-lg border border-destructive/20 bg-destructive/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -210,8 +191,7 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-                {/* Left Columns - Billing Records Matrix */}
+                {/* Invoice Ledger history */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex justify-between items-center px-1">
                         <h2 className="text-lg font-bold uppercase italic tracking-tight flex items-center gap-2">
@@ -295,9 +275,8 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                     )}
                 </div>
 
-                {/* Right Column - Card Vault & Multi-Tenant Actions */}
+                {/* Right Column - Card Vault & Actions */}
                 <div className="space-y-6">
-                    {/* Vault Card Section */}
                     <div className="space-y-3">
                         <div className="flex justify-between items-center px-1">
                             <h2 className="text-lg font-bold uppercase italic tracking-tight flex items-center gap-2">
@@ -334,7 +313,6 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                         </div>
                     </div>
 
-                    {/* Operational Lifecycle Controller */}
                     <Card className="bg-card/40 border-border rounded-lg overflow-hidden">
                         <CardContent className="p-6 space-y-4">
                             <div>
@@ -380,7 +358,6 @@ export default function WalletDashboardClient({ initialToken, globalUser }: Wall
                             </div>
                         </CardContent>
                     </Card>
-
                 </div>
             </div>
         </div>

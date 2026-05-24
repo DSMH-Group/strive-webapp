@@ -1,74 +1,44 @@
-import {auth} from "@/lib/auth";
-import {headers} from "next/headers";
-import {redirect} from "next/navigation";
+// app/provision/page.tsx
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import ProvisionTenantClient from "./provisionClient";
-import {account} from "@/db/schema";
-import { eq } from "drizzle-orm";
-import {db} from "@/db/db";
-import {striveClientFetch} from "@/lib/api";
-import {toast} from "sonner";
+
+export const metadata = {
+    title: "Gym Onboarding | Stride",
+    description: "Provision a new decoupled gym workspace environment.",
+};
 
 export default async function ProvisionTenantPage() {
-    const session = await auth.api.getSession({headers: await headers()});
-    if (!session) redirect("/login");
+    // 1. Resolve standard Next.js cookie session
+    const sessionResponse = await auth.api.getSession({ headers: await headers() });
+    if (!sessionResponse) redirect("/login");
 
-    const userAccount = await db.query.account.findFirst({
-        where: eq(account.userId, session.user.id)
-    });
+    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/v1/users/me`;
 
-    // 1. LOG THE DB STATE
-    console.log("--- DEBUG: DB Account State ---");
-    console.log("User ID:", session.user.id);
-    console.log("Access Token Exists:", !!userAccount?.accessToken);
-    if (userAccount?.accessToken) {
-        console.log("Token Preview:", userAccount.accessToken);
-    }
-
-    if (!userAccount?.accessToken) {
-        console.error("Critical: No access token found for user.");
-        redirect("/login");
-    }
-
-    const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/me`;
-    console.log("--- DEBUG: Fetching Backend ---");
-    console.log("URL:", backendUrl);
-
+    // 2. Fetch profile from NestJS using the native session token
     const userRes = await fetch(backendUrl, {
         headers: {
-            "Authorization": `Bearer ${userAccount.accessToken}`,
-            "X-Keycloak-Sub": session.user.id, // Add this specific header
+            "Authorization": `Bearer ${sessionResponse.session.id}`,
             "Content-Type": "application/json"
         }
     });
 
-    // 2. Fetch the Keycloak cryptographic JWT from the OAuth subsystem
-    const tokenResult = await auth.api.getAccessToken({
-        headers: await headers(),
-        body: {
-            providerId: "keycloak", // Scopes lookups to Keycloak identity link records
-        }
-    });
-
-    const keycloakAccessToken = tokenResult?.accessToken;
-
     if (!userRes.ok) {
-        // 2. LOG THE EXACT BACKEND ERROR
-        const errorText = await userRes.text();
-        console.error("--- DEBUG: Backend Auth Failure ---");
-        console.error("Status:", userRes.status);
-        console.error("Error Response:", errorText);
-
+        console.error(`[Provision Onboarding] Profile sync failed. Status: ${userRes.status}`);
         redirect("/login?error=profile_fetch_failed");
     }
 
-    const user = await userRes.json();
-    console.log("--- DEBUG: Profile Success ---");
-    console.log("User Data:", user);
+    const backendUser = await userRes.json();
 
     return (
-        <div className="container py-10">
-            <h1 className="text-3xl font-bold mb-8">Gym Onboarding</h1>
-            <ProvisionTenantClient ownerId={user.id} keycloakAccessToken={keycloakAccessToken}/>
+        <div className="container max-w-4xl py-10">
+            <div className="space-y-2 text-center mb-8">
+                <h1 className="text-3xl font-black tracking-tight uppercase">Gym Onboarding</h1>
+                <p className="text-sm text-zinc-400">Initialize your isolated business workspace profile parameters.</p>
+            </div>
+            {/* Pass only the internal user ID resolved straight from your core backend engine */}
+            <ProvisionTenantClient ownerId={backendUser.id} />
         </div>
     );
 }
