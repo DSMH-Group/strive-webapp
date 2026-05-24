@@ -144,7 +144,7 @@ export default function GlobalDashboardClient({initialUser}: GlobalDashboardClie
         if (ownedGym) {
             const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
             const urlObj = new URL(appUrl);
-            const adminUrl = `${urlObj.protocol}//${ownedGym.slug}.${urlObj.host}/console`;
+            const adminUrl = `${urlObj.protocol}//${ownedGym.domain}.${urlObj.host}/console`;
 
             return (
                 <div className=" mx-auto py-6 space-y-8 animate-in fade-in duration-500">

@@ -18,9 +18,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(auth): update login redirect to use HTTPS">
-      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/proxy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component.">
+      <change beforePath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +138,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="1919000" />
+      <workItem from="1779613270757" duration="2143000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -437,7 +436,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779616083696</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component.">
+      <option name="closed" value="true" />
+      <created>1779616528958</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1779616528958</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -445,7 +452,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(discover): modularize client and server logic for gym discovery&#10;&#10;- Extracted client-side gym discovery logic to `DiscoverGymsClient`.&#10;- Improved server-side session validation and token forwarding.&#10;- Removed deprecated logic and simplified `DiscoverGymsPage` structure.&#10;- Updated `Header` and `Sidebar` for UI consistency.&#10;- Removed unused sidebar item `Favorites`." />
     <MESSAGE value="feat(platform): restructure app architecture and enhance modularity&#10;&#10;- Moved core components and pages under the `platform` directory for improved separation of concerns.&#10;- Introduced centralized authentication and API utilities with `betterAuth` and `striveClientFetch`.&#10;- Added tenant onboarding flows with `ProvisionTenantPage` and `ProvisionTenantClient`.&#10;- Enhanced theming and UI consistency using shared Tailwind configurations.&#10;- Refactored database schema for stricter type safety and snake_case conventions." />
     <MESSAGE value="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests." />
     <MESSAGE value="feat(member): implement dynamic member dashboard, sidebar, and activity tracking&#10;&#10;- Added a tenant-specific member dashboard with server-to-server metrics integration and mock fallback data.&#10;- Introduced an activity tracking feature with extensible filters and detailed workout tracking.&#10;- Implemented a responsive sidebar for navigation with logout functionality and badge support.&#10;- Enhanced UI/UX with interactive charts, gamification elements, and progress visualization." />
@@ -470,6 +476,7 @@
     <MESSAGE value="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation." />
     <MESSAGE value="fix(domain): update domain references from `stride.lk` to `dsmhgroup.com`&#10;&#10;- Replaced all URL references to use the new production domain `dsmhgroup.com`.&#10;- Updated client-side redirection logic, tenant subdomains, and related UI elements." />
     <MESSAGE value="fix(auth): update login redirect to use HTTPS" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(auth): update login redirect to use HTTPS" />
+    <MESSAGE value="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component." />
   </component>
 </project>
