@@ -1,234 +1,180 @@
-// src/components/platform/register-form.tsx
 "use client";
 
-import * as React from "react";
-import {authClient} from "@/lib/auth-client";
+import React, {useEffect, useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
+import {authClient} from "@/lib/auth-client"; // Adjust path to your Better-Auth client
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {ArrowRight, CheckCircle2, Loader2, ShieldAlert} from "lucide-react";
-import {useRouter} from "next/navigation";
+import {toast} from "sonner";
+import {Loader2, Lock, Mail, User} from "lucide-react";
+import {cn} from "@/lib/utils";
 
 export function RegisterForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    // Form Wizard Step State Control (1: Core Account, 2: Optional Gym Metrics)
-    const [step, setStep] = React.useState(1);
+    // 1. Extract URL Parameters
+    const inviteToken = searchParams.get("inviteToken");
+    const targetEmail = searchParams.get("email");
+    const tenantDomain = searchParams.get("domain");
 
-    // Core Schema Account Inputs
-    const [name, setName] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
+    // 2. Form State
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Optional UI-only parameters (Never sent to DB)
-    const [age, setAge] = React.useState("");
-    const [fitnessGoal, setFitnessGoal] = React.useState("");
-    const [activityLevel, setActivityLevel] = React.useState("");
+    // 3. Pre-fill data if arriving from an invitation
+    useEffect(() => {
+        if (targetEmail) {
+            setEmail(targetEmail);
+        }
+    }, [targetEmail]);
 
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-
-    const handleNextStep = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !email || !password) {
-            setError("Please complete all required fields.");
-            return;
-        }
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters.");
-            return;
-        }
-        setError(null);
-        setStep(2);
-    };
 
-    const handleFinalRegistration = async () => {
+        if (!firstName || !lastName || !email || !password) {
+            toast.error("Please fill out all registration fields.");
+            return;
+        }
+
         setIsLoading(true);
-        setError(null);
 
         try {
-            // Drop optional client states (age, fitnessGoal, activityLevel) right here!
-            // This maintains pristine compatibility with your backend 'auth' tables schema constraints.
-            const {error: signUpError} = await authClient.signUp.email({
-                email,
-                password,
-                name,
-                callbackURL: "/dashboard",
+            // 4. Create the identity via Better-Auth
+            const {data, error} = await authClient.signUp.email({
+                email: email,
+                password: password,
+                name: `${firstName} ${lastName}`,
+                // Pass the invite token into Better-Auth metadata so your webhook can process it!
+                fetchOptions: {
+                    body: {
+                        inviteToken: inviteToken || undefined
+                    }
+                }
             });
 
-            if (signUpError) {
-                setError(signUpError.message || "An identity collision error occurred.");
+            if (error) {
+                toast.error(`Registration failed: ${error.message}`);
                 setIsLoading(false);
+                return;
+            }
+
+            toast.success("Account created securely!");
+
+            // 5. Dynamic Routing Hook
+            // If they registered via a gym invite link, redirect them straight to that gym's domain!
+            if (inviteToken && tenantDomain) {
+                // Introduce a tiny delay to give your background Webhook time to link the membership in NestJS
+                toast.info("Connecting to your workspace...");
+                setTimeout(() => {
+                    window.location.href = `https://${tenantDomain}/console`;
+                }, 1500);
             } else {
-                // Better-Auth triggers autoSignIn by default. Route straight into workspace.
+                // Standard organic registration -> Go to platform dashboard
                 router.push("/dashboard");
             }
-        } catch (err) {
-            setError("Authentication gateway context timed out.");
+
+        } catch (err: any) {
+            toast.error("A critical network fault occurred during signup.");
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="w-full max-w-sm space-y-6 px-4">
-            <div className="space-y-2 text-center lg:text-left">
-                <h3 className="text-2xl font-black tracking-tight">Create Global Identity</h3>
-                <p className="text-sm text-muted-foreground">
-                    {step === 1
-                        ? "Define your primary system access credentials."
-                        : "Optional: Customize your studio platform tracking profile."}
-                </p>
+        <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            <div className="space-y-2">
+                <h2 className="text-3xl font-black tracking-tight">Create your account</h2>
+                {inviteToken ? (
+                    <p className="text-sm text-primary font-bold">You are accepting a workspace invitation.</p>
+                ) : (
+                    <p className="text-sm text-muted-foreground">Enter your details to initialize your global
+                        profile.</p>
+                )}
             </div>
 
-            {error && (
-                <div
-                    className="flex items-center gap-3 p-3 rounded-xl border border-destructive/20 bg-destructive/10 text-xs text-destructive-foreground font-medium">
-                    <ShieldAlert className="w-4 h-4 shrink-0"/>
-                    <span>{error}</span>
-                </div>
-            )}
-
-            {/* STEP 1: STRICT DATA CONTRACT HANDLING */}
-            {step === 1 && (
-                <form onSubmit={handleNextStep}
-                      className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="space-y-1">
-                        <Label htmlFor="reg-name"
-                               className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Full
-                            Name</Label>
+            <form onSubmit={handleRegister} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">First
+                            Name</label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+                            <Input
+                                type="text"
+                                placeholder="Johann"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="pl-9 bg-card border-border h-11"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last
+                            Name</label>
                         <Input
-                            id="reg-name"
                             type="text"
+                            placeholder="Test"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            className="bg-card border-border h-11"
                             required
-                            placeholder="John Perera"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="h-11 bg-muted/40 border-border rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
                         />
                     </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="reg-email"
-                               className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email
-                            Address</Label>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Email
+                        Address</label>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
-                            id="reg-email"
                             type="email"
-                            required
-                            placeholder="name@example.lk"
+                            placeholder="name@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="h-11 bg-muted/40 border-border rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
+                            readOnly={!!targetEmail} // Lock the field if they are redeeming a strict invite
+                            className={cn(
+                                "pl-9 h-11 border-border",
+                                targetEmail ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-card"
+                            )}
+                            required
                         />
                     </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="reg-password"
-                               className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Secure
-                            Password</Label>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Secure
+                        Password</label>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
-                            id="reg-password"
                             type="password"
-                            required
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="h-11 bg-muted/40 border-border rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
+                            className="pl-9 bg-card border-border h-11"
+                            required
+                            minLength={8}
                         />
-                    </div>
-
-                    <Button type="submit"
-                            className="w-full h-11 rounded-xl text-sm font-bold tracking-tight gap-2 group">
-                        Configure Metrics <ArrowRight
-                        className="w-4 h-4 transition-transform group-hover:translate-x-1"/>
-                    </Button>
-                </form>
-            )}
-
-            {/* STEP 2: OPTIONAL GYM INSIGHTS ONBOARDING FLOW */}
-            {step === 2 && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="space-y-1">
-                        <Label htmlFor="on-age"
-                               className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Age <span
-                            className="text-[10px] lowercase text-muted-foreground/60">(Optional)</span></Label>
-                        <Input
-                            id="on-age"
-                            type="number"
-                            placeholder="24"
-                            value={age}
-                            onChange={(e) => setAge(e.target.value)}
-                            className="h-11 bg-muted/40 border-border rounded-xl text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Primary
-                            Fitness Goal <span
-                                className="text-[10px] lowercase text-muted-foreground/60">(Optional)</span></Label>
-                        <Select value={fitnessGoal}
-                                onValueChange={(val) => setFitnessGoal(val ?? "")} // 👈 Type-safe wrapper
-                        >
-                            <SelectTrigger
-                                className="h-11 bg-muted/40 border-border rounded-xl text-sm focus:ring-1 focus:ring-primary/30">
-                                <SelectValue placeholder="Select primary focus"/>
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                                <SelectItem value="hypertrophy">Muscle Building (Hypertrophy)</SelectItem>
-                                <SelectItem value="fat-loss">Weight Loss / Conditioning</SelectItem>
-                                <SelectItem value="strength">Powerlifting & Strength</SelectItem>
-                                <SelectItem value="endurance">Cardio & Athletic Endurance</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-1">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current
-                            Weekly Activity <span
-                                className="text-[10px] lowercase text-muted-foreground/60">(Optional)</span></Label>
-                        <Select value={activityLevel}
-                                onValueChange={(val) => setFitnessGoal(val ?? "")} // 👈 Type-safe wrapper
-                        >
-                            <SelectTrigger
-                                className="h-11 bg-muted/40 border-border rounded-xl text-sm focus:ring-1 focus:ring-primary/30">
-                                <SelectValue placeholder="Select activity tier"/>
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                                <SelectItem value="sedentary">Sedentary (Desk Job, Minimal Training)</SelectItem>
-                                <SelectItem value="moderate">Light/Moderate (1-3 sessions per week)</SelectItem>
-                                <SelectItem value="active">Highly Active (4-6 intense sessions per week)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setStep(1)}
-                            disabled={isLoading}
-                            className="h-11 rounded-xl border-border bg-transparent text-xs"
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={handleFinalRegistration}
-                            disabled={isLoading}
-                            className="flex-1 h-11 rounded-xl text-sm font-bold tracking-tight gap-2"
-                        >
-                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : (
-                                <>
-                                    <CheckCircle2 className="w-4 h-4"/> Complete Registration
-                                </>
-                            )}
-                        </Button>
                     </div>
                 </div>
-            )}
 
-            <p className="text-[10px] text-center text-muted-foreground/40 leading-relaxed">
-                By creating an identity signature, you agree to global multi-tenant schema terms of application routing.
-            </p>
+                <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-11 bg-primary text-primary-foreground font-bold uppercase tracking-widest text-xs mt-2 hover:bg-primary/90 transition-all"
+                >
+                    {isLoading ? (
+                        <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Verifying...</span>
+                    ) : (
+                        "Initialize Profile"
+                    )}
+                </Button>
+            </form>
         </div>
     );
 }

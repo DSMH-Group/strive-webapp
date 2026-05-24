@@ -18,11 +18,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="refactor(members): simplify `MembersPage` by removing unused server-side logic&#10;&#10;- Removed redundant `fetchTenantMembers` and interface definitions.&#10;- Refactored `MembersPage` to rely on `tenantId` header directly for client-side handling.">
-      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/invites/invitesClient.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/invites/page.tsx" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tenant/admin/TenantAdminSidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/admin/TenantAdminSidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/register-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/register-form.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -142,15 +141,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="11143000" />
-    </task>
-    <task id="LOCAL-00006" summary="Basic dashboard up">
-      <option name="closed" value="true" />
-      <created>1778576290542</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1778576290542</updated>
+      <workItem from="1779613270757" duration="12299000" />
     </task>
     <task id="LOCAL-00007" summary="feat(dashboard): integrate dynamic tenant-specific data and discovery directory&#10;&#10;- Replaced static dashboard logic with tenant-specific membership, attendance, and metric data fetched from the backend.&#10;- Added secure server-to-server call utilities using Bearer tokens.&#10;- Introduced `DiscoverGymsPage` for exploring partner gyms with search and filter functionality.&#10;- Removed deprecated ESLint configuration.">
       <option name="closed" value="true" />
@@ -536,7 +527,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779628178151</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation.">
+      <option name="closed" value="true" />
+      <created>1779652862214</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1779652862214</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -544,7 +543,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="fix(proxy): add production domain to hostname check" />
     <MESSAGE value="refactor(auth): remove redundant comments in baseURL logic" />
     <MESSAGE value="refactor(proxy): exclude `/login` from proxy matcher configuration" />
     <MESSAGE value="refactor(proxy): update matcher logic to exclude `/login` and `/dashboard` paths&#10;&#10;- Broadened internal asset guards to bypass additional routes from custom re-writes.&#10;- Updated hostname handling for consistency across local and production environments." />
@@ -569,6 +567,7 @@
     <MESSAGE value="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements." />
     <MESSAGE value="feat(dialog): add accessible and customizable dialog component&#10;&#10;- Introduced a new `Dialog` component with full accessibility using `@base-ui/react/dialog`.&#10;- Added support for customizable overlays, headers, footers, and close buttons.&#10;- Improved usability with slot-based architecture and utility-first styling." />
     <MESSAGE value="refactor(members): simplify `MembersPage` by removing unused server-side logic&#10;&#10;- Removed redundant `fetchTenantMembers` and interface definitions.&#10;- Refactored `MembersPage` to rely on `tenantId` header directly for client-side handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor(members): simplify `MembersPage` by removing unused server-side logic&#10;&#10;- Removed redundant `fetchTenantMembers` and interface definitions.&#10;- Refactored `MembersPage` to rely on `tenantId` header directly for client-side handling." />
+    <MESSAGE value="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation." />
   </component>
 </project>
