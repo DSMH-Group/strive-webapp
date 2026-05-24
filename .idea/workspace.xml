@@ -18,11 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tenant/shared/TenantSidebarManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/shared/TenantSidebarManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/membership.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/membership.ts" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(membership): adjust server fetch for role lookup with safer headers handling&#10;&#10;- Updated `membership.ts` to use `next/headers` for secure cookie and tenant ID forwarding.&#10;- Simplified conditional rendering in `TenantSidebarManager.tsx` for better readability." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -140,7 +136,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="5121000" />
+      <workItem from="1779613270757" duration="5567000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -486,7 +482,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779619569531</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="fix(membership): adjust server fetch for role lookup with safer headers handling&#10;&#10;- Updated `membership.ts` to use `next/headers` for secure cookie and tenant ID forwarding.&#10;- Simplified conditional rendering in `TenantSidebarManager.tsx` for better readability.">
+      <option name="closed" value="true" />
+      <created>1779619829885</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1779619829886</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -494,7 +498,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins." />
     <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
     <MESSAGE value="feat(dashboard): refactor tenant URL generation logic for improved readability and flexibility&#10;&#10;- Replaced hardcoded URLs with a dynamic `NEXT_PUBLIC_APP_URL` environment variable. &#10;- Updated URL construction for admin console links to use `URL` object." />
     <MESSAGE value="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost." />
@@ -519,6 +522,7 @@
     <MESSAGE value="fix(proxy): add debug logging for profile fetch in admin console&#10;&#10;- Introduced temporary debug logging to inspect profile matrix output.&#10;- Adjusted JSON parsing logic in `consoleClient.tsx`." />
     <MESSAGE value="fix(proxy): add CORS headers for `/api/auth` to handle cross-origin requests&#10;&#10;- Implemented CORS headers to explicitly allow subdomains of `dsmhgroup.com`.&#10;- Ensured compatibility for cross-origin API authentication requests." />
     <MESSAGE value="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes." />
+    <MESSAGE value="fix(membership): adjust server fetch for role lookup with safer headers handling&#10;&#10;- Updated `membership.ts` to use `next/headers` for secure cookie and tenant ID forwarding.&#10;- Simplified conditional rendering in `TenantSidebarManager.tsx` for better readability." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(membership): adjust server fetch for role lookup with safer headers handling&#10;&#10;- Updated `membership.ts` to use `next/headers` for secure cookie and tenant ID forwarding.&#10;- Simplified conditional rendering in `TenantSidebarManager.tsx` for better readability." />
   </component>
 </project>
