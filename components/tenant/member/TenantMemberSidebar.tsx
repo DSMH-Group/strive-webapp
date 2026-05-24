@@ -87,9 +87,9 @@ export function TenantMemberSidebar({
             <nav className="flex-1 space-y-1.5">
                 <SidebarItem
                     icon={<Home size={18} />}
-                    label="Dashboard"
-                    href={`${baseMemberUrl}/dashboard`}
-                    active={pathname === `${baseMemberUrl}/dashboard` || pathname === baseMemberUrl}
+                    label="Overview"
+                    href={`${baseMemberUrl}/overview`}
+                    active={pathname === `${baseMemberUrl}/overview` || pathname === baseMemberUrl}
                 />
                 <SidebarItem
                     icon={<Dumbbell size={18} />}
