@@ -84,17 +84,21 @@ export const auth = betterAuth({
     },
 
     advanced: {
-        useSecureCookies: false, // no HTTPS in local dev
+        // Automatically enforce secure cookies outside of local machine development
+        useSecureCookies: process.env.NODE_ENV === "production",
+
         crossSubDomainCookies: {
             enabled: true,
             additionalCookies: ["better-auth.session_data"],
-            domain: '.dsmhgroup.com'
+            // Note: Omit the leading dot here, Better-Auth appends it cleanly down-stream
+            domain: process.env.NODE_ENV === "production" ? "dsmhgroup.com" : "localhost"
         },
         defaultCookieAttributes: {
-            sameSite: "lax", // 'none' requires secure:true which requires HTTPS
-            secure: false,
+            // "lax" works perfectly fine for subdomains as long as 'secure' matches your environment!
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
             httpOnly: true,
-            domain: ".dsmhgroup.com",
+            domain: process.env.NODE_ENV === "production" ? ".dsmhgroup.com" : undefined,
         }
     },
 
