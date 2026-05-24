@@ -1,11 +1,11 @@
 // app/tenants/[subdomain]/layout.tsx
 import React from "react";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { DashboardHeader } from "@/components/platform/dashboard/Header";
-import { auth } from "@/lib/auth";
-import { TenantSidebarManager } from "@/components/tenant/shared/TenantSidebarManager";
-import { MobileNavManager } from "@/components/tenant/shared/MobileNavManager";
+import {headers} from "next/headers";
+import {redirect} from "next/navigation";
+import {DashboardHeader} from "@/components/platform/dashboard/Header";
+import {auth} from "@/lib/auth";
+import {TenantSidebarManager} from "@/components/tenant/shared/TenantSidebarManager";
+import {MobileNavManager} from "@/components/tenant/shared/MobileNavManager";
 
 interface TenantConfigResponse {
     id: string;
@@ -20,8 +20,8 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
     try {
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
-            headers: { "X-Tenant-ID": tenantId },
-            next: { revalidate: 300 }, // Cache config for 5 minutes
+            headers: {"X-Tenant-ID": tenantId},
+            next: {revalidate: 300}, // Cache config for 5 minutes
         });
         if (!res.ok) return null;
         return await res.json();
@@ -42,9 +42,15 @@ function hexToHslString(hex: string): string {
         let d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
         }
         h /= 6;
     }
@@ -58,7 +64,7 @@ export default async function TenantLayout({
     children: React.ReactNode,
     params: Promise<{ subdomain: string }>
 }) {
-    const { subdomain } = await params;
+    const {subdomain} = await params;
     const reqHeaders = await headers();
     const tenantId = reqHeaders.get("x-tenant-id");
 
@@ -70,7 +76,7 @@ export default async function TenantLayout({
     const tenantConfig = await getTenantConfig(tenantId);
     const dynamicPrimaryHsl = hexToHslString(tenantConfig?.themeConfig?.primaryColor || "#ea580c");
 
-    const authData = await auth.api.getSession({ headers: await headers() });
+    const authData = await auth.api.getSession({headers: await headers()});
     if (!authData) {
         redirect(`https://${rootDomain}/login`);
     }
@@ -78,12 +84,11 @@ export default async function TenantLayout({
     return (
         <div
             className="flex min-h-screen w-full bg-background text-foreground"
-            style={{ '--primary': dynamicPrimaryHsl } as React.CSSProperties}
+            style={{'--primary': dynamicPrimaryHsl} as React.CSSProperties}
         >
             {/* Structural Sidebar Isolation */}
             <aside className="hidden md:flex w-64 border-r border-border bg-background shrink-0">
                 <TenantSidebarManager
-                    user={authData.user}
                     tenantId={tenantId}
                     config={tenantConfig}
                 />
@@ -91,11 +96,11 @@ export default async function TenantLayout({
 
             {/* Subdomain Content Viewport */}
             <div className="flex-1 flex flex-col min-w-0">
-                <DashboardHeader user={authData.user} />
+                <DashboardHeader user={authData.user}/>
                 <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
                     {children}
                 </main>
-                <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig} />
+                <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
             </div>
         </div>
     );
