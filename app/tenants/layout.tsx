@@ -1,21 +1,11 @@
 // app/tenants/[subdomain]/layout.tsx
+import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardHeader } from "@/components/platform/dashboard/Header";
-import { cn } from "@/lib/utils";
-import { Inter } from "next/font/google";
-import type { Metadata } from "next";
-import "../../globals.css";
 import { auth } from "@/lib/auth";
 import { TenantSidebarManager } from "@/components/tenant/shared/TenantSidebarManager";
 import { MobileNavManager } from "@/components/tenant/shared/MobileNavManager";
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-
-export const metadata: Metadata = {
-    title: "Stride Platform Workspace",
-    description: "Multi-Tenant Decoupled Client Portal Engine",
-};
 
 interface TenantConfigResponse {
     id: string;
@@ -31,7 +21,7 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: { "X-Tenant-ID": tenantId },
-            next: { revalidate: 300 },
+            next: { revalidate: 300 }, // Cache config for 5 minutes
         });
         if (!res.ok) return null;
         return await res.json();
@@ -61,7 +51,10 @@ function hexToHslString(hex: string): string {
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-export default async function TenantLayout({ children, params }: {
+export default async function TenantLayout({
+                                               children,
+                                               params
+                                           }: {
     children: React.ReactNode,
     params: Promise<{ subdomain: string }>
 }) {
@@ -69,24 +62,26 @@ export default async function TenantLayout({ children, params }: {
     const reqHeaders = await headers();
     const tenantId = reqHeaders.get("x-tenant-id");
 
-    if (!tenantId) redirect("https://strive.lk/explore");
+    // Route to marketplace/exploration if tenant context handshake fails
+    const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'stride.lk';
+
+    if (!tenantId) redirect(`https://${rootDomain}/explore`);
 
     const tenantConfig = await getTenantConfig(tenantId);
     const dynamicPrimaryHsl = hexToHslString(tenantConfig?.themeConfig?.primaryColor || "#ea580c");
 
     const authData = await auth.api.getSession({ headers: await headers() });
     if (!authData) {
-        // Redirect cleanly back to the absolute central login hub domain
-        const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'stride.lk';
         redirect(`http://${rootDomain}/login`);
     }
 
     return (
-        <html lang="en" className={cn(inter.variable, "h-full")}>
-        <body className="min-h-full flex flex-col bg-background text-foreground"
-              style={{ '--primary': dynamicPrimaryHsl } as React.CSSProperties}>
-        <div className="flex min-h-screen">
-            <aside className="hidden md:flex w-64 border-r border-border bg-background">
+        <div
+            className="flex min-h-screen w-full bg-background text-foreground"
+            style={{ '--primary': dynamicPrimaryHsl } as React.CSSProperties}
+        >
+            {/* Structural Sidebar Isolation */}
+            <aside className="hidden md:flex w-64 border-r border-border bg-background shrink-0">
                 <TenantSidebarManager
                     user={authData.user}
                     tenantId={tenantId}
@@ -94,13 +89,14 @@ export default async function TenantLayout({ children, params }: {
                 />
             </aside>
 
-            <div className="flex-1 flex flex-col">
-                <DashboardHeader user={authData.user}/>
-                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">{children}</main>
-                <MobileNavManager tenantId={tenantId}/>
+            {/* Subdomain Content Viewport */}
+            <div className="flex-1 flex flex-col min-w-0">
+                <DashboardHeader user={authData.user} />
+                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
+                    {children}
+                </main>
+                <MobileNavManager tenantId={tenantId} />
             </div>
         </div>
-        </body>
-        </html>
     );
 }

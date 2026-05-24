@@ -18,9 +18,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support.">
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost.">
+      <change afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/(dashboard)/dashboard/dashboardClient.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/layout.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,11 +96,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\tenants" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\components\platform" />
       <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\(platform)" />
-      <recent name="C:\Users\SGSey\WebstormProjects\strive-webapp\app\(static)\(home)" />
     </key>
   </component>
   <component name="RunManager" selected="npm.dev">
@@ -136,7 +138,7 @@
       <workItem from="1779339970612" duration="5467000" />
       <workItem from="1779347587133" duration="4641000" />
       <workItem from="1779423712874" duration="28783000" />
-      <workItem from="1779603426492" duration="3371000" />
+      <workItem from="1779603426492" duration="4406000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -266,7 +268,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779604852742</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="feat(dashboard): refactor tenant URL generation logic for improved readability and flexibility&#10;&#10;- Replaced hardcoded URLs with a dynamic `NEXT_PUBLIC_APP_URL` environment variable. &#10;- Updated URL construction for admin console links to use `URL` object.">
+      <option name="closed" value="true" />
+      <created>1779607697470</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1779607697470</updated>
+    </task>
+    <task id="LOCAL-00018" summary="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost.">
+      <option name="closed" value="true" />
+      <created>1779607820981</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1779607820981</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -290,6 +308,8 @@
     <MESSAGE value="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design." />
     <MESSAGE value="feat(auth): refactor login page with interactive forms and improved error handling&#10;&#10;- Migrated to client-side rendering with React state for better interactivity.&#10;- Implemented dynamic form validation and error messages for login and Google sign-in.&#10;- Redesigned UI for enhanced branding and responsive usability.&#10;- Configured experimental Next.js features for local dev origins." />
     <MESSAGE value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(ui): add customizable `Select` component with enhanced accessibility and theming&#10;&#10;- Implemented a reusable and modular `Select` component leveraging `@base-ui/react/select`.&#10;- Added support for customization of triggers, labels, groups, items, and separators.&#10;- Enhanced keyboard navigation and screen reader support for improved accessibility.&#10;- Integrated consistent theming with utility classes and dark mode support." />
+    <MESSAGE value="feat(dashboard): refactor tenant URL generation logic for improved readability and flexibility&#10;&#10;- Replaced hardcoded URLs with a dynamic `NEXT_PUBLIC_APP_URL` environment variable. &#10;- Updated URL construction for admin console links to use `URL` object." />
+    <MESSAGE value="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(dashboard): add subdomain extraction logic for tenant identification&#10;&#10;- Implemented fallback logic to extract active subdomain from `window.location.hostname` for multi-tenant support.&#10;- Ensures compatibility with subdomain isolation setups excluding localhost." />
   </component>
 </project>
