@@ -18,9 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Fixed sidebar error again">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="Moved to client side" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -138,7 +136,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="7002000" />
+      <workItem from="1779613270757" duration="7379000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -516,7 +514,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779624861415</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="Moved to client side">
+      <option name="closed" value="true" />
+      <created>1779625423500</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1779625423500</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -524,7 +530,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(tenants): integrate QueryProvider and clean up tenant layout code&#10;&#10;- Added `QueryProvider` for consistent query state management across tenant layouts.&#10;- Improved code readability by adjusting formatting and structure in `layout.tsx`.&#10;- Optimized imports and eliminated redundant file paths." />
     <MESSAGE value="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering." />
     <MESSAGE value="refactor(tenants): move tenant layout to subdomain-specific folder for better structure" />
     <MESSAGE value="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing." />
@@ -549,6 +554,7 @@
     <MESSAGE value="fix(membership): improve membership role resolution logic&#10;&#10;- Refactored `membership.ts` to isolate and match active tenant membership accurately. &#10;- Enhanced error handling and added debug logging for missing memberships.&#10;- Simplified role extraction for better maintainability." />
     <MESSAGE value="Fixed sidebar error" />
     <MESSAGE value="Fixed sidebar error again" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed sidebar error again" />
+    <MESSAGE value="Moved to client side" />
+    <option name="LAST_COMMIT_MESSAGE" value="Moved to client side" />
   </component>
 </project>
