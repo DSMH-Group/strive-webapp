@@ -75,6 +75,16 @@ export default function GlobalDashboardClient({initialUser}: GlobalDashboardClie
         ? new URLSearchParams(window.location.search).get("tenantId") || ""
         : "";
 
+    // Fallback checking logic for Subdomain Isolation extraction
+    let activeSubdomain = "";
+    if (typeof window !== "undefined") {
+        const hostParts = window.location.hostname.split(".");
+        // If running on gymName.dsmhgroup.com, parts count will be 3
+        if (hostParts.length >= 3 && !window.location.hostname.includes("localhost")) {
+            activeSubdomain = hostParts[0];
+        }
+    }
+
     const {data: userProfile, isLoading: profileLoading, isError: profileError} = useQuery<ExtendedUserResponseDto>({
         queryKey: ["clientProfile"],
         queryFn: async () => {
