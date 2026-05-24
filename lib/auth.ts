@@ -2,9 +2,11 @@
 import {betterAuth} from "better-auth";
 import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import * as schema from "@/db/schema";
-import {genericOAuth, keycloak} from "better-auth/plugins"; // Removed 'google' from here
+import {genericOAuth, keycloak} from "better-auth/plugins";
 import {db} from "@/db/db";
 import {eq} from "drizzle-orm";
+
+const isProd = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -13,62 +15,44 @@ export const auth = betterAuth({
         camelCase: false
     }),
 
-    baseURL: {
-        allowedHosts: [
-            "dsmhgroup.com",
-            "*.dsmhgroup.com"
-        ],
-        protocol: "https",
-        fallback: "https://dsmhgroup.com"
-    },
+    // 1. Dynamic Host Routing Core
+    baseURL: isProd
+        ? {
+            allowedHosts: ["dsmhgroup.com", "*.dsmhgroup.com"],
+            protocol: "https",
+            fallback: "https://dsmhgroup.com"
+        }
+        : "http://localhost:3000",
 
-    // FIXED: Correct nested { create: { before: ... } } modern signature format
     databaseHooks: {
         user: {
             create: {
                 before: async (user) => {
-                    return {
-                        data: {
-                            ...user,
-                            id: crypto.randomUUID(), // Force standard UUID string values
-                        },
-                    };
+                    return {data: {...user, id: crypto.randomUUID()}};
                 },
             },
         },
         session: {
             create: {
                 before: async (session) => {
-                    return {
-                        data: {
-                            ...session,
-                            id: crypto.randomUUID(), // Force standard UUID string values
-                        },
-                    };
+                    return {data: {...session, id: crypto.randomUUID()}};
                 },
             },
         },
         account: {
             create: {
                 before: async (account) => {
-                    return {
-                        data: {
-                            ...account,
-                            id: crypto.randomUUID(), // Force standard UUID string values
-                        },
-                    };
+                    return {data: {...account, id: crypto.randomUUID()}};
                 },
             },
         },
     },
 
-    // 1. Core Native Provider Engine
     emailAndPassword: {
         enabled: true,
         autoSignIn: true,
     },
 
-    // 2. Core Social Provider Engine (Fixes TS2305)
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -83,22 +67,19 @@ export const auth = betterAuth({
         }
     },
 
+    // 2. Automated Production Cookie Isolation Policy
     advanced: {
-        // Automatically enforce secure cookies outside of local machine development
-        useSecureCookies: process.env.NODE_ENV === "production",
-
+        useSecureCookies: isProd,
         crossSubDomainCookies: {
             enabled: true,
             additionalCookies: ["better-auth.session_data"],
-            // Note: Omit the leading dot here, Better-Auth appends it cleanly down-stream
-            domain: process.env.NODE_ENV === "production" ? "dsmhgroup.com" : "localhost"
+            domain: isProd ? "dsmhgroup.com" : "localhost"
         },
         defaultCookieAttributes: {
-            // "lax" works perfectly fine for subdomains as long as 'secure' matches your environment!
             sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
+            secure: isProd,
             httpOnly: true,
-            domain: process.env.NODE_ENV === "production" ? ".dsmhgroup.com" : undefined,
+            domain: isProd ? ".dsmhgroup.com" : undefined,
         }
     },
 
@@ -119,7 +100,6 @@ export const auth = betterAuth({
         }
     },
 
-    // 3. Keep ONLY Custom / Legacy Extensions Here
     plugins: [
         genericOAuth({
             config: [
