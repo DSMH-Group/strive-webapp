@@ -16,8 +16,6 @@ export const auth = betterAuth({
     }),
 
     // 1. Dynamic Host Routing Core
-// Standardize to absolute string origins.
-    // Better-Auth natively parses subdomains correctly via trustedOrigins alone!
     baseURL: isProd ? "https://dsmhgroup.com" : "http://localhost:3000",
 
     databaseHooks: {
