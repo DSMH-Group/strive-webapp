@@ -18,8 +18,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements.">
+      <change afterPath="$PROJECT_DIR$/components/ui/dialog.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,15 +139,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="9451000" />
-    </task>
-    <task id="LOCAL-00003" summary="Added necessary files">
-      <option name="closed" value="true" />
-      <created>1778571773910</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1778571773910</updated>
+      <workItem from="1779613270757" duration="9782000" />
     </task>
     <task id="LOCAL-00004" summary="changed middleware to proxy.ts">
       <option name="closed" value="true" />
@@ -533,7 +525,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779626585915</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements.">
+      <option name="closed" value="true" />
+      <created>1779627909113</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1779627909113</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -541,7 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(auth): enhance cookie handling and domain logic for improved flexibility&#10;&#10;- Made `useSecureCookies` environment-dependent for better local and production compatibility.&#10;- Refactored `crossSubDomainCookies` and `defaultCookieAttributes` to dynamically set domains and secure attributes based on environment." />
     <MESSAGE value="feat(auth): refactor environment-dependent logic for baseURL, cookies, and IDs&#10;&#10;- Refactored `baseURL` to dynamically select production or development configurations.  &#10;- Simplified UUID generation in database hooks for users, sessions, and accounts.  &#10;- Enhanced cookie management with environment-aware settings for security and cross-domain compatibility." />
     <MESSAGE value="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development." />
     <MESSAGE value="fix(proxy): add production domain to hostname check" />
@@ -566,6 +565,7 @@
     <MESSAGE value="Obscene logs" />
     <MESSAGE value="Updated stuff" />
     <MESSAGE value="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths." />
+    <MESSAGE value="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements." />
   </component>
 </project>
