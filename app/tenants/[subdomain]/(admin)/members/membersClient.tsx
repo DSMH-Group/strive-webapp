@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -14,22 +13,6 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    UserPlus,
     Search,
     ChevronRight,
     UserCheck,
@@ -40,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
+import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
 
 interface MembersClientProps {
     subdomain: string;
@@ -49,15 +33,8 @@ interface MembersClientProps {
 type FilterStatus = "ALL" | "ACTIVE" | "GRACE" | "OVERDUE";
 
 export default function MembersClient({ subdomain, tenantId }: MembersClientProps) {
-    const queryClient = useQueryClient();
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("ALL");
-    const [isInviteOpen, setIsInviteOpen] = useState(false);
-
-    // --- Invitation Form Client States ---
-    const [inviteEmail, setInviteEmail] = useState("");
-    const [invitePhone, setInvitePhone] = useState("");
-    const [inviteRole, setInviteRole] = useState<"MEMBER" | "TRAINER" | "MANAGER" | "ORG_ADMIN">("MEMBER");
 
     // 🚀 STEP 1: Wire up live data query hook to GET /api/v1/members
     const { data: membersList = [], isLoading, isError } = useQuery<any[]>({
@@ -72,47 +49,6 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
         },
         enabled: !!tenantId
     });
-
-    // 🚀 STEP 2: Wire up invitation mutation hook to POST /api/v1/members/invites
-    const inviteMutation = useMutation({
-        mutationFn: async (newInvite: { email: string; phone: string; initialRole: string }) => {
-            const res = await striveClientFetch("/api/v1/members/invites", {
-                method: "POST",
-                headers: { "X-Tenant-ID": tenantId },
-                body: JSON.stringify(newInvite)
-            });
-            if (!res.ok) {
-                const errText = await res.text();
-                throw new Error(errText || "Failed to dispatch invitation footprint.");
-            }
-            return res.json();
-        },
-        onSuccess: () => {
-            toast.success("Invitation dispatched successfully via SMS/Email!");
-            queryClient.invalidateQueries({ queryKey: ["tenantMembersGrid", tenantId] });
-            // Reset modal layout parameters
-            setInviteEmail("");
-            setInvitePhone("");
-            setInviteRole("MEMBER");
-            setIsInviteOpen(false);
-        },
-        onError: (error: any) => {
-            toast.error(`Invitation blocked: ${error.message}`);
-        }
-    });
-
-    const handleSendInvite = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!inviteEmail && !invitePhone) {
-            toast.error("Please supply either a target verification Email or Phone line.");
-            return;
-        }
-        inviteMutation.mutate({
-            email: inviteEmail || '',
-            phone: invitePhone || '',
-            initialRole: inviteRole
-        });
-    };
 
     // --- Dynamic Analytics Summary Calculations ---
     const summaryKPIs = useMemo(() => {
@@ -173,64 +109,8 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
                     <p className="text-xs text-muted-foreground">Full multi-tenant operational roster</p>
                 </div>
 
-                {/* Secure Invitation Dialog Workflow Modal */}
-                <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-                    <DialogTrigger>
-                        <Button variant="outline" className="h-10 text-xs border-border bg-card text-foreground rounded-md font-bold gap-2 px-4 hover:bg-accent">
-                            <UserPlus className="w-3.5 h-3.5 text-primary" /> Invite Member
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
-                        <DialogHeader>
-                            <DialogTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Onboard Workspace Identity</DialogTitle>
-                            <DialogDescription className="text-xs text-muted-foreground/80">
-                                Send an edge authentication invite linking a user to this facility workspace domain.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSendInvite} className="space-y-4 pt-2">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
-                                <Input
-                                    type="email"
-                                    placeholder="nimal.perera@example.lk"
-                                    value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                    className="bg-background border-border text-sm h-10"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone Number (Sri Lankan Format)</label>
-                                <Input
-                                    type="text"
-                                    placeholder="+94771234567"
-                                    value={invitePhone}
-                                    onChange={(e) => setInvitePhone(e.target.value)}
-                                    className="bg-background border-border text-sm h-10 font-mono"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Initial Workspace RBAC Tier</label>
-                                <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
-                                    <SelectTrigger className="bg-background border-border text-xs h-10">
-                                        <SelectValue placeholder="Select Tier" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-card border-border text-foreground">
-                                        <SelectItem value="MEMBER">MEMBER (Baseline Consumer)</SelectItem>
-                                        <SelectItem value="TRAINER">TRAINER (Staff Fitness Resource)</SelectItem>
-                                        <SelectItem value="MANAGER">MANAGER (Facility Supervisor)</SelectItem>
-                                        <SelectItem value="ORG_ADMIN">ORG_ADMIN (Full System Operator)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex items-center justify-end gap-2 pt-2">
-                                <Button type="button" variant="ghost" size="sm" onClick={() => setIsInviteOpen(false)} className="text-xs">Cancel</Button>
-                                <Button type="submit" size="sm" disabled={inviteMutation.isPending} className="text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90">
-                                    {inviteMutation.isPending ? "Dispatching..." : "Send Invitation"}
-                                </Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                {/* Secure Invitation Dialog Workflow Modal is now extracted */}
+                <InviteMemberSheet tenantId={tenantId} />
             </div>
 
             {/* Roster KPI Summary Metrics Cards */}

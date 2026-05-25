@@ -18,14 +18,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(invites): add copy magic link functionality to admin invites panel&#10;&#10;- Introduced new &quot;Copy Magic Link&quot; button for generating and copying magic links to the clipboard.&#10;- Implemented toast notifications for success or failure when copying the link.&#10;- Enhanced user experience with quick access to shareable invitation links via the admin panel.">
-      <change afterPath="$PROJECT_DIR$/components/platform/dashboard/athlete-metrics.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/platform/dashboard/workspace-grid.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/db/types.ts" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements).">
+      <change afterPath="$PROJECT_DIR$/components/tenant/shared/InviteMemberSheet.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(platform)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/membersClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/members/membersClient.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,39 +141,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="18046000" />
-    </task>
-    <task id="LOCAL-00010" summary="feat(discover): modularize client and server logic for gym discovery&#10;&#10;- Extracted client-side gym discovery logic to `DiscoverGymsClient`.&#10;- Improved server-side session validation and token forwarding.&#10;- Removed deprecated logic and simplified `DiscoverGymsPage` structure.&#10;- Updated `Header` and `Sidebar` for UI consistency.&#10;- Removed unused sidebar item `Favorites`.">
-      <option name="closed" value="true" />
-      <created>1779184918737</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1779184918737</updated>
-    </task>
-    <task id="LOCAL-00011" summary="feat(platform): restructure app architecture and enhance modularity&#10;&#10;- Moved core components and pages under the `platform` directory for improved separation of concerns.&#10;- Introduced centralized authentication and API utilities with `betterAuth` and `striveClientFetch`.&#10;- Added tenant onboarding flows with `ProvisionTenantPage` and `ProvisionTenantClient`.&#10;- Enhanced theming and UI consistency using shared Tailwind configurations.&#10;- Refactored database schema for stricter type safety and snake_case conventions.">
-      <option name="closed" value="true" />
-      <created>1779340313815</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1779340313816</updated>
-    </task>
-    <task id="LOCAL-00012" summary="feat(tenants): implement dynamic multi-tenant layouts and admin console  &#10;&#10;- Added a new tenant-specific `layout.tsx` to support dynamic theming and UI rendering.  &#10;- Introduced admin console with secure server-to-server calls for membership, invoices, and attendance data.  &#10;- Enhanced proxy logic for subdomain resolution and tenant ID injection.  &#10;- Added utilities like `useIsMobile` for responsive design and `striveClientFetch` for multi-tenant API requests.">
-      <option name="closed" value="true" />
-      <created>1779423794276</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1779423794276</updated>
-    </task>
-    <task id="LOCAL-00013" summary="feat(member): implement dynamic member dashboard, sidebar, and activity tracking&#10;&#10;- Added a tenant-specific member dashboard with server-to-server metrics integration and mock fallback data.&#10;- Introduced an activity tracking feature with extensible filters and detailed workout tracking.&#10;- Implemented a responsive sidebar for navigation with logout functionality and badge support.&#10;- Enhanced UI/UX with interactive charts, gamification elements, and progress visualization.">
-      <option name="closed" value="true" />
-      <created>1779428500194</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1779428500194</updated>
+      <workItem from="1779613270757" duration="22420000" />
     </task>
     <task id="LOCAL-00014" summary="feat(ui): refactor components for consistent theming and improve accessibility&#10;&#10;- Standardized colors and styles across components for better theme consistency.&#10;- Updated `LoginPage`, `DiscoverClient`, and `TenantMemberSidebar` with accessible text and color contrast.&#10;- Refactored UI elements (e.g., buttons, badges, headers) to use scalable, reusable classes.&#10;- Enhanced layout alignment and spacing for smoother responsive design.">
       <option name="closed" value="true" />
@@ -539,7 +503,39 @@
       <option name="project" value="LOCAL" />
       <updated>1779655437364</updated>
     </task>
-    <option name="localTasksCounter" value="59" />
+    <task id="LOCAL-00059" summary="feat(dashboard): implement workspace grid and athlete metrics components&#10;&#10;- Added `WorkspaceGrid` for displaying user workspaces with role-specific actions.&#10;- Introduced `AthleteMetrics` for tracking attendance, personal records, and weekly performance.&#10;- Updated global dashboard page with role-based workspace management and metric insights.&#10;- Refactored `dashboardClient` to modularize components and simplify state handling.">
+      <option name="closed" value="true" />
+      <created>1779693915931</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1779693915931</updated>
+    </task>
+    <task id="LOCAL-00060" summary="fix(dashboard): update user profile endpoint in `dashboardClient` for data consistency">
+      <option name="closed" value="true" />
+      <created>1779694584551</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1779694584551</updated>
+    </task>
+    <task id="LOCAL-00061" summary="feat(sidebar): refactor `TenantSidebarManager` with unified role-based navigation&#10;&#10;- Introduced `getRoleConfig` for centralized role-based navigation configuration.&#10;- Replaced individual role-specific sidebars with a unified `UnifiedSidebar` component.&#10;- Improved code readability and maintainability by reducing duplication.&#10;- Added support for badge notifications and simplified error and loading states.&#10;- Enhanced user experience with dynamic role-based themes and streamlined API calls.">
+      <option name="closed" value="true" />
+      <created>1779700560266</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1779700560266</updated>
+    </task>
+    <task id="LOCAL-00062" summary="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements).">
+      <option name="closed" value="true" />
+      <created>1779701126314</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1779701126314</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -547,10 +543,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="refactor(proxy): update matcher logic to exclude `/login` and `/dashboard` paths&#10;&#10;- Broadened internal asset guards to bypass additional routes from custom re-writes.&#10;- Updated hostname handling for consistency across local and production environments." />
-    <MESSAGE value="refactor(proxy): adjust matcher configuration and update internal workspace changes&#10;&#10;- Migrated `/auth` pages to a simplified folder structure for better routing organization.&#10;- Updated IntelliJ workspace files to reflect recent task history and cached file changes." />
-    <MESSAGE value="refactor(dashboard): remove unused client components for dashboard and gym discovery&#10;&#10;- Deleted `dashboardClient.tsx` and `discoverClient.tsx` to clean up unused code and improve project structure." />
-    <MESSAGE value="feat(settings): add settings and dashboard client components  &#10;&#10;- Introduced `settingsClient.tsx` for profile and settings management.  &#10;- Added `dashboardClient.tsx` for tenant-specific dashboard functionalities.  &#10;- Implemented secure API integrations for user profile, avatar upload, and password updates.  &#10;- Enhanced gym onboarding flow with subdomain and tenant validation." />
     <MESSAGE value="fix(domain): update domain references from `stride.lk` to `dsmhgroup.com`&#10;&#10;- Replaced all URL references to use the new production domain `dsmhgroup.com`.&#10;- Updated client-side redirection logic, tenant subdomains, and related UI elements." />
     <MESSAGE value="fix(auth): update login redirect to use HTTPS" />
     <MESSAGE value="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component." />
@@ -572,6 +564,10 @@
     <MESSAGE value="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation." />
     <MESSAGE value="feat(register): redesign registration form with invitation flow support&#10;&#10;- Simplified and modernized `RegisterForm` UI for a better user experience.&#10;- Added support for workspace invitations, including pre-filled email fields and redirection to tenant-specific domains.&#10;- Integrated `toast` notifications for error and success feedback during registration.&#10;- Optimized form logic to remove unnecessary steps and improve onboarding efficiency.&#10;- Introduced `Suspense` wrapper for improved client search parameter handling." />
     <MESSAGE value="feat(invites): add copy magic link functionality to admin invites panel&#10;&#10;- Introduced new &quot;Copy Magic Link&quot; button for generating and copying magic links to the clipboard.&#10;- Implemented toast notifications for success or failure when copying the link.&#10;- Enhanced user experience with quick access to shareable invitation links via the admin panel." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(invites): add copy magic link functionality to admin invites panel&#10;&#10;- Introduced new &quot;Copy Magic Link&quot; button for generating and copying magic links to the clipboard.&#10;- Implemented toast notifications for success or failure when copying the link.&#10;- Enhanced user experience with quick access to shareable invitation links via the admin panel." />
+    <MESSAGE value="feat(dashboard): implement workspace grid and athlete metrics components&#10;&#10;- Added `WorkspaceGrid` for displaying user workspaces with role-specific actions.&#10;- Introduced `AthleteMetrics` for tracking attendance, personal records, and weekly performance.&#10;- Updated global dashboard page with role-based workspace management and metric insights.&#10;- Refactored `dashboardClient` to modularize components and simplify state handling." />
+    <MESSAGE value="fix(dashboard): update user profile endpoint in `dashboardClient` for data consistency" />
+    <MESSAGE value="feat(sidebar): refactor `TenantSidebarManager` with unified role-based navigation&#10;&#10;- Introduced `getRoleConfig` for centralized role-based navigation configuration.&#10;- Replaced individual role-specific sidebars with a unified `UnifiedSidebar` component.&#10;- Improved code readability and maintainability by reducing duplication.&#10;- Added support for badge notifications and simplified error and loading states.&#10;- Enhanced user experience with dynamic role-based themes and streamlined API calls." />
+    <MESSAGE value="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements)." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements)." />
   </component>
 </project>

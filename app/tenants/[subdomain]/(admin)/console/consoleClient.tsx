@@ -13,6 +13,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
 
 // --- API Schema Interfaces ---
 interface PrismaTenantDto {
@@ -60,10 +61,6 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         queryFn: async () => {
             const res = await striveClientFetch("/api/v1/users/me", { method: "GET" });
             const data = await res.json();
-
-            // 🚀 TEMP DEBUG: Look at this in your browser Inspect Console!
-            console.log("[Debug Profile Matrix Output]:", data);
-
             if (!res.ok) throw new Error("Clearance identity matrix rejected.");
             return data;
         }
@@ -88,7 +85,6 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                 attendances: attendancesRes.ok ? await attendancesRes.json() as any : { history: [], monthlyCount: 0 }
             };
         },
-        // Fires immediately only once security context and RBAC assertions clear cleanly
         enabled: !!tenantId && !!hasAdminAccess
     });
 
@@ -103,7 +99,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
             return acc + (inv.items?.reduce((sum: number, item: any) => sum + Number(item.amount), 0) || Number(inv.totalAmount) || 0);
         }, 0);
 
-        const todayStr = new Date("2026-05-22").toISOString().split('T')[0];
+        const todayStr = new Date().toISOString().split('T')[0];
         const todayCheckins = attendances.history?.filter((a: any) => a.checkInTime?.startsWith(todayStr)).length || 0;
         const activeChurnRisk = members.filter((m: any) => m.status === 'GRACE_PERIOD' || m.status === 'SUSPENDED').length;
 
@@ -126,8 +122,6 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
             { day: "Sun", revenue: metrics.monthlyRevenue * 0.42 },
         ];
     }, [metrics.monthlyRevenue]);
-
-    // --- INTERACTIVE SCREEN CONDITION STATE REDUCER ---
 
     if (profileLoading || (hasAdminAccess && dataLoading)) {
         return (
@@ -270,7 +264,11 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                                 <p className="text-xs text-muted-foreground">Manage daily gym operations and POS.</p>
                             </div>
                             <div className="grid grid-cols-2 gap-2.5">
-                                <CommandButton label="Onboard Member" icon={<UserPlus className="w-4 h-4"/>} onClick={() => toast.success("Opening user identity configuration...")} />
+                                {/* Wrap the button directly in the reusable sheet */}
+                                <InviteMemberSheet tenantId={tenantId}>
+                                    <CommandButton label="Onboard Member" icon={<UserPlus className="w-4 h-4"/>} />
+                                </InviteMemberSheet>
+
                                 <CommandButton label="Log Cash Payment" icon={<CreditCard className="w-4 h-4"/>} onClick={() => toast.success("Accessing local cash engine...")} />
                                 <CommandButton label="Front Desk Mode" icon={<MonitorPlay className="w-4 h-4"/>} onClick={() => toast.success("Launching check-in monitor...")} />
                                 <CommandButton label="Broadcast SMS" icon={<MessageSquare className="w-4 h-4"/>} onClick={() => toast.info("Initializing transaction SMS client...")} />
@@ -332,11 +330,21 @@ function AdminStatCard({ title, value, description, icon, isAlert = false }: { t
     );
 }
 
-function CommandButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick?: () => void }) {
-    return (
-        <Button onClick={onClick} variant="outline" className="h-14 bg-background border border-border hover:border-primary/40 hover:bg-accent flex flex-col items-center justify-center gap-1 rounded-md transition-all group p-2 text-foreground">
-            <span className="text-muted-foreground group-hover:text-primary transition-colors duration-200">{icon}</span>
-            <span className="text-[10px] uppercase font-bold tracking-tighter text-muted-foreground group-hover:text-foreground transition-colors duration-200">{label}</span>
-        </Button>
-    );
-}
+// Refactored to forwardRef so it works perfectly inside <SheetTrigger asChild>
+const CommandButton = React.forwardRef<HTMLButtonElement, { label: string; icon: React.ReactNode; onClick?: () => void; className?: string }>(
+    ({ label, icon, onClick, className, ...props }, ref) => {
+        return (
+            <Button
+                ref={ref}
+                onClick={onClick}
+                variant="outline"
+                className={cn("h-14 bg-background border border-border hover:border-primary/40 hover:bg-accent flex flex-col items-center justify-center gap-1 rounded-md transition-all group p-2 text-foreground", className)}
+                {...props}
+            >
+                <span className="text-muted-foreground group-hover:text-primary transition-colors duration-200">{icon}</span>
+                <span className="text-[10px] uppercase font-bold tracking-tighter text-muted-foreground group-hover:text-foreground transition-colors duration-200">{label}</span>
+            </Button>
+        );
+    }
+);
+CommandButton.displayName = "CommandButton";
