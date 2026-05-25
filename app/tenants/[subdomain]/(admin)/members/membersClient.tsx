@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
-import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
+import { InviteMemberSheet } from "@/components/tenant/shared/InviteMemberSheet";
 
 interface MembersClientProps {
     subdomain: string;
@@ -148,6 +148,7 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
                         <TableRow className="border-b border-border hover:bg-transparent">
                             <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4 pl-6">MEMBER</TableHead>
                             <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">PLAN / ID</TableHead>
+                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">ROLE</TableHead>
                             <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">STATUS</TableHead>
                             <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">RFID TAG</TableHead>
                             <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">LAST SYNC</TableHead>
@@ -183,6 +184,33 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
                                 {/* Plan and Identifier Fields */}
                                 <TableCell className="text-muted-foreground font-mono text-xs py-3.5">
                                     {member.plan || `MEM-${member.id.slice(0, 5).toUpperCase()}`}
+                                </TableCell>
+
+                                <TableCell className="py-3.5">
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {member.roles && member.roles.length > 0 ? (
+                                            member.roles.map((r: any, idx: number) => {
+                                                const isStaff = r.role === "ORG_ADMIN" || r.role === "MANAGER" || r.role === "TRAINER";
+                                                return (
+                                                    <span
+                                                        key={idx}
+                                                        className={cn(
+                                                            "text-[9px] font-bold uppercase px-2 py-0.5 rounded border tracking-widest",
+                                                            isStaff
+                                                                ? "bg-primary/10 text-primary border-primary/20"
+                                                                : "bg-secondary text-muted-foreground border-border"
+                                                        )}
+                                                    >
+                                                        {r.role.replace("_", " ")}
+                                                    </span>
+                                                )
+                                            })
+                                        ) : (
+                                            <span className="text-[9px] font-bold uppercase tracking-widest bg-secondary text-muted-foreground px-2 py-0.5 rounded border border-border">
+                                                MEMBER
+                                            </span>
+                                        )}
+                                    </div>
                                 </TableCell>
 
                                 {/* Structural State Configuration Tag */}
@@ -224,7 +252,7 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
 
                         {filteredMembers.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-sm">
+                                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
                                     No member records matched your active filter scope.
                                 </TableCell>
                             </TableRow>
