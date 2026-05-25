@@ -338,8 +338,7 @@ const CommandButton = React.forwardRef<HTMLButtonElement, { label: string; icon:
                 ref={ref}
                 onClick={onClick}
                 variant="outline"
-                className={cn("h-14 bg-background border border-border hover:border-primary/40 hover:bg-accent flex flex-col items-center justify-center gap-1 rounded-md transition-all group p-2 text-foreground", className)}
-                {...props}
+                className={cn("h-14 w-full bg-background border border-border hover:border-primary/40 hover:bg-accent flex flex-col items-center justify-center gap-1 rounded-md transition-all group p-2 text-foreground", className)}                {...props}
             >
                 <span className="text-muted-foreground group-hover:text-primary transition-colors duration-200">{icon}</span>
                 <span className="text-[10px] uppercase font-bold tracking-tighter text-muted-foreground group-hover:text-foreground transition-colors duration-200">{label}</span>

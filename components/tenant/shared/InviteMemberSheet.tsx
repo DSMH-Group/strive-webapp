@@ -102,7 +102,7 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                     </SheetDescription>
                 </SheetHeader>
 
-                <form onSubmit={handleSendInvite} className="space-y-6 flex flex-col h-[calc(100vh-180px)]">
+                <form onSubmit={handleSendInvite} className="space-y-6 px-6 flex flex-col h-[calc(100vh-180px)]">
                     <div className="space-y-4 flex-1">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
