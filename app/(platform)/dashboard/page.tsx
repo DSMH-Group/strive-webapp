@@ -5,18 +5,19 @@ import { redirect } from "next/navigation";
 import GlobalDashboardClient from "./dashboardClient";
 
 export const metadata = {
-    title: "Dashboard | Strive Platform",
-    description: "Live track your active athlete passports, streaks, and fitness milestones.",
+    title: "Global Hub | Strive Platform",
+    description: "Manage your workspaces, track athlete passports, and monitor fitness milestones.",
 };
 
 export default async function GlobalDashboardPage() {
-    // 1. Validate standard Next.js session context on server thread
+    // Standard Next.js server-side auth validation
     const authData = await auth.api.getSession({ headers: await headers() });
     if (!authData) redirect("/login");
 
     return (
         <GlobalDashboardClient
             initialUser={{
+                id: authData.user.id,
                 name: authData.user.name || "Athlete",
                 email: authData.user.email
             }}

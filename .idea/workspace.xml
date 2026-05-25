@@ -19,10 +19,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(invites): add copy magic link functionality to admin invites panel&#10;&#10;- Introduced new &quot;Copy Magic Link&quot; button for generating and copying magic links to the clipboard.&#10;- Implemented toast notifications for success or failure when copying the link.&#10;- Enhanced user experience with quick access to shareable invitation links via the admin panel.">
+      <change afterPath="$PROJECT_DIR$/components/platform/dashboard/athlete-metrics.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/platform/dashboard/workspace-grid.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/db/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/overview/dashboardClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/overview/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tenant/member/TenantMemberSidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/member/TenantMemberSidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/dashboard/dashboardClient.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(platform)/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(platform)/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/no-context-dashboard.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -142,15 +145,7 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="13016000" />
-    </task>
-    <task id="LOCAL-00009" summary="feat(discover): implement dynamic gym discovery with backend integration&#10;&#10;- Replaced mock data with dynamic tenant fetching using `react-query`.&#10;- Integrated secure API calls leveraging user session tokens.&#10;- Introduced membership linking and portal redirection logic.&#10;- Enhanced UI/UX with loading/error states and deferred search input handling.&#10;- Updated dependencies: added `sonner` for toasts and `next-themes` for theming.">
-      <option name="closed" value="true" />
-      <created>1779180069774</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1779180069775</updated>
+      <workItem from="1779613270757" duration="18046000" />
     </task>
     <task id="LOCAL-00010" summary="feat(discover): modularize client and server logic for gym discovery&#10;&#10;- Extracted client-side gym discovery logic to `DiscoverGymsClient`.&#10;- Improved server-side session validation and token forwarding.&#10;- Removed deprecated logic and simplified `DiscoverGymsPage` structure.&#10;- Updated `Header` and `Sidebar` for UI consistency.&#10;- Removed unused sidebar item `Favorites`.">
       <option name="closed" value="true" />
@@ -536,7 +531,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779654941364</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="feat(invites): add copy magic link functionality to admin invites panel&#10;&#10;- Introduced new &quot;Copy Magic Link&quot; button for generating and copying magic links to the clipboard.&#10;- Implemented toast notifications for success or failure when copying the link.&#10;- Enhanced user experience with quick access to shareable invitation links via the admin panel.">
+      <option name="closed" value="true" />
+      <created>1779655437364</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1779655437364</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
