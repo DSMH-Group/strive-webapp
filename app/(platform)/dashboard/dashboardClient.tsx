@@ -19,9 +19,9 @@ export default function GlobalDashboardClient({ initialUser }: Props) {
     const { data: userProfile, isLoading, isError } = useQuery<GlobalUserDto>({
         queryKey: ["globalProfile", initialUser.id],
         queryFn: async () => {
-            // This NestJS endpoint MUST return the user with their memberships and roles included
-            const res = await striveClientFetch("/api/v1/users/me/ecosystem", { method: "GET" });
-            if (!res.ok) throw new Error("Could not fetch global ecosystem data.");
+            // Change this line back to the standard /me endpoint!
+            const res = await striveClientFetch("/api/v1/users/me", { method: "GET" });
+            if (!res.ok) throw new Error("Could not fetch user profile and workspaces.");
             return res.json();
         }
     });
