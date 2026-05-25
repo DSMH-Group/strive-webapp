@@ -32,6 +32,11 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
 }
 
 function hexToHslString(hex: string): string {
+    // FIX: Added validation to prevent server crashes on malformed hex strings
+    if (!hex || !/^#?[0-9A-Fa-f]{6}$/i.test(hex)) {
+        hex = "#ea580c"; // Default fallback (Strive Primary)
+    }
+
     hex = hex.replace(/^#/, '');
     let r = parseInt(hex.substring(0, 2), 16) / 255;
     let g = parseInt(hex.substring(2, 4), 16) / 255;
@@ -68,7 +73,6 @@ export default async function TenantLayout({
     const reqHeaders = await headers();
     const tenantId = reqHeaders.get("x-tenant-id");
 
-    // Route to marketplace/exploration if tenant context handshake fails
     const rootDomain = process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'dsmhgroup.com';
 
     if (!tenantId) redirect(`https://${rootDomain}/explore`);
@@ -76,18 +80,20 @@ export default async function TenantLayout({
     const tenantConfig = await getTenantConfig(tenantId);
     const dynamicPrimaryHsl = hexToHslString(tenantConfig?.themeConfig?.primaryColor || "#ea580c");
 
-    const authData = await auth.api.getSession({headers: await headers()});
+    const authData = await auth.api.getSession({headers: reqHeaders}); // Micro-optimization: reuse reqHeaders
     if (!authData) {
         redirect(`https://${rootDomain}/login`);
     }
 
     return (
+        // FIX: Changed min-h-screen to h-screen and added overflow-hidden to lock the viewport
         <div
-            className="flex min-h-screen w-full bg-background text-foreground"
+            className="flex h-screen w-full overflow-hidden bg-background text-foreground"
             style={{'--primary': dynamicPrimaryHsl} as React.CSSProperties}
         >
             {/* Structural Sidebar Isolation */}
-            <aside className="hidden md:flex w-64 border-r border-border bg-background shrink-0">
+            {/* FIX: Added h-full to explicitly size the sidebar */}
+            <aside className="hidden md:flex w-64 h-full border-r border-border bg-background shrink-0">
                 <TenantSidebarManager
                     tenantId={tenantId}
                     config={tenantConfig}
@@ -95,12 +101,21 @@ export default async function TenantLayout({
             </aside>
 
             {/* Subdomain Content Viewport */}
-            <div className="flex-1 flex flex-col min-w-0">
+            {/* FIX: Added h-full and overflow-hidden to bound the main scroll area */}
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 <DashboardHeader user={authData.user}/>
-                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
-                    {children}
+
+                {/* FIX: Added overflow-y-auto here so ONLY the content scrolls, leaving Header and Mobile Nav pinned */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full animate-in fade-in duration-500">
+                    <div className="max-w-7xl mx-auto w-full">
+                        {children}
+                    </div>
                 </main>
-                <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
+
+                {/* FIX: Wrapped MobileNavManager to prevent it from shrinking, keeping it pinned to bottom on mobile */}
+                <div className="md:hidden shrink-0 border-t border-border bg-background">
+                    <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
+                </div>
             </div>
         </div>
     );
