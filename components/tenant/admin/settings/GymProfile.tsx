@@ -1,17 +1,16 @@
 // components/tenant/admin/settings/GymProfile.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Loader2, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-import { striveClientFetch } from "@/lib/api";
-import { SectionHeader, SaveButton } from "@/app/tenants/[subdomain]/(admin)/settings/settingsClient";
+import React, {useEffect, useState} from "react";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {Card} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Switch} from "@/components/ui/switch";
+import {Loader2, RefreshCw} from "lucide-react";
+import {toast} from "sonner";
+import {striveClientFetch} from "@/lib/api";
+import {SaveButton, SectionHeader} from "@/app/tenants/[subdomain]/(admin)/settings/settingsClient";
 
 interface GymProfileProps {
     tenantId: string;
@@ -29,7 +28,7 @@ interface ProfileFormData {
     primaryColor: string;
 }
 
-export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
+export function GymProfile({tenantId, onComplete}: GymProfileProps) {
     const queryClient = useQueryClient();
     const [isManualInitials, setIsManualInitials] = useState(false);
 
@@ -52,40 +51,43 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
         return (words[0][0] + words[words.length - 1][0]).toUpperCase();
     };
 
-    // --- Fetch Public/Private Config via Resolve/Tenant Stack ---
-    const { isLoading } = useQuery({
+    // --- Fetch Public/Private Config ---
+    const {data: tenantData, isLoading} = useQuery({
         queryKey: ["tenantConfig", tenantId],
         queryFn: async () => {
             const res = await striveClientFetch(`/api/v1/tenants/${tenantId}`, {
-                headers: { "X-Tenant-ID": tenantId }
+                headers: {"X-Tenant-ID": tenantId}
             });
             if (!res.ok) throw new Error("Failed to load tenant configuration parameters.");
             return res.json();
-        },
-        meta: {
-            onSuccess: (data: any) => {
-                if (data) {
-                    const fetchedName = data.name || "";
-                    setFormData({
-                        name: fetchedName,
-                        tagline: data.tagline || "Colombo's Premier Training Facility",
-                        initials: data.initials || generateInitials(fetchedName),
-                        phone: data.phone || "+94 11 234 5678",
-                        email: data.email || "hello@fitforge.lk",
-                        address: data.address || "42 Galle Road, Colombo 03",
-                        logoUrl: data.themeConfig?.logoUrl || "",
-                        primaryColor: data.themeConfig?.primaryColor || "#ea580c"
-                    });
-                    if (data.initials) setIsManualInitials(true);
-                }
-            }
         }
     });
+
+    // 🚀 FIX: Reacting directly to incoming query data instead of using v5 deprecated callbacks
+    useEffect(() => {
+        if (tenantData) {
+            const fetchedName = tenantData.name || "";
+            setFormData({
+                name: fetchedName,
+                tagline: tenantData.tagline || "Colombo's Premier Training Facility",
+                initials: tenantData.initials || generateInitials(fetchedName),
+                phone: tenantData.phone || "+94 11 234 5678",
+                email: tenantData.email || "hello@fitforge.lk",
+                address: tenantData.address || "42 Galle Road, Colombo 03",
+                logoUrl: tenantData.themeConfig?.logoUrl || "",
+                primaryColor: tenantData.themeConfig?.primaryColor || "#ea580c"
+            });
+
+            if (tenantData.initials) {
+                setIsManualInitials(true);
+            }
+        }
+    }, [tenantData]);
 
     // Automatically calculate fallback initials when name drops or changes, unless overriden
     useEffect(() => {
         if (!isManualInitials && formData.name) {
-            setFormData(prev => ({ ...prev, initials: generateInitials(prev.name) }));
+            setFormData(prev => ({...prev, initials: generateInitials(prev.name)}));
         }
     }, [formData.name, isManualInitials]);
 
@@ -101,9 +103,8 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
                     name: payload.name,
                     themeConfig: {
                         primaryColor: payload.primaryColor,
-                        logoUrl: payload.logoUrl || "https://s3.amazonaws.com/logo.png" // Fallback guard
+                        logoUrl: payload.logoUrl || "https://s3.amazonaws.com/logo.png"
                     },
-                    // Appending extra local variables into payload parameters securely
                     businessRules: {
                         defaultCurrency: "LKR"
                     }
@@ -114,7 +115,7 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
         },
         onSuccess: () => {
             toast.success("Gym system profile context successfully committed to Strive Core.");
-            queryClient.invalidateQueries({ queryKey: ["tenantConfig", tenantId] });
+            queryClient.invalidateQueries({queryKey: ["tenantConfig", tenantId]});
             onComplete();
         },
         onError: (err: any) => {
@@ -134,32 +135,35 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
     if (isLoading) {
         return (
             <div className="py-24 flex items-center justify-center w-full">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader2 className="w-6 h-6 animate-spin text-primary"/>
             </div>
         );
     }
 
     return (
         <form onSubmit={handleFormSubmit} className="space-y-6">
-            <SectionHeader title="Gym Profile" desc="Branding, visual identity markers, and partner contact definitions" />
+            <SectionHeader title="Gym Profile"
+                           desc="Branding, visual identity markers, and partner contact definitions"/>
 
             <Card className="bg-card/30 border-border rounded-lg p-6 space-y-6">
                 {/* Core Naming Segment */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2 space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Gym Name</Label>
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Gym
+                            Name</Label>
                         <Input
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
                             className="bg-background border-border h-11 text-sm rounded-md font-medium"
                             placeholder="e.g. Power World Gyms"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tagline</Label>
+                        <Label
+                            className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tagline</Label>
                         <Input
                             value={formData.tagline}
-                            onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                            onChange={(e) => setFormData({...formData, tagline: e.target.value})}
                             className="bg-background border-border h-11 text-sm rounded-md"
                             placeholder="Motto or identifier statement"
                         />
@@ -170,14 +174,18 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Initials</Label>
+                            <Label
+                                className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Initials</Label>
                             <div className="flex items-center gap-1">
                                 <span className="text-[10px] font-medium text-muted-foreground">Override</span>
                                 <Switch
                                     checked={isManualInitials}
                                     onCheckedChange={(checked) => {
                                         setIsManualInitials(checked);
-                                        if (!checked) setFormData(prev => ({ ...prev, initials: generateInitials(prev.name) }));
+                                        if (!checked) setFormData(prev => ({
+                                            ...prev,
+                                            initials: generateInitials(prev.name)
+                                        }));
                                     }}
                                     className="scale-75"
                                 />
@@ -188,26 +196,28 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
                                 value={formData.initials}
                                 disabled={!isManualInitials}
                                 maxLength={4}
-                                onChange={(e) => setFormData({ ...formData, initials: e.target.value.toUpperCase() })}
+                                onChange={(e) => setFormData({...formData, initials: e.target.value.toUpperCase()})}
                                 className="bg-background border-border h-11 text-center font-black tracking-wider text-sm rounded-md uppercase disabled:opacity-60 font-mono"
                             />
                             {!isManualInitials && (
-                                <RefreshCw className="w-3 h-3 text-muted-foreground/50 absolute right-3 top-4 animate-pulse" />
+                                <RefreshCw
+                                    className="w-3 h-3 text-muted-foreground/50 absolute right-3 top-4 animate-pulse"/>
                             )}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Primary Theme Hex</Label>
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Primary
+                            Theme Hex</Label>
                         <div className="flex gap-2">
                             <div
                                 className="w-11 h-11 rounded-md border border-border shrink-0 transition-transform shadow-inner"
-                                style={{ backgroundColor: formData.primaryColor }}
+                                style={{backgroundColor: formData.primaryColor}}
                             />
                             <Input
                                 value={formData.primaryColor}
                                 maxLength={7}
-                                onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
+                                onChange={(e) => setFormData({...formData, primaryColor: e.target.value})}
                                 className="bg-background border-border h-11 font-mono text-xs rounded-md"
                                 placeholder="#ea580c"
                             />
@@ -215,11 +225,12 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
                     </div>
 
                     <div className="md:col-span-2 space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Logo Remote URI</Label>
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Logo Remote
+                            URI</Label>
                         <Input
                             type="url"
                             value={formData.logoUrl}
-                            onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                            onChange={(e) => setFormData({...formData, logoUrl: e.target.value})}
                             className="bg-background border-border h-11 text-xs rounded-md font-mono"
                             placeholder="https://s3.amazonaws.com/logo.png"
                         />
@@ -228,35 +239,38 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Operational Direct Line</Label>
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Operational
+                            Direct Line</Label>
                         <Input
                             type="tel"
                             value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
                             className="bg-background border-border h-11 text-sm rounded-md font-mono"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">System Billing/Admin Email</Label>
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">System
+                            Billing/Admin Email</Label>
                         <Input
                             type="email"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
                             className="bg-background border-border h-11 text-sm rounded-md font-mono"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Physical Street Address</Label>
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Physical Street
+                        Address</Label>
                     <Input
                         value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        onChange={(e) => setFormData({...formData, address: e.target.value})}
                         className="bg-background border-border h-11 text-sm rounded-md"
                     />
                 </div>
 
-                <SaveButton isLoading={updateProfileMutation.isPending} />
+                <SaveButton isLoading={updateProfileMutation.isPending}/>
             </Card>
         </form>
     );
