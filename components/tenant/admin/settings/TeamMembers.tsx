@@ -167,6 +167,8 @@ export function TeamMembers({tenantId, onComplete}: TeamMembersProps) {
                                 const isActive = person.status === "ACTIVE";
 
                                 // 🚀 SAFEGUARD CHECK: Is this row the current operator?
+                                console.log("Current User Profile ID", currentUserProfile?.id);
+                                console.log("Current Member ID", person.userId);
                                 const isSelf = currentUserProfile?.id && person.userId === currentUserProfile.id;
 
                                 return (

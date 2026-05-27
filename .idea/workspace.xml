@@ -18,7 +18,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(settings): enhance `TeamMembers` component with self-protection logic and UI improvements&#10;&#10;- Added safeguards to prevent self-modification of roles/status in the `TeamMembers` component.&#10;- Integrated additional UI enhancements, including disabled states for buttons and improved accessibility.&#10;- Refactored and optimized JSX formatting and props handling for better readability and maintainability.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tenant/admin/settings/TeamMembers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/admin/settings/TeamMembers.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -139,15 +142,7 @@
       <workItem from="1779613020026" duration="238000" />
       <workItem from="1779613270757" duration="32705000" />
       <workItem from="1779763657851" duration="684000" />
-      <workItem from="1779854190627" duration="8328000" />
-    </task>
-    <task id="LOCAL-00029" summary="refactor(auth): remove redundant comments in baseURL logic">
-      <option name="closed" value="true" />
-      <created>1779611210483</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1779611210483</updated>
+      <workItem from="1779854190627" duration="9274000" />
     </task>
     <task id="LOCAL-00030" summary="refactor(proxy): exclude `/login` from proxy matcher configuration">
       <option name="closed" value="true" />
@@ -533,7 +528,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779873556718</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="feat(settings): enhance `TeamMembers` component with self-protection logic and UI improvements&#10;&#10;- Added safeguards to prevent self-modification of roles/status in the `TeamMembers` component.&#10;- Integrated additional UI enhancements, including disabled states for buttons and improved accessibility.&#10;- Refactored and optimized JSX formatting and props handling for better readability and maintainability.">
+      <option name="closed" value="true" />
+      <created>1779874156365</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1779874156365</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -541,7 +544,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(dialog): add accessible and customizable dialog component&#10;&#10;- Introduced a new `Dialog` component with full accessibility using `@base-ui/react/dialog`.&#10;- Added support for customizable overlays, headers, footers, and close buttons.&#10;- Improved usability with slot-based architecture and utility-first styling." />
     <MESSAGE value="refactor(members): simplify `MembersPage` by removing unused server-side logic&#10;&#10;- Removed redundant `fetchTenantMembers` and interface definitions.&#10;- Refactored `MembersPage` to rely on `tenantId` header directly for client-side handling." />
     <MESSAGE value="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation." />
     <MESSAGE value="feat(register): redesign registration form with invitation flow support&#10;&#10;- Simplified and modernized `RegisterForm` UI for a better user experience.&#10;- Added support for workspace invitations, including pre-filled email fields and redirection to tenant-specific domains.&#10;- Integrated `toast` notifications for error and success feedback during registration.&#10;- Optimized form logic to remove unnecessary steps and improve onboarding efficiency.&#10;- Introduced `Suspense` wrapper for improved client search parameter handling." />
@@ -566,6 +568,7 @@
     <MESSAGE value="feat(settings): integrate `GymProfile` component in `SettingsClient` and standardize formatting&#10;&#10;- Replaced inline gym profile configuration with the modular `GymProfile` component for better maintainability.  &#10;- Standardized imports and JSX formatting across the file to improve code consistency.&#10;- Refined mock state handling to align with other non-integrated tabs." />
     <MESSAGE value="fix(settings): refactor `GymProfile` for React Query updates and formatting improvements&#10;&#10;- Migrated deprecated query callback to `useEffect` for better reactivity with React Query data.  &#10;- Standardized import ordering and JSX formatting for improved readability.  &#10;- Enhanced fallback handling in profile fields with streamlined logic and default values." />
     <MESSAGE value="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
+    <MESSAGE value="feat(settings): enhance `TeamMembers` component with self-protection logic and UI improvements&#10;&#10;- Added safeguards to prevent self-modification of roles/status in the `TeamMembers` component.&#10;- Integrated additional UI enhancements, including disabled states for buttons and improved accessibility.&#10;- Refactored and optimized JSX formatting and props handling for better readability and maintainability." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(settings): enhance `TeamMembers` component with self-protection logic and UI improvements&#10;&#10;- Added safeguards to prevent self-modification of roles/status in the `TeamMembers` component.&#10;- Integrated additional UI enhancements, including disabled states for buttons and improved accessibility.&#10;- Refactored and optimized JSX formatting and props handling for better readability and maintainability." />
   </component>
 </project>
