@@ -18,9 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(sidebar): refactor role-based navigation structure in `TenantSidebarManager`&#10;&#10;- Introduced `generateSidebarConfig` to dynamically generate role-based navigation groups.&#10;- Simplified role handling and replaced `RoleConfig` with new `NavGroup` and `SidebarConfig` interfaces.&#10;- Updated `UnifiedSidebar` to support multiple navigation groups and dynamic role displays.&#10;- Improved design consistency with revamped layout, spacing, and updated icon sizes.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(settings): simplify `SettingsClient` by modularizing membership plans&#10;&#10;- Extracted membership plan handling logic into a new `MembershipPlans` component.&#10;- Removed unnecessary state management and redundant API logic in `SettingsClient`.&#10;- Standardized code formatting and updated imports to maintain consistency." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -141,15 +139,7 @@
       <workItem from="1779613020026" duration="238000" />
       <workItem from="1779613270757" duration="32705000" />
       <workItem from="1779763657851" duration="684000" />
-      <workItem from="1779854190627" duration="5779000" />
-    </task>
-    <task id="LOCAL-00024" summary="feat(auth): update `redirect` logic to use dynamic environment-based root domain&#10;&#10;- Refactored `layout.tsx` to dynamically configure `rootDomain` using `NEXT_PUBLIC_APP_URL` for production and localhost for development.">
-      <option name="closed" value="true" />
-      <created>1779610409697</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1779610409697</updated>
+      <workItem from="1779854190627" duration="6191000" />
     </task>
     <task id="LOCAL-00025" summary="fix(proxy): add production domain to hostname check">
       <option name="closed" value="true" />
@@ -535,7 +525,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779870237743</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="fix(settings): simplify `SettingsClient` by modularizing membership plans&#10;&#10;- Extracted membership plan handling logic into a new `MembershipPlans` component.&#10;- Removed unnecessary state management and redundant API logic in `SettingsClient`.&#10;- Standardized code formatting and updated imports to maintain consistency.">
+      <option name="closed" value="true" />
+      <created>1779871262002</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1779871262002</updated>
+    </task>
+    <option name="localTasksCounter" value="74" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -543,7 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="Moved to client side" />
     <MESSAGE value="Obscene logs" />
     <MESSAGE value="Updated stuff" />
     <MESSAGE value="fix(proxy): enhance tenant routing and logging for improved debugging&#10;&#10;- Added detailed trace logging to improve visibility in the routing pipeline.&#10;- Adjusted internal asset guard conditions and streamlined subdomain detection logic.&#10;- Enhanced handling of CORS headers for `/api/auth` requests with stricter evaluation of allowed origins.&#10;- Improved backend resolution error handling and tenant metadata parsing.&#10;- Refined routing rewrite behavior for tenant-specific paths." />
@@ -568,6 +565,7 @@
     <MESSAGE value="fix(settings): update state structure for improved readability and maintainability&#10;&#10;- Reformatted and indented JSX structures for better clarity.&#10;- Enhanced readability of object initialization and multiline props in settings components.&#10;- Made minor adjustments to layouts by standardizing class names and spacing." />
     <MESSAGE value="fix(sidebar): reformat and clean up JSX structure in `TenantSidebarManager`&#10;&#10;- Standardized JSX formatting and spacing for improved readability.&#10;- Streamlined object properties, props, and class name usage. &#10;- Enhanced code maintainability by reducing visual clutter." />
     <MESSAGE value="feat(sidebar): refactor role-based navigation structure in `TenantSidebarManager`&#10;&#10;- Introduced `generateSidebarConfig` to dynamically generate role-based navigation groups.&#10;- Simplified role handling and replaced `RoleConfig` with new `NavGroup` and `SidebarConfig` interfaces.&#10;- Updated `UnifiedSidebar` to support multiple navigation groups and dynamic role displays.&#10;- Improved design consistency with revamped layout, spacing, and updated icon sizes." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(sidebar): refactor role-based navigation structure in `TenantSidebarManager`&#10;&#10;- Introduced `generateSidebarConfig` to dynamically generate role-based navigation groups.&#10;- Simplified role handling and replaced `RoleConfig` with new `NavGroup` and `SidebarConfig` interfaces.&#10;- Updated `UnifiedSidebar` to support multiple navigation groups and dynamic role displays.&#10;- Improved design consistency with revamped layout, spacing, and updated icon sizes." />
+    <MESSAGE value="fix(settings): simplify `SettingsClient` by modularizing membership plans&#10;&#10;- Extracted membership plan handling logic into a new `MembershipPlans` component.&#10;- Removed unnecessary state management and redundant API logic in `SettingsClient`.&#10;- Standardized code formatting and updated imports to maintain consistency." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(settings): simplify `SettingsClient` by modularizing membership plans&#10;&#10;- Extracted membership plan handling logic into a new `MembershipPlans` component.&#10;- Removed unnecessary state management and redundant API logic in `SettingsClient`.&#10;- Standardized code formatting and updated imports to maintain consistency." />
   </component>
 </project>
