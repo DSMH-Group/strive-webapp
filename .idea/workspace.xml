@@ -18,10 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(settings): refactor `GymProfile` for React Query updates and formatting improvements&#10;&#10;- Migrated deprecated query callback to `useEffect` for better reactivity with React Query data.  &#10;- Standardized import ordering and JSX formatting for improved readability.  &#10;- Enhanced fallback handling in profile fields with streamlined logic and default values.">
-      <change afterPath="$PROJECT_DIR$/components/tenant/admin/settings/TeamMembers.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -142,15 +139,7 @@
       <workItem from="1779613020026" duration="238000" />
       <workItem from="1779613270757" duration="32705000" />
       <workItem from="1779763657851" duration="684000" />
-      <workItem from="1779854190627" duration="8006000" />
-    </task>
-    <task id="LOCAL-00028" summary="refactor(auth): remove redundant comments in baseURL logic">
-      <option name="closed" value="true" />
-      <created>1779611043354</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1779611043354</updated>
+      <workItem from="1779854190627" duration="8328000" />
     </task>
     <task id="LOCAL-00029" summary="refactor(auth): remove redundant comments in baseURL logic">
       <option name="closed" value="true" />
@@ -536,7 +525,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779872999440</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`.">
+      <option name="closed" value="true" />
+      <created>1779873556718</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1779873556718</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -544,7 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(members): implement live member roster sync and invitation workflow&#10;&#10;- Integrated live data fetching with `react-query` for tenant membership roster.&#10;- Added secure member invitation workflow with email and phone input support.&#10;- Enhanced filtering, search, and display logic for dynamic roster management.&#10;- Improved UX/UI with loading, error handling, and KPI summary enhancements." />
     <MESSAGE value="feat(dialog): add accessible and customizable dialog component&#10;&#10;- Introduced a new `Dialog` component with full accessibility using `@base-ui/react/dialog`.&#10;- Added support for customizable overlays, headers, footers, and close buttons.&#10;- Improved usability with slot-based architecture and utility-first styling." />
     <MESSAGE value="refactor(members): simplify `MembersPage` by removing unused server-side logic&#10;&#10;- Removed redundant `fetchTenantMembers` and interface definitions.&#10;- Refactored `MembersPage` to rely on `tenantId` header directly for client-side handling." />
     <MESSAGE value="feat(invites): add pending invites management and UI integration&#10;&#10;- Built `InvitesPage` with server-side handling of tenant data.&#10;- Created `InvitesClient` for managing pending invites using `react-query`.&#10;- Added UI for viewing, resending, and revoking invitations within the admin panel.&#10;- Updated sidebar to include an &quot;Invites&quot; section for improved navigation." />
@@ -569,6 +565,7 @@
     <MESSAGE value="fix(settings): refactor `MembershipPlans` component for improved CRUD functionality&#10;&#10;- Simplified state management by removing redundant local plan tracking.&#10;- Enhanced API integration for creating, updating, and deleting plans with streamlined handlers.&#10;- Improved user experience with add/edit form, validation, and optimized UI feedback.&#10;- Updated table structure for better readability and responsive design." />
     <MESSAGE value="feat(settings): integrate `GymProfile` component in `SettingsClient` and standardize formatting&#10;&#10;- Replaced inline gym profile configuration with the modular `GymProfile` component for better maintainability.  &#10;- Standardized imports and JSX formatting across the file to improve code consistency.&#10;- Refined mock state handling to align with other non-integrated tabs." />
     <MESSAGE value="fix(settings): refactor `GymProfile` for React Query updates and formatting improvements&#10;&#10;- Migrated deprecated query callback to `useEffect` for better reactivity with React Query data.  &#10;- Standardized import ordering and JSX formatting for improved readability.  &#10;- Enhanced fallback handling in profile fields with streamlined logic and default values." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(settings): refactor `GymProfile` for React Query updates and formatting improvements&#10;&#10;- Migrated deprecated query callback to `useEffect` for better reactivity with React Query data.  &#10;- Standardized import ordering and JSX formatting for improved readability.  &#10;- Enhanced fallback handling in profile fields with streamlined logic and default values." />
+    <MESSAGE value="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(settings): modularize team management with `TeamMembers` component&#10;&#10;- Extracted team management functionality into a new `TeamMembers` component for better maintainability and reusability.&#10;- Implemented React Query for real-time staff profiles and role updates.&#10;- Added onboarding invitation workflow with form validation and success/error handling.&#10;- Standardized code structure by removing inline logic and redundant state management in `SettingsClient`." />
   </component>
 </project>
