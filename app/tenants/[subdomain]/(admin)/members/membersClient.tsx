@@ -1,48 +1,37 @@
+// app/tenants/[subdomain]/(admin)/clients/MembersClient.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
-    Search,
-    ChevronRight,
-    UserCheck,
-    AlertCircle,
-    Activity,
-    Loader2
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { striveClientFetch } from "@/lib/api";
-import { InviteMemberSheet } from "@/components/tenant/shared/InviteMemberSheet";
+import React, {useMemo, useState} from "react";
+import {useQuery} from "@tanstack/react-query";
+import {Card} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import {Activity, AlertCircle, Loader2, Search, SlidersHorizontal, UserCheck} from "lucide-react";
+import {cn} from "@/lib/utils";
+import {striveClientFetch} from "@/lib/api";
+import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
+import {Button} from "@/components/ui/button";
+import {ManageMemberSheet} from "@/components/tenant/admin/ManageMemberSheet";
 
 interface MembersClientProps {
     subdomain: string;
-    tenantId: string; // Dynamic database UUID forwarded down from your server layout context
+    tenantId: string;
 }
 
-type FilterStatus = "ALL" | "ACTIVE" | "GRACE" | "OVERDUE";
+type FilterStatus = "ALL" | "ACTIVE" | "GRACE" | "SUSPENDED";
 
-export default function MembersClient({ subdomain, tenantId }: MembersClientProps) {
+export default function MembersClient({subdomain, tenantId}: MembersClientProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("ALL");
+    const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-    // 🚀 STEP 1: Wire up live data query hook to GET /api/v1/members
-    const { data: membersList = [], isLoading, isError } = useQuery<any[]>({
+    // 🚀 RESTRICTION: Server-side query restricted specifically via role=MEMBER
+    const {data: membersList = [], isLoading, isError, refetch} = useQuery<any[]>({
         queryKey: ["tenantMembersGrid", tenantId],
         queryFn: async () => {
-            const res = await striveClientFetch("/api/v1/members", {
+            const res = await striveClientFetch("/api/v1/members?role=MEMBER", {
                 method: "GET",
-                headers: { "X-Tenant-ID": tenantId }
+                headers: {"X-Tenant-ID": tenantId}
             });
             if (!res.ok) throw new Error("Could not parse operational roster.");
             return res.json();
@@ -50,20 +39,18 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
         enabled: !!tenantId
     });
 
-    // --- Dynamic Analytics Summary Calculations ---
+    // --- Dynamic KPI Summary Metric Calculations ---
     const summaryKPIs = useMemo(() => {
         const total = membersList.length;
         const active = membersList.filter(m => m.status === "ACTIVE").length;
-
-        // Handling dynamic offline/online checks safely against metadata array layouts
         const todayStr = new Date().toISOString().split("T")[0];
-        const inGym = membersList.filter(m => m.lastSession === "Today" || m.updatedAt?.startsWith(todayStr)).length;
-        const attention = membersList.filter(m => m.status === "GRACE_PERIOD" || m.status === "SUSPENDED").length;
+        const inGym = membersList.filter(m => m.updatedAt?.startsWith(todayStr)).length;
+        const attention = membersList.filter(m => ["GRACE_PERIOD", "SUSPENDED", "REVOKED"].includes(m.status)).length;
 
-        return { total, active, inGym, attention };
+        return {total, active, inGym, attention};
     }, [membersList]);
 
-    // --- Reactive List Filtering Logic ---
+    // --- Filter Handlers ---
     const filteredMembers = useMemo(() => {
         return membersList.filter(member => {
             const firstName = member.user?.firstName || "";
@@ -73,18 +60,18 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
             const searchMatch = fullName.includes(searchQuery.toLowerCase()) || email.includes(searchQuery.toLowerCase());
 
             if (!searchMatch) return false;
-
             if (statusFilter === "ACTIVE") return member.status === "ACTIVE";
             if (statusFilter === "GRACE") return member.status === "GRACE_PERIOD";
-            if (statusFilter === "OVERDUE") return member.status === "SUSPENDED";
+            if (statusFilter === "SUSPENDED") return member.status === "SUSPENDED";
             return true;
         });
     }, [membersList, searchQuery, statusFilter]);
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
-                <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Tenant Membership Ledger...
+            <div
+                className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-primary"/> Syncing Ecosystem Membership Ledgers...
             </div>
         );
     }
@@ -92,209 +79,167 @@ export default function MembersClient({ subdomain, tenantId }: MembersClientProp
     if (isError) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-2">
-                <AlertCircle className="w-8 h-8 text-destructive" />
-                <h3 className="font-bold text-sm">Roster Sync Pipeline Broken</h3>
-                <p className="text-xs text-muted-foreground">Confirm your network session handshake clearance credentials remain valid.</p>
+                <AlertCircle className="w-8 h-8 text-destructive"/>
+                <h3 className="font-bold text-sm">Roster Handshake Handset Dropped</h3>
             </div>
         );
     }
 
     return (
         <div className="space-y-6 text-foreground">
-
-            {/* Top Operational Header Action Row */}
             <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                    <h1 className="text-2xl font-bold tracking-tight">Clients</h1>
-                    <p className="text-xs text-muted-foreground">Full multi-tenant operational roster</p>
+                    <h1 className="text-2xl font-bold tracking-tight">Active Clients</h1>
+                    <p className="text-xs text-muted-foreground">Manage subscriptions, packages, RFID tags, and entry
+                        permissions</p>
                 </div>
-
-                {/* Secure Invitation Dialog Workflow Modal is now extracted */}
-                <InviteMemberSheet tenantId={tenantId} />
+                <InviteMemberSheet tenantId={tenantId}/>
             </div>
 
-            {/* Roster KPI Summary Metrics Cards */}
+            {/* KPI Block */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <SummaryCard title="TOTAL" value={summaryKPIs.total} icon={<Activity className="w-3.5 h-3.5 text-muted-foreground" />} />
-                <SummaryCard title="ACTIVE" value={summaryKPIs.active} icon={<UserCheck className="w-3.5 h-3.5 text-emerald-400" />} isGreen />
-                <SummaryCard title="IN GYM" value={summaryKPIs.inGym} icon={<Activity className="w-3.5 h-3.5 text-cyan-400" />} />
-                <SummaryCard title="ATTENTION" value={summaryKPIs.attention} icon={<AlertCircle className="w-3.5 h-3.5 text-destructive" />} isAlert={summaryKPIs.attention > 0} />
+                <SummaryCard title="TOTAL MEMBERS" value={summaryKPIs.total}
+                             icon={<Activity className="w-3.5 h-3.5 text-muted-foreground"/>}/>
+                <SummaryCard title="ACTIVE STATUS" value={summaryKPIs.active}
+                             icon={<UserCheck className="w-3.5 h-3.5 text-emerald-400"/>} isGreen/>
+                <SummaryCard title="TODAY CHECK-INS" value={summaryKPIs.inGym}
+                             icon={<Activity className="w-3.5 h-3.5 text-cyan-400"/>}/>
+                <SummaryCard title="ATTENTION REQUIRED" value={summaryKPIs.attention}
+                             icon={<AlertCircle className="w-3.5 h-3.5 text-destructive"/>}
+                             isAlert={summaryKPIs.attention > 0}/>
             </div>
 
-            {/* Grid Controls: Search Input & Filter Tabs */}
+            {/* Controls */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                     <Input
-                        placeholder="Search name or email..."
+                        placeholder="Search name, phone, or email string parameters..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-card/50 border-border pl-10 pr-4 h-10 rounded-md text-foreground text-sm"
+                        className="bg-card/50 border-border pl-10 pr-4 h-10 rounded-md text-sm"
                     />
                 </div>
-
-                <div className="flex items-center gap-1 bg-background p-1 rounded-md border border-border overflow-x-auto">
-                    <FilterTab label="All" active={statusFilter === "ALL"} onClick={() => setStatusFilter("ALL")} />
-                    <FilterTab label="Active" active={statusFilter === "ACTIVE"} onClick={() => setStatusFilter("ACTIVE")} />
-                    <FilterTab label="Grace" active={statusFilter === "GRACE"} onClick={() => setStatusFilter("GRACE")} />
-                    <FilterTab label="Overdue" active={statusFilter === "OVERDUE"} onClick={() => setStatusFilter("OVERDUE")} />
+                <div className="flex items-center gap-1 bg-background p-1 rounded-md border border-border">
+                    <FilterTab label="All" active={statusFilter === "ALL"} onClick={() => setStatusFilter("ALL")}/>
+                    <FilterTab label="Active" active={statusFilter === "ACTIVE"}
+                               onClick={() => setStatusFilter("ACTIVE")}/>
+                    <FilterTab label="Grace" active={statusFilter === "GRACE"}
+                               onClick={() => setStatusFilter("GRACE")}/>
+                    <FilterTab label="Suspended" active={statusFilter === "SUSPENDED"}
+                               onClick={() => setStatusFilter("SUSPENDED")}/>
                 </div>
             </div>
 
-            {/* Primary Live Operational Data Table */}
+            {/* Main Operational Table */}
             <Card className="bg-card/30 border-border rounded-lg overflow-hidden">
                 <Table>
                     <TableHeader className="bg-background/80 border-b border-border">
-                        <TableRow className="border-b border-border hover:bg-transparent">
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4 pl-6">MEMBER</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">PLAN / ID</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">ROLE</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">STATUS</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">RFID TAG</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4">LAST SYNC</TableHead>
-                            <TableHead className="text-muted-foreground text-xs font-bold tracking-wider py-4 pr-6">ACTION</TableHead>
+                        <TableRow className="hover:bg-transparent border-b-0">
+                            <TableHead className="text-xs font-bold py-4 pl-6">MEMBER</TableHead>
+                            <TableHead className="text-xs font-bold py-4">PLAN REFERENCE</TableHead>
+                            <TableHead className="text-xs font-bold py-4">TOKENS REMAINING</TableHead>
+                            <TableHead className="text-xs font-bold py-4">STATUS</TableHead>
+                            <TableHead className="text-xs font-bold py-4">HARDWARE RFID HEX</TableHead>
+                            <TableHead className="text-xs font-bold py-4 text-right pr-6">MANAGEMENT ACTIONS</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredMembers.map((member) => (
-                            <TableRow
-                                key={member.id}
-                                className="border-b border-border hover:bg-accent/40 group cursor-pointer transition-colors"
-                                onClick={() => toast.info(`Viewing system record: ${member.id.slice(0, 8)}`)}
-                            >
-                                {/* Member Profile Block */}
+                            <TableRow key={member.id}
+                                      className="border-b border-border hover:bg-muted/30 group transition-colors">
                                 <TableCell className="py-3.5 pl-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="relative w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center font-bold text-xs text-primary shadow-inner">
+                                        <div
+                                            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center font-bold text-xs text-primary shadow-inner">
                                             {member.user?.firstName?.[0] || "U"}{member.user?.lastName?.[0] || ""}
-                                            <div className={cn(
-                                                "absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full border-2 border-background",
-                                                member.status === "ACTIVE" ? "bg-emerald-500" : member.status === "PENDING" ? "bg-amber-500" : "bg-destructive"
-                                            )} />
                                         </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
-                                                {member.user?.firstName || "Stride"} {member.user?.lastName || "User"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground truncate mt-0.5">{member.user?.email || "No Email Bound"}</span>
+                                        <div className="flex flex-col">
+                                            <span
+                                                className="font-bold text-sm">{member.user?.firstName || "Stride"} {member.user?.lastName || "User"}</span>
+                                            <span
+                                                className="text-xs text-muted-foreground font-mono mt-0.5">{member.user?.email}</span>
                                         </div>
                                     </div>
                                 </TableCell>
-
-                                {/* Plan and Identifier Fields */}
-                                <TableCell className="text-muted-foreground font-mono text-xs py-3.5">
-                                    {member.plan || `MEM-${member.id.slice(0, 5).toUpperCase()}`}
+                                <TableCell className="text-sm font-medium">
+                                    {member.activePlan?.name ||
+                                        <span className="text-xs text-muted-foreground italic font-normal">No Active Package</span>}
                                 </TableCell>
-
-                                <TableCell className="py-3.5">
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {member.roles && member.roles.length > 0 ? (
-                                            member.roles.map((r: any, idx: number) => {
-                                                const isStaff = r.role === "ORG_ADMIN" || r.role === "MANAGER" || r.role === "TRAINER";
-                                                return (
-                                                    <span
-                                                        key={idx}
-                                                        className={cn(
-                                                            "text-[9px] font-bold uppercase px-2 py-0.5 rounded border tracking-widest",
-                                                            isStaff
-                                                                ? "bg-primary/10 text-primary border-primary/20"
-                                                                : "bg-secondary text-muted-foreground border-border"
-                                                        )}
-                                                    >
-                                                        {r.role.replace("_", " ")}
-                                                    </span>
-                                                )
-                                            })
-                                        ) : (
-                                            <span className="text-[9px] font-bold uppercase tracking-widest bg-secondary text-muted-foreground px-2 py-0.5 rounded border border-border">
-                                                MEMBER
-                                            </span>
-                                        )}
-                                    </div>
+                                <TableCell className="font-mono text-sm font-bold text-foreground">
+                                    {member.tokensLeft ?? 0} <span
+                                    className="text-[10px] text-muted-foreground uppercase tracking-wider font-sans font-medium">tokens</span>
                                 </TableCell>
-
-                                {/* Structural State Configuration Tag */}
-                                <TableCell className="py-3.5">
+                                <TableCell>
                                     <span className={cn(
-                                        "text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border tracking-wide",
+                                        "text-[10px] font-extrabold uppercase px-2.5 py-1 rounded border tracking-wide",
                                         member.status === "ACTIVE" && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-                                        member.status === "PENDING" || member.status === "GRACE_PERIOD" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "",
-                                        (member.status === "SUSPENDED" || member.status === "REVOKED") && "bg-destructive/10 text-destructive border-destructive/20"
+                                        ["PENDING", "GRACE_PERIOD"].includes(member.status) && "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                                        ["SUSPENDED", "CANCELLED", "REVOKED"].includes(member.status) && "bg-destructive/10 text-destructive border-destructive/20"
                                     )}>
-                                        {member.status}
+                                        {member.status.replace("_", " ")}
                                     </span>
                                 </TableCell>
-
-                                {/* RFID Tag Column */}
-                                <TableCell className="text-muted-foreground font-mono text-xs py-3.5">
-                                    <span className="bg-background border border-border rounded px-2 py-0.5">
-                                        {member.rfidTag || "UNASSIGNED"}
-                                    </span>
+                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                    {member.rfidTag ||
+                                        <span className="text-muted-foreground/40 italic">UNASSIGNED</span>}
                                 </TableCell>
-
-                                {/* Date Verification Strings */}
-                                <TableCell className="text-xs font-mono text-muted-foreground py-3.5">
-                                    {new Date(member.updatedAt || member.createdAt).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                        year: "numeric"
-                                    })}
-                                </TableCell>
-
-                                {/* Chevron Trigger Wrapper */}
                                 <TableCell className="py-3.5 pr-6 text-right">
-                                    <div className="flex items-center justify-end">
-                                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSelectedMemberId(member.id)}
+                                        className="h-8 text-xs font-bold border-border hover:bg-accent gap-1 shadow-sm"
+                                    >
+                                        <SlidersHorizontal className="w-3 h-3"/> Action Panel
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
-
-                        {filteredMembers.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
-                                    No member records matched your active filter scope.
-                                </TableCell>
-                            </TableRow>
-                        )}
                     </TableBody>
                 </Table>
             </Card>
+
+            {/* Unified Action Subpanel Sheet */}
+            <ManageMemberSheet
+                memberId={selectedMemberId}
+                tenantId={tenantId}
+                onClose={() => {
+                    setSelectedMemberId(null);
+                    refetch();
+                }}
+            />
         </div>
     );
 }
 
-// --- Local Presentation Sub-components ---
-
-function SummaryCard({ title, value, icon, isGreen = false, isAlert = false }: { title: string; value: number; icon: React.ReactNode; isGreen?: boolean; isAlert?: boolean }) {
+function SummaryCard({title, value, icon, isGreen = false, isAlert = false}: {
+    title: string;
+    value: number;
+    icon: React.ReactNode;
+    isGreen?: boolean;
+    isAlert?: boolean
+}) {
     return (
-        <Card className={cn(
-            "bg-card border-border rounded-md p-4 flex flex-col gap-1.5 transition-all hover:border-muted-foreground/20",
-            isAlert && "ring-1 ring-destructive/20 bg-destructive/5"
-        )}>
-            <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+        <Card
+            className={cn("bg-card border-border rounded-md p-4 flex flex-col gap-1.5 shadow-sm", isAlert && "ring-1 ring-destructive/20 bg-destructive/5")}>
+            <div
+                className="flex items-center justify-between text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
                 <span>{title}</span>
                 {icon}
             </div>
-            <div className={cn(
-                "text-2xl font-black font-mono tracking-tight",
-                isGreen ? "text-emerald-400" : isAlert ? "text-destructive" : "text-foreground"
-            )}>
+            <div
+                className={cn("text-2xl font-black font-mono tracking-tight", isGreen ? "text-emerald-400" : isAlert ? "text-destructive" : "text-foreground")}>
                 {value}
             </div>
         </Card>
     );
 }
 
-function FilterTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FilterTab({label, active, onClick}: { label: string; active: boolean; onClick: () => void }) {
     return (
-        <button
-            onClick={onClick}
-            className={cn(
-                "px-4 py-1.5 rounded-sm text-xs font-bold transition-all text-muted-foreground hover:text-foreground",
-                active && "bg-background text-primary border border-border shadow-md font-black"
-            )}
-        >
+        <button onClick={onClick}
+                className={cn("px-4 py-1.5 rounded-sm text-xs font-bold transition-all text-muted-foreground hover:text-foreground", active && "bg-background text-primary border border-border shadow-sm font-black")}>
             {label}
         </button>
     );
