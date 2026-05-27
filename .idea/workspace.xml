@@ -18,8 +18,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(payments): refactor PaymentsClient for React Query integration and improved user experience&#10;&#10;- Migrated payment data fetching to React Query for better performance and state management.  &#10;- Improved loading and error states with user-friendly visuals.  &#10;- Added token top-up and subscription upgrade workflows with modals for seamless interactions.  &#10;- Simplified server-to-client data aggregation by removing legacy server-fetch logic.">
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/page.tsx" afterDir="false" />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(settings): improve plan state management and optimize CRUD handling&#10;&#10;- Refactored `updateLocalPlan` to use plan IDs instead of array indices for more reliable updates.&#10;- Enhanced membership plan CRUD operations with stricter execution flow to prevent overlaps.&#10;- Updated API payloads to enforce proper data types (e.g., numbers for prices and tokens).&#10;- Removed redundant comments and improved code readability across local state and API handlers.&#10;- Minimized repeated JSX by consolidating inline formatting and layouts.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/settingsClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(admin)/settings/settingsClient.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +28,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="118" />
+    <option name="cachedIndexableFilesCount" value="122" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -139,23 +140,9 @@
       <workItem from="1779603426492" duration="8056000" />
       <workItem from="1779612989675" duration="21000" />
       <workItem from="1779613020026" duration="238000" />
-      <workItem from="1779613270757" duration="27981000" />
-    </task>
-    <task id="LOCAL-00019" summary="feat(tenants): refactor multi-tenant layout and improve routing logic&#10;&#10;- Merged `[subdomain]` and generic tenant layouts into a unified structure for better maintainability.&#10;- Refactored tenant routing to dynamically generate exploration and login URLs based on environment.&#10;- Simplified component structure for sidebar and main content rendering with clear isolation.&#10;- Enhanced UI transitions with new animations for smoother rendering.">
-      <option name="closed" value="true" />
-      <created>1779609291862</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1779609291862</updated>
-    </task>
-    <task id="LOCAL-00020" summary="refactor(tenants): move tenant layout to subdomain-specific folder for better structure">
-      <option name="closed" value="true" />
-      <created>1779609503603</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1779609503603</updated>
+      <workItem from="1779613270757" duration="32705000" />
+      <workItem from="1779763657851" duration="684000" />
+      <workItem from="1779854190627" duration="3973000" />
     </task>
     <task id="LOCAL-00021" summary="feat(auth): update baseURL and trusted origins for enhanced flexibility and local development support&#10;&#10;- Refactored `baseURL` to support multiple hosts with protocol and fallback configurations.&#10;- Updated `trustedOrigins` to include localhost and wildcard subdomains for local testing.">
       <option name="closed" value="true" />
@@ -533,7 +520,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779709611534</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="feat(settings): refactor `SettingsClient` with React Query and live plan management&#10;&#10;- Replaced legacy `fetchTenantProfileSettings` function with React Query for better data handling.&#10;- Implemented live membership plan CRUD operations, including adding, editing, and deleting plans.&#10;- Optimized plan-related API calls to execute concurrently for improved performance.&#10;- Enhanced user experience with loading states, error handling, and toast notifications.&#10;- Simplified `page.tsx` by removing unused server-fetch logic and updating prop handling.">
+      <option name="closed" value="true" />
+      <created>1779709923592</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1779709923592</updated>
+    </task>
+    <task id="LOCAL-00069" summary="fix(settings): improve plan state management and optimize CRUD handling&#10;&#10;- Refactored `updateLocalPlan` to use plan IDs instead of array indices for more reliable updates.&#10;- Enhanced membership plan CRUD operations with stricter execution flow to prevent overlaps.&#10;- Updated API payloads to enforce proper data types (e.g., numbers for prices and tokens).&#10;- Removed redundant comments and improved code readability across local state and API handlers.&#10;- Minimized repeated JSX by consolidating inline formatting and layouts.">
+      <option name="closed" value="true" />
+      <created>1779710207610</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1779710207610</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -541,8 +544,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="fix(consoleClient): update membership lookup to use `domain` instead of `slug`&#10;&#10;- Adjusted logic to prioritize `domain` for tenant matching in `consoleClient.tsx`. &#10;- Updated IntelliJ workspace with recent task history changes." />
-    <MESSAGE value="fix(membership): adjust server fetch for role lookup with safer headers handling&#10;&#10;- Updated `membership.ts` to use `next/headers` for secure cookie and tenant ID forwarding.&#10;- Simplified conditional rendering in `TenantSidebarManager.tsx` for better readability." />
     <MESSAGE value="fix(membership): improve membership role resolution logic&#10;&#10;- Refactored `membership.ts` to isolate and match active tenant membership accurately. &#10;- Enhanced error handling and added debug logging for missing memberships.&#10;- Simplified role extraction for better maintainability." />
     <MESSAGE value="Fixed sidebar error" />
     <MESSAGE value="Fixed sidebar error again" />
@@ -566,6 +567,8 @@
     <MESSAGE value="feat(ui): display member roles and improve table structure in `MembersClient`&#10;&#10;- Added a new &quot;ROLE&quot; column to the members table for displaying user roles.&#10;- Improved role badges with dynamic theming based on role type (e.g., staff, member).&#10;- Updated table structure to accommodate the new column, ensuring responsive layout." />
     <MESSAGE value="feat(dashboard): refactor user dashboard data fetching to use React Query for improved performance&#10;&#10;- Replaced server-side user metrics fetching with client-side data aggregation via React Query.&#10;- Implemented parallel API calls for user, membership, bookings, and attendance data in `DashboardClient`.&#10;- Enhanced loading and error states with user-friendly visuals and toasts.&#10;- Simplified state handling and dynamic data preparation for better maintainability.&#10;- Removed legacy mock data and server-to-server fetch utility." />
     <MESSAGE value="feat(payments): refactor PaymentsClient for React Query integration and improved user experience&#10;&#10;- Migrated payment data fetching to React Query for better performance and state management.  &#10;- Improved loading and error states with user-friendly visuals.  &#10;- Added token top-up and subscription upgrade workflows with modals for seamless interactions.  &#10;- Simplified server-to-client data aggregation by removing legacy server-fetch logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(payments): refactor PaymentsClient for React Query integration and improved user experience&#10;&#10;- Migrated payment data fetching to React Query for better performance and state management.  &#10;- Improved loading and error states with user-friendly visuals.  &#10;- Added token top-up and subscription upgrade workflows with modals for seamless interactions.  &#10;- Simplified server-to-client data aggregation by removing legacy server-fetch logic." />
+    <MESSAGE value="feat(settings): refactor `SettingsClient` with React Query and live plan management&#10;&#10;- Replaced legacy `fetchTenantProfileSettings` function with React Query for better data handling.&#10;- Implemented live membership plan CRUD operations, including adding, editing, and deleting plans.&#10;- Optimized plan-related API calls to execute concurrently for improved performance.&#10;- Enhanced user experience with loading states, error handling, and toast notifications.&#10;- Simplified `page.tsx` by removing unused server-fetch logic and updating prop handling." />
+    <MESSAGE value="fix(settings): improve plan state management and optimize CRUD handling&#10;&#10;- Refactored `updateLocalPlan` to use plan IDs instead of array indices for more reliable updates.&#10;- Enhanced membership plan CRUD operations with stricter execution flow to prevent overlaps.&#10;- Updated API payloads to enforce proper data types (e.g., numbers for prices and tokens).&#10;- Removed redundant comments and improved code readability across local state and API handlers.&#10;- Minimized repeated JSX by consolidating inline formatting and layouts." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(settings): improve plan state management and optimize CRUD handling&#10;&#10;- Refactored `updateLocalPlan` to use plan IDs instead of array indices for more reliable updates.&#10;- Enhanced membership plan CRUD operations with stricter execution flow to prevent overlaps.&#10;- Updated API payloads to enforce proper data types (e.g., numbers for prices and tokens).&#10;- Removed redundant comments and improved code readability across local state and API handlers.&#10;- Minimized repeated JSX by consolidating inline formatting and layouts." />
   </component>
 </project>
