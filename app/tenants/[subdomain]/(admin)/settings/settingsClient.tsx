@@ -7,7 +7,6 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Switch} from "@/components/ui/switch";
 import {Label} from "@/components/ui/label";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {
     ArrowLeft,
     Bell,
@@ -18,7 +17,6 @@ import {
     Loader2,
     Lock,
     Percent,
-    Plus,
     Save,
     ShieldCheck,
     Users2
@@ -27,6 +25,7 @@ import {toast} from "sonner";
 import {cn} from "@/lib/utils";
 import {MembershipPlans} from "@/components/tenant/admin/settings/MembershipPlans";
 import {GymProfile} from "@/components/tenant/admin/settings/GymProfile";
+import {TeamMembers} from "@/components/tenant/admin/settings/TeamMembers";
 
 interface SettingsClientProps {
     subdomain: string;
@@ -71,18 +70,6 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
     const [accessControl, setAccessControl] = useState({
         selfCheckIn: true, trainerConfirms: false, memberCancellations: true, seeClassRoster: false, seeRevenue: false
     });
-    const [team, setTeam] = useState([
-        {id: "t1", name: "Ravi Kumara", role: "Trainer", email: "ravi@fitforge.lk", joined: "Jan 2024", active: true},
-        {
-            id: "t2",
-            name: "Shani Liyanage",
-            role: "Trainer",
-            email: "shani@fitforge.lk",
-            joined: "Mar 2023",
-            active: true
-        },
-        {id: "t3", name: "Priya Mendis", role: "Admin", email: "priya@fitforge.lk", joined: "Jun 2022", active: true}
-    ]);
     const [taxGateway, setTaxGateway] = useState({
         vatPercentage: 18, ssclPercentage: 2.5, payhereMerchantId: "MID-1029384", payhereSecret: "••••••••••••••••"
     });
@@ -355,80 +342,9 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
                 </div>
             )}
 
+            {/* 🚀 LIVE: OPERATOR TEAM MANAGEMENT ENG COMPONENTIZED */}
             {currentView === "TEAM" && (
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <SectionHeader title="Team Members"
-                                       desc="Manage access permissions for trainers, operational management staff, and admin personnel"/>
-                        <Button
-                            onClick={() => toast.success("Dispatching SMS link payload via Text.lk API endpoints...")}
-                            className="bg-background hover:bg-accent border border-border text-primary text-xs font-black rounded-md h-10 gap-1.5 px-4"
-                        >
-                            <Plus className="w-3.5 h-3.5"/> Invite
-                        </Button>
-                    </div>
-
-                    <Card className="bg-card/30 border-border rounded-lg p-6">
-                        <Table>
-                            <TableHeader className="border-b border-border">
-                                <TableRow className="border-b border-border hover:bg-transparent">
-                                    <TableHead className="text-xs text-muted-foreground font-bold tracking-wider pl-0">OPERATOR
-                                        IDENTITY</TableHead>
-                                    <TableHead className="text-xs text-muted-foreground font-bold tracking-wider">SYSTEM
-                                        BOUNDARY ROLE</TableHead>
-                                    <TableHead
-                                        className="text-xs text-muted-foreground font-bold tracking-wider text-right pr-0">STATUS
-                                        OVERRIDE</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {team.map((person, idx) => (
-                                    <TableRow key={person.id} className="border-b border-border hover:bg-transparent">
-                                        <TableCell className="pl-0 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-8 h-8 rounded-full bg-background flex items-center justify-center text-xs font-black text-muted-foreground border border-border">
-                                                    {person.name[0]}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span
-                                                        className="font-bold text-sm text-foreground">{person.name}</span>
-                                                    <span
-                                                        className="text-xs text-muted-foreground font-mono mt-0.5">{person.email} · since {person.joined}</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className={cn(
-                                                "text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border font-mono tracking-wider",
-                                                person.role === "Admin" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : person.role === "Trainer" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" : "bg-muted text-muted-foreground border-border"
-                                            )}>
-                                                {person.role}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-right pr-0">
-                                            <Button
-                                                size="sm"
-                                                onClick={() => {
-                                                    const updated = [...team];
-                                                    updated[idx].active = !updated[idx].active;
-                                                    setTeam(updated);
-                                                    toast.info(`Updated structural activity state for ${person.name}`);
-                                                }}
-                                                className={cn(
-                                                    "h-8 text-xs font-bold uppercase rounded-md border px-3 transition-colors",
-                                                    person.active ? "bg-destructive/10 text-destructive border-destructive/10 hover:bg-destructive/30" : "bg-emerald-950/10 text-emerald-400 border-emerald-500/10 hover:bg-emerald-950/30"
-                                                )}
-                                            >
-                                                {person.active ? "Deactivate" : "Activate"}
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Card>
-                </div>
+                <TeamMembers tenantId={tenantId} onComplete={() => setCurrentView("MENU")}/>
             )}
 
         </div>
