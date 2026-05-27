@@ -1,20 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {useState} from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { authClient } from "@/lib/auth-client";
-import { striveClientFetch } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import {usePathname, useRouter} from "next/navigation";
+import {useQuery} from "@tanstack/react-query";
+import {authClient} from "@/lib/auth-client";
+import {striveClientFetch} from "@/lib/api";
+import {cn} from "@/lib/utils";
 import {
-    LayoutDashboard, Users, BarChart3, Settings, LogOut, Loader2,
-    ShieldCheck, Home, Dumbbell, TrendingUp, CreditCard, User,
-    Calendar, ClipboardSignature
+    BarChart3,
+    Calendar,
+    ClipboardSignature,
+    CreditCard,
+    Dumbbell,
+    Home,
+    LayoutDashboard,
+    Loader2,
+    LogOut,
+    Settings,
+    ShieldCheck,
+    TrendingUp,
+    User,
+    Users
 } from "lucide-react";
 
 // --- Types & Interfaces ---
-
 interface SidebarManagerProps {
     tenantId: string;
     config: any;
@@ -43,36 +53,57 @@ const getRoleConfig = (role: string, baseUrl: string, badgeCounts: any = {}): Ro
             return {
                 theme: "dark",
                 badgeText: "Administrator Access",
-                badgeIcon: <ShieldCheck size={14} className="text-primary" />,
+                badgeIcon: <ShieldCheck size={14} className="text-primary"/>,
                 navItems: [
-                    { icon: <LayoutDashboard size={18} />, label: "Console", href: `${baseUrl}/console`, matchExact: true },
-                    { icon: <Users size={18} />, label: "Members", href: `${baseUrl}/members` },
-                    { icon: <Users size={18} />, label: "Invites", href: `${baseUrl}/invites` },
-                    { icon: <BarChart3 size={18} />, label: "Reports", href: `${baseUrl}/reports` },
-                    { icon: <Settings size={18} />, label: "Settings", href: `${baseUrl}/settings` },
+                    {
+                        icon: <LayoutDashboard size={18}/>,
+                        label: "Console",
+                        href: `${baseUrl}/console`,
+                        matchExact: true
+                    },
+                    {icon: <Users size={18}/>, label: "Members", href: `${baseUrl}/members`},
+                    {icon: <Users size={18}/>, label: "Invites", href: `${baseUrl}/invites`},
+                    {icon: <BarChart3 size={18}/>, label: "Reports", href: `${baseUrl}/reports`},
+                    {icon: <Settings size={18}/>, label: "Settings", href: `${baseUrl}/settings`},
                 ]
             };
         case "STAFF":
             return {
                 theme: "dark",
                 badgeText: "Staff Access",
-                badgeIcon: <Dumbbell size={14} className="text-primary" />,
+                badgeIcon: <Dumbbell size={14} className="text-primary"/>,
                 navItems: [
-                    { icon: <Users size={18} />, label: "Clients", href: `${baseUrl}/clients`, matchExact: true, badge: badgeCounts?.clients },
-                    { icon: <Calendar size={18} />, label: "Schedule", href: `${baseUrl}/schedule`, badge: badgeCounts?.schedule },
-                    { icon: <ClipboardSignature size={18} />, label: "Log", href: `${baseUrl}/log` },
+                    {
+                        icon: <Users size={18}/>,
+                        label: "Clients",
+                        href: `${baseUrl}/clients`,
+                        matchExact: true,
+                        badge: badgeCounts?.clients
+                    },
+                    {
+                        icon: <Calendar size={18}/>,
+                        label: "Schedule",
+                        href: `${baseUrl}/schedule`,
+                        badge: badgeCounts?.schedule
+                    },
+                    {icon: <ClipboardSignature size={18}/>, label: "Log", href: `${baseUrl}/log`},
                 ]
             };
         default: // MEMBER
             return {
                 theme: "dynamic",
                 badgeText: "Member Access",
-                badgeIcon: <User size={14} className="text-primary" />,
+                badgeIcon: <User size={14} className="text-primary"/>,
                 navItems: [
-                    { icon: <Home size={18} />, label: "Overview", href: `${baseUrl}/overview`, matchExact: true },
-                    { icon: <Dumbbell size={18} />, label: "Activities", href: `${baseUrl}/activities` },
-                    { icon: <TrendingUp size={18} />, label: "Progress", href: `${baseUrl}/progress` },
-                    { icon: <CreditCard size={18} />, label: "Payments", href: `${baseUrl}/payments`, badge: badgeCounts?.payments },
+                    {icon: <Home size={18}/>, label: "Overview", href: `${baseUrl}/overview`, matchExact: true},
+                    {icon: <Dumbbell size={18}/>, label: "Activities", href: `${baseUrl}/activities`},
+                    {icon: <TrendingUp size={18}/>, label: "Progress", href: `${baseUrl}/progress`},
+                    {
+                        icon: <CreditCard size={18}/>,
+                        label: "Payments",
+                        href: `${baseUrl}/payments`,
+                        badge: badgeCounts?.payments
+                    },
                 ]
             };
     }
@@ -80,11 +111,11 @@ const getRoleConfig = (role: string, baseUrl: string, badgeCounts: any = {}): Ro
 
 // --- Main Manager Component ---
 
-export function TenantSidebarManager({ tenantId, config }: SidebarManagerProps) {
-    const { data: userProfile, isLoading, error } = useQuery({
+export function TenantSidebarManager({tenantId, config}: SidebarManagerProps) {
+    const {data: userProfile, isLoading, error} = useQuery({
         queryKey: ["sidebarProfileHandshake", tenantId],
         queryFn: async () => {
-            const res = await striveClientFetch("/api/v1/users/me", { method: "GET" });
+            const res = await striveClientFetch("/api/v1/users/me", {method: "GET"});
             if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
             return await res.json();
         }
@@ -93,7 +124,7 @@ export function TenantSidebarManager({ tenantId, config }: SidebarManagerProps) 
     if (isLoading) {
         return (
             <div className="flex h-full w-full items-center justify-center p-6 bg-background">
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground/60" />
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground/60"/>
             </div>
         );
     }
@@ -117,7 +148,7 @@ export function TenantSidebarManager({ tenantId, config }: SidebarManagerProps) 
     // In a real scenario, base URLs would adapt to the subdomain logic from middleware
     const baseUrl = "";
     // Mocking badge counts for the example
-    const badgeCounts = { payments: 1, clients: 2, schedule: 1 };
+    const badgeCounts = {payments: 1, clients: 2, schedule: 1};
 
     const roleConfig = getRoleConfig(activeRole, baseUrl, badgeCounts);
 
@@ -132,7 +163,7 @@ export function TenantSidebarManager({ tenantId, config }: SidebarManagerProps) 
 
 // --- Unified Presentational Component ---
 
-function UnifiedSidebar({ tenantName, logoUrl, config }: { tenantName: string, logoUrl: string, config: RoleConfig }) {
+function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, logoUrl: string, config: RoleConfig }) {
     const pathname = usePathname();
     const router = useRouter();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -165,17 +196,21 @@ function UnifiedSidebar({ tenantName, logoUrl, config }: { tenantName: string, l
             <div className="flex flex-col mb-10 group">
                 <div className="flex items-center gap-3">
                     {logoUrl ? (
-                        <img src={logoUrl} alt={tenantName} className={cn("w-8 h-8 rounded-lg object-cover border", isDark ? "border-white/10" : "border-border")} />
+                        <img src={logoUrl} alt={tenantName}
+                             className={cn("w-8 h-8 rounded-lg object-cover border", isDark ? "border-white/10" : "border-border")}/>
                     ) : (
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-sm uppercase">
+                        <div
+                            className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-sm uppercase">
                             {tenantName?.[0] || "S"}
                         </div>
                     )}
                     <div className="flex flex-col min-w-0">
-                        <span className={cn("text-base font-black italic tracking-tight uppercase truncate", isDark && "text-zinc-100")}>
+                        <span
+                            className={cn("text-base font-black italic tracking-tight uppercase truncate", isDark && "text-zinc-100")}>
                             {tenantName}
                         </span>
-                        <span className={cn("text-[9px] font-bold uppercase tracking-widest leading-none mt-0.5", isDark ? "text-zinc-500" : "text-muted-foreground")}>
+                        <span
+                            className={cn("text-[9px] font-bold uppercase tracking-widest leading-none mt-0.5", isDark ? "text-zinc-500" : "text-muted-foreground")}>
                             <span className="text-primary font-black lowercase">by</span> Strive.
                         </span>
                     </div>
@@ -194,7 +229,8 @@ function UnifiedSidebar({ tenantName, logoUrl, config }: { tenantName: string, l
                                 : cn(isDark ? "text-zinc-400 hover:text-white hover:bg-white/5" : "text-muted-foreground hover:text-foreground hover:bg-accent/50")
                         )}>
                             <div className="flex items-center gap-3.5">
-                                <span className={cn("transition-colors", isActive ? "text-primary" : cn(isDark ? "text-zinc-500 group-hover:text-zinc-300" : "text-muted-foreground group-hover:text-foreground"))}>
+                                <span
+                                    className={cn("transition-colors", isActive ? "text-primary" : cn(isDark ? "text-zinc-500 group-hover:text-zinc-300" : "text-muted-foreground group-hover:text-foreground"))}>
                                     {item.icon}
                                 </span>
                                 <span>{item.label}</span>
@@ -216,7 +252,8 @@ function UnifiedSidebar({ tenantName, logoUrl, config }: { tenantName: string, l
 
             {/* Footer */}
             <div className={cn("pt-6 border-t space-y-1.5", isDark ? "border-white/5" : "border-border")}>
-                <div className={cn("px-4 py-2 mb-2 rounded-xl border flex items-center gap-2", isDark ? "bg-zinc-900/30 border-white/5 text-zinc-400" : "bg-secondary text-muted-foreground border-border")}>
+                <div
+                    className={cn("px-4 py-2 mb-2 rounded-xl border flex items-center gap-2", isDark ? "bg-zinc-900/30 border-white/5 text-zinc-400" : "bg-secondary text-muted-foreground border-border")}>
                     {config.badgeIcon}
                     <span className="text-[10px] font-bold tracking-wider uppercase">
                         {config.badgeText}
@@ -228,7 +265,8 @@ function UnifiedSidebar({ tenantName, logoUrl, config }: { tenantName: string, l
                     disabled={isLoggingOut}
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                    {isLoggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} className="group-hover:-translate-x-1 transition-transform duration-200" />}
+                    {isLoggingOut ? <Loader2 size={18} className="animate-spin"/> :
+                        <LogOut size={18} className="group-hover:-translate-x-1 transition-transform duration-200"/>}
                     <span className="text-sm font-bold">{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
                 </button>
             </div>
