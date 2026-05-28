@@ -112,7 +112,7 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                 )}
             </SheetTrigger>
 
-            <SheetContent className="w-full px-12 sm:max-w-md bg-background border-l border-border text-foreground overflow-y-auto">
+            <SheetContent className="w-full sm:max-w-md bg-background border-l border-border text-foreground overflow-y-auto">
                 <SheetHeader className="pb-6 border-b border-border mb-6">
                     <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                         Onboard Workspace Member
@@ -122,7 +122,7 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                     </SheetDescription>
                 </SheetHeader>
 
-                <form onSubmit={handleSendInvite} className="space-y-6 px-1 flex flex-col h-[calc(100vh-180px)]">
+                <form onSubmit={handleSendInvite} className="px-8 space-y-6 px-1 flex flex-col h-[calc(100vh-180px)]">
                     <div className="space-y-4 flex-1">
                         {/* Member Name */}
                         <div className="space-y-1.5">
