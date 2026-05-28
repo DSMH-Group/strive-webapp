@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -21,7 +21,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Coins, Loader2, AlertCircle } from "lucide-react";
+import { Coins, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { striveClientFetch } from "@/lib/api";
@@ -36,7 +36,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
     const [isTopUpOpen, setIsTopUpOpen] = useState(false);
     const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
-    // 🚀 1. Fetch Core Member Data (for Active Plan & Status)
+    // 🚀 1. Fetch Core Member Data
     const { data: memberProfile, isLoading: isMemberLoading } = useQuery({
         queryKey: ["memberProfile", tenantId],
         queryFn: async () => {
@@ -58,7 +58,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         enabled: !!tenantId
     });
 
-    // 🚀 3. Fetch Available Plans (for Upgrade Modal)
+    // 🚀 3. Fetch Available Plans
     const { data: availablePlans = [] } = useQuery({
         queryKey: ["tenantPlans", tenantId],
         queryFn: async () => {
@@ -88,6 +88,25 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         onError: (err: any) => toast.error(err.message)
     });
 
+    // Pay Existing Invoice (Onboarding / Activation)
+    const payInvoiceMutation = useMutation({
+        mutationFn: async (invoiceId: string) => {
+            const res = await striveClientFetch("/api/v1/billing/checkout/invoice", {
+                method: "POST",
+                headers: { "X-Tenant-ID": tenantId },
+                body: JSON.stringify({ invoiceId })
+            });
+            if (!res.ok) throw new Error(await res.text() || "Payment failed");
+            return res.json();
+        },
+        onSuccess: (data) => {
+            toast.success("Payment Successful!", { description: data.message });
+            queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
+        },
+        onError: (err: any) => toast.error(`Payment failed: ${err.message}`)
+    });
+
     // Trigger Token Top Up Checkout
     const topUpMutation = useMutation({
         mutationFn: async (amount: number) => {
@@ -101,10 +120,9 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         },
         onSuccess: (data) => {
             setIsTopUpOpen(false);
-            // 💡 In a real app, you'd redirect to PayHere using data.hash & data.merchantId here
-            toast.success("Checkout Initiated!", {
-                description: `Redirecting to Gateway for LKR ${data.amount}... (Mocked)`
-            });
+            toast.success("Top Up Successful!", { description: data.message });
+            queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
         },
         onError: (err: any) => toast.error(`Top-up failed: ${err.message}`)
     });
@@ -122,9 +140,9 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         },
         onSuccess: (data) => {
             setIsUpgradeOpen(false);
-            toast.success("Subscription Update Initiated!", {
-                description: `Redirecting to Gateway for LKR ${data.amount}... (Mocked)`
-            });
+            toast.success("Subscription Updated!", { description: data.message });
+            queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
         },
         onError: (err: any) => toast.error(`Upgrade failed: ${err.message}`)
     });
@@ -143,11 +161,40 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
     const isAutoRenew = memberProfile?.autoRenewEnabled;
     const expiresAt = memberProfile?.expiresAt ? new Date(memberProfile.expiresAt).toLocaleDateString() : "N/A";
 
+    // Find any open invoice that needs paying
+    const pendingInvoice = invoices.find((inv: any) => inv.status === "OPEN");
+
     return (
         <div className="space-y-6 text-white select-none animate-in fade-in duration-500">
             <div className="space-y-0.5">
                 <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
             </div>
+
+            {/* 🚀 ACTION REQUIRED BANNER */}
+            {pendingInvoice && (
+                <Card className="bg-amber-950/30 border border-amber-500/50 rounded-2xl p-6 shadow-lg shadow-amber-900/10">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-amber-500" />
+                                Action Required: Pending Payment
+                            </h3>
+                            <p className="text-sm text-amber-200/70 mt-1">
+                                You have an unpaid invoice for LKR {Number(pendingInvoice.totalAmount).toLocaleString()}.
+                                {memberProfile?.status === "PENDING" ? " Pay this to activate your membership." : ""}
+                            </p>
+                        </div>
+                        <Button
+                            onClick={() => payInvoiceMutation.mutate(pendingInvoice.id)}
+                            disabled={payInvoiceMutation.isPending}
+                            className="bg-amber-500 hover:bg-amber-400 text-black font-bold whitespace-nowrap w-full sm:w-auto"
+                        >
+                            {payInvoiceMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            Pay LKR {Number(pendingInvoice.totalAmount).toLocaleString()}
+                        </Button>
+                    </div>
+                </Card>
+            )}
 
             {/* Active Subscription Overview Card Container */}
             <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6">
@@ -158,6 +205,9 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                             <h2 className="text-lg font-black text-white tracking-tight">{activePlan?.name || "No Active Plan"}</h2>
                             {memberProfile?.status === "ACTIVE" && (
                                 <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 tracking-wide uppercase">Active</span>
+                            )}
+                            {memberProfile?.status === "PENDING" && (
+                                <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide uppercase">Pending Activation</span>
                             )}
                         </div>
                         <div className="text-xs text-zinc-400 font-medium font-mono flex items-center gap-2">
@@ -170,7 +220,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                         {/* Token Top Up Modal */}
                         <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
                             <DialogTrigger>
-                                <Button className="bg-zinc-950 hover:bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors">
+                                <Button disabled={memberProfile?.status === "PENDING"} className="bg-zinc-950 hover:bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors">
                                     <Coins className="w-3.5 h-3.5" /> Top Up Tokens
                                 </Button>
                             </DialogTrigger>
@@ -195,7 +245,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                         {/* Upgrade Plan Modal */}
                         <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
                             <DialogTrigger>
-                                <Button variant="outline" className="bg-zinc-900 border-white/5 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none transition-colors">
+                                <Button variant="outline" disabled={memberProfile?.status === "PENDING"} className="bg-zinc-900 border-white/5 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none transition-colors">
                                     Upgrade Plan
                                 </Button>
                             </DialogTrigger>
@@ -251,6 +301,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                         <TableBody>
                             {invoices.map((invoice: any) => {
                                 const isPaid = invoice.status === "PAID";
+                                const isOpen = invoice.status === "OPEN";
                                 const date = new Date(invoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                 const desc = invoice.items?.[0]?.description || invoice.type;
 
@@ -268,7 +319,9 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                                         <TableCell className="py-4 pr-5 text-right w-24">
                                             <span className={cn(
                                                 "text-[9px] font-black font-mono uppercase px-2 py-0.5 rounded border tracking-wide",
-                                                isPaid ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                                isPaid && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                                                isOpen && "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                                                (!isPaid && !isOpen) && "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                                             )}>
                                                 {invoice.status}
                                             </span>

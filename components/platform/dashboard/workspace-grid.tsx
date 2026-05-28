@@ -37,7 +37,7 @@ export function WorkspaceGrid({ memberships }: { memberships: PrismaMembershipDt
         if (roleArray.includes("TRAINER")) {
             return { label: "Staff Roster", url: `${baseUrl}/staff`, icon: Users, variant: "secondary" as const };
         }
-        return { label: "Member Hub", url: `${baseUrl}/app`, icon: Dumbbell, variant: "outline" as const };
+        return { label: "Member Hub", url: `${baseUrl}/overview`, icon: Dumbbell, variant: "outline" as const };
     };
 
     return (
