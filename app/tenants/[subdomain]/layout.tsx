@@ -21,7 +21,6 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: {"X-Tenant-ID": tenantId},
-            next: {revalidate: 300}, // Cache config for 5 minutes
         });
         if (!res.ok) return null;
         return await res.json();
