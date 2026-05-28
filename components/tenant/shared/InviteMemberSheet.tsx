@@ -16,29 +16,23 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 
 interface InviteMemberSheetProps {
     tenantId: string;
-    children?: React.ReactNode; // Add this
+    children?: React.ReactNode;
 }
 
 export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps) {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
 
+    // --- State Management ---
+    const [inviteName, setInviteName] = useState("");
     const [inviteEmail, setInviteEmail] = useState("");
     const [invitePhone, setInvitePhone] = useState("");
-    const [inviteRole, setInviteRole] = useState<"MEMBER" | "TRAINER" | "MANAGER" | "ORG_ADMIN">("MEMBER");
 
     const inviteMutation = useMutation({
-        mutationFn: async (newInvite: { email: string; phone: string; initialRole: string }) => {
+        mutationFn: async (newInvite: { name: string; email: string; phone: string; initialRole: string }) => {
             const res = await striveClientFetch("/api/v1/members/invites", {
                 method: "POST",
                 headers: { "X-Tenant-ID": tenantId },
@@ -46,19 +40,18 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
             });
             if (!res.ok) {
                 const errText = await res.text();
-                throw new Error(errText || "Failed to dispatch invitation footprint.");
+                throw new Error(errText || "Failed to dispatch invitation.");
             }
             return res.json();
         },
         onSuccess: () => {
             toast.success("Invitation dispatched successfully via SMS/Email!");
-            // Instruct the global cache to refresh the table behind the sheet
             queryClient.invalidateQueries({ queryKey: ["tenantMembersGrid", tenantId] });
 
             // Reset and close
+            setInviteName("");
             setInviteEmail("");
             setInvitePhone("");
-            setInviteRole("MEMBER");
             setIsOpen(false);
         },
         onError: (error: any) => {
@@ -68,20 +61,50 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
 
     const handleSendInvite = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inviteEmail && !invitePhone) {
-            toast.error("Please supply either a target verification Email or Phone line.");
+
+        if (!inviteName.trim()) {
+            toast.error("Please supply the member's full name.");
             return;
         }
+
+        if (!inviteEmail && !invitePhone) {
+            toast.error("Please supply either an Email address or a Phone number.");
+            return;
+        }
+
+        let formattedPhone = "";
+
+        // --- Strict Sri Lankan Phone Number Validation & Normalization ---
+        if (invitePhone) {
+            // Remove any spaces, hyphens, or brackets user might have input
+            const cleanDigits = invitePhone.replace(/\D/g, "");
+
+            // Standardize format down to 9 digits removing leading 0 if present (e.g., 0771234567 -> 771234567)
+            const targetDigits = cleanDigits.startsWith("0") ? cleanDigits.slice(1) : cleanDigits;
+
+            // Sri Lankan mobile/landline local parts are strictly 9 digits long (e.g., 77XXXXXXX)
+            const lkPhoneRegex = /^(70|71|72|74|75|76|77|78|11|21|23|24|25|26|27|31|32|33|34|35|36|37|38|41|45|47|51|52|54|55|57|63|65|66|67|81|91)\d{7}$/;
+
+            if (!lkPhoneRegex.test(targetDigits)) {
+                toast.error("Invalid Sri Lankan mobile number format. Example: 0771234567");
+                return;
+            }
+
+            // Append country code cleanly without standard "+" sign for backend processing
+            formattedPhone = `94${targetDigits}`;
+        }
+
         inviteMutation.mutate({
-            email: inviteEmail || '',
-            phone: invitePhone || '',
-            initialRole: inviteRole
+            name: inviteName.trim(),
+            email: inviteEmail.trim() || '',
+            phone: formattedPhone,
+            initialRole: "MEMBER" // Fixed role configuration specifically for standard workspace members
         });
     };
 
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger >
+            <SheetTrigger>
                 {children ? children : (
                     <Button variant="outline" className="h-10 text-xs border-border bg-card text-foreground rounded-md font-bold gap-2 px-4 hover:bg-accent">
                         <UserPlus className="w-3.5 h-3.5 text-primary" /> Invite Member
@@ -89,21 +112,32 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                 )}
             </SheetTrigger>
 
-            {/* We use w-[400px] or sm:w-[540px] to ensure it looks good on desktop,
-                while inherently defaulting to 100% width on mobile screens.
-            */}
             <SheetContent className="w-full sm:max-w-md bg-background border-l border-border text-foreground overflow-y-auto">
                 <SheetHeader className="pb-6 border-b border-border mb-6">
                     <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                        Onboard Workspace Identity
+                        Onboard Workspace Member
                     </SheetTitle>
                     <SheetDescription className="text-xs text-muted-foreground/80">
-                        Send an edge authentication invite linking a user to this facility workspace domain. They will receive a localized SMS or Email.
+                        Send an authentication invite linking a user to this facility workspace domain as a standard Member.
                     </SheetDescription>
                 </SheetHeader>
 
-                <form onSubmit={handleSendInvite} className="space-y-6 px-6 flex flex-col h-[calc(100vh-180px)]">
+                <form onSubmit={handleSendInvite} className="space-y-6 px-1 flex flex-col h-[calc(100vh-180px)]">
                     <div className="space-y-4 flex-1">
+                        {/* Member Name */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
+                            <Input
+                                type="text"
+                                placeholder="Nimal Perera"
+                                value={inviteName}
+                                onChange={(e) => setInviteName(e.target.value)}
+                                className="bg-card border-border text-sm h-10"
+                                required
+                            />
+                        </div>
+
+                        {/* Email Address */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
                             <Input
@@ -114,33 +148,29 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                                 className="bg-card border-border text-sm h-10"
                             />
                         </div>
+
+                        {/* Phone Number with Built-in UX Prefix */}
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone Number (Sri Lankan Format)</label>
-                            <Input
-                                type="text"
-                                placeholder="+94771234567"
-                                value={invitePhone}
-                                onChange={(e) => setInvitePhone(e.target.value)}
-                                className="bg-card border-border text-sm h-10 font-mono"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Initial Workspace RBAC Tier</label>
-                            <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
-                                <SelectTrigger className="bg-card border-border text-xs h-10">
-                                    <SelectValue placeholder="Select Tier" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-card border-border text-foreground">
-                                    <SelectItem value="MEMBER">MEMBER (Baseline Consumer)</SelectItem>
-                                    <SelectItem value="TRAINER">TRAINER (Staff Fitness Resource)</SelectItem>
-                                    <SelectItem value="MANAGER">MANAGER (Facility Supervisor)</SelectItem>
-                                    <SelectItem value="ORG_ADMIN">ORG_ADMIN (Full System Operator)</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone Number</label>
+                            <div className="relative flex items-center group">
+                                <span className="absolute left-3 text-sm font-mono text-muted-foreground/70 select-none pointer-events-none transition-colors group-focus-within:text-foreground">
+                                    +94
+                                </span>
+                                <Input
+                                    type="text"
+                                    placeholder="0771234567"
+                                    value={invitePhone}
+                                    onChange={(e) => setInvitePhone(e.target.value)}
+                                    className="bg-card border-border text-sm h-10 font-mono pl-12"
+                                />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground/60 block px-1">
+                                Accepts format with or without leading zero (e.g., 077... or 77...)
+                            </span>
                         </div>
                     </div>
 
-                    {/* Fixed to the bottom of the sidebar */}
+                    {/* Footer Execution Actions */}
                     <div className="pt-4 border-t border-border flex items-center justify-end gap-2 shrink-0">
                         <Button type="button" variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-xs">
                             Cancel
