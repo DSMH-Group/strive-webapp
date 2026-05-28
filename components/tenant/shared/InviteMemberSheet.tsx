@@ -112,7 +112,7 @@ export function InviteMemberSheet({ tenantId, children }: InviteMemberSheetProps
                 )}
             </SheetTrigger>
 
-            <SheetContent className="w-full sm:max-w-md bg-background border-l border-border text-foreground overflow-y-auto">
+            <SheetContent className="w-full px-12 sm:max-w-md bg-background border-l border-border text-foreground overflow-y-auto">
                 <SheetHeader className="pb-6 border-b border-border mb-6">
                     <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                         Onboard Workspace Member
