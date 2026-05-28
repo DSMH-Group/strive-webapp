@@ -2,10 +2,17 @@
 "use client";
 
 import React, {useEffect, useState} from "react";
-import {useMutation, useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {Coins, CreditCard, Loader2, Radio, ShieldAlert, X} from "lucide-react";
 import {toast} from "sonner";
 import {striveClientFetch} from "@/lib/api";
@@ -17,8 +24,9 @@ interface ManageMemberSheetProps {
 }
 
 export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberSheetProps) {
+    const queryClient = useQueryClient();
     const [status, setStatus] = useState("ACTIVE");
-    const [activePlanId, setActivePlanId] = useState("");
+    const [activePlanId, setActivePlanId] = useState<string>("NONE");
     const [tokensLeft, setTokensLeft] = useState<number>(0);
     const [rfidTag, setRfidTag] = useState("");
 
@@ -62,7 +70,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
     useEffect(() => {
         if (memberData) {
             setStatus(memberData.status || "ACTIVE");
-            setActivePlanId(memberData.activePlanId || "");
+            setActivePlanId(memberData.activePlanId || "NONE");
             setTokensLeft(memberData.tokensLeft || 0);
             setRfidTag(memberData.rfidTag || "");
         }
@@ -79,7 +87,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                 },
                 body: JSON.stringify({
                     status,
-                    activePlanId: activePlanId || null,
+                    activePlanId: activePlanId === "NONE" ? null : activePlanId,
                     tokensLeft: Number(tokensLeft),
                     rfidTag: rfidTag || null
                 })
@@ -88,6 +96,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
         },
         onSuccess: () => {
             toast.success("Client system lifecycle overrides successfully mapped.");
+            queryClient.invalidateQueries({ queryKey: ["tenantMembersGrid", tenantId] });
             onClose();
         },
         onError: (err: any) => toast.error(`Error updating membership: ${err.message}`)
@@ -95,7 +104,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
 
     // --- Mutation: Remit Ledger Record Manually ---
     const manualPaymentMutation = useMutation({
-        mutationFn: async (invoiceId: string) => {
+        mutationFn: async ({ invoiceId, amount }: { invoiceId: string, amount: number }) => {
             const res = await striveClientFetch("/api/v1/billing/payments/manual", {
                 method: "POST",
                 headers: {
@@ -105,10 +114,13 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                 body: JSON.stringify({
                     invoiceId,
                     method: "CASH",
-                    amount: 5000 // Placeholder matching internal ledger parameters dynamically
+                    amount // 🚀 Accurately pulling the totalAmount from the invoice object
                 })
             });
-            if (!res.ok) throw new Error("Ledger database rejected structural manual reconciliation.");
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Ledger database rejected structural manual reconciliation.");
+            }
         },
         onSuccess: () => {
             toast.success("Cash payment collected. Account status synced.");
@@ -128,8 +140,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50">
                     <div className="flex flex-col">
-                        <h3 className="text-sm font-bold tracking-tight uppercase text-foreground">Client Control
-                            Center</h3>
+                        <h3 className="text-sm font-bold tracking-tight uppercase text-foreground">Client Control Center</h3>
                         <p className="text-xs text-muted-foreground mt-0.5 font-mono">{memberId.slice(0, 13)}...</p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={onClose}
@@ -150,17 +161,18 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                                 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                 <ShieldAlert className="w-3.5 h-3.5 text-primary"/> Core Access Status
                             </Label>
-                            <select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                className="w-full h-10 bg-background border border-border rounded-md px-3 text-xs font-bold uppercase tracking-wider text-foreground"
-                            >
-                                <option value="ACTIVE">Active (Ingress Cleared)</option>
-                                <option value="PENDING">Pending Handshake</option>
-                                <option value="GRACE_PERIOD">Grace Period Lock</option>
-                                <option value="SUSPENDED">Suspended (Banned Access)</option>
-                                <option value="CANCELLED">Terminated / Cancelled</option>
-                            </select>
+                            <Select value={status} onValueChange={(val) => setStatus(val || "ACTIVE")}>
+                                <SelectTrigger className="w-full h-10 bg-background border-border text-xs font-bold uppercase tracking-wider text-foreground">
+                                    <SelectValue placeholder="Select Status" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border-border text-foreground">
+                                    <SelectItem value="ACTIVE">Active (Ingress Cleared)</SelectItem>
+                                    <SelectItem value="PENDING">Pending Handshake</SelectItem>
+                                    <SelectItem value="GRACE_PERIOD">Grace Period Lock</SelectItem>
+                                    <SelectItem value="SUSPENDED">Suspended (Banned Access)</SelectItem>
+                                    <SelectItem value="CANCELLED">Terminated / Cancelled</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Segment 2: Plan Catalog Linking Mapping */}
@@ -169,17 +181,19 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                                 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                 <CreditCard className="w-3.5 h-3.5 text-primary"/> Subscription Assignment
                             </Label>
-                            <select
-                                value={activePlanId}
-                                onChange={(e) => setActivePlanId(e.target.value)}
-                                className="w-full h-10 bg-background border border-border rounded-md px-3 text-xs font-medium text-foreground"
-                            >
-                                <option value="">No Active Plan (Manual Rollover)</option>
-                                {globalPlans.map((p: any) => (
-                                    <option key={p.id} value={p.id}>{p.name} —
-                                        LKR {Number(p.monthlyPrice).toLocaleString()}</option>
-                                ))}
-                            </select>
+                            <Select value={activePlanId} onValueChange={(val) => setActivePlanId(val || "NONE")}>
+                                <SelectTrigger className="w-full h-10 bg-background border-border text-xs font-medium text-foreground">
+                                    <SelectValue placeholder="No Active Plan (Manual Rollover)" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border-border text-foreground max-h-60">
+                                    <SelectItem value="NONE">No Active Plan (Manual Rollover)</SelectItem>
+                                    {globalPlans.map((p: any) => (
+                                        <SelectItem key={p.id} value={p.id}>
+                                            {p.name} — LKR {Number(p.monthlyPrice).toLocaleString()}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Segment 3: Composed Ledger Token Limits */}
@@ -219,27 +233,40 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                             <div className="space-y-2">
                                 {invoices.filter((inv: any) => inv.status !== "PAID").map((invoice: any) => (
                                     <div key={invoice.id}
-                                         className="flex items-center justify-between p-2.5 bg-background border border-border rounded-md text-xs font-mono">
-                                        <div className="flex flex-col">
-                                            <span
-                                                className="font-bold text-foreground">INV-{invoice.id.slice(0, 5).toUpperCase()}</span>
-                                            <span
-                                                className="text-muted-foreground text-[11px] mt-0.5">LKR {Number(invoice.amount || 5000).toLocaleString()}</span>
+                                         className="flex flex-col gap-2 p-3 bg-background border border-border rounded-md">
+
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-xs text-foreground truncate max-w-[200px]">
+                                                    {invoice.items?.[0]?.description || invoice.type}
+                                                </span>
+                                                <span className="text-muted-foreground text-[10px] font-mono mt-0.5">
+                                                    INV-{invoice.id.slice(0, 5).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <span className="font-mono font-bold text-xs text-primary">
+                                                LKR {Number(invoice.totalAmount).toLocaleString()}
+                                            </span>
                                         </div>
+
                                         <Button
                                             size="sm"
                                             type="button"
-                                            onClick={() => manualPaymentMutation.mutate(invoice.id)}
+                                            onClick={() => manualPaymentMutation.mutate({
+                                                invoiceId: invoice.id,
+                                                amount: Number(invoice.totalAmount)
+                                            })}
                                             disabled={manualPaymentMutation.isPending}
-                                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-[11px] h-7 px-2.5 rounded shadow-sm"
+                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-xs h-8 rounded shadow-sm"
                                         >
-                                            Mark as Paid
+                                            Collect Cash & Mark Paid
                                         </Button>
                                     </div>
                                 ))}
                                 {invoices.filter((inv: any) => inv.status !== "PAID").length === 0 && (
-                                    <p className="text-xs text-muted-foreground italic text-center py-2">No outstanding
-                                        balance markers matched on ledger.</p>
+                                    <p className="text-xs text-muted-foreground italic text-center py-4 bg-background/50 rounded-md border border-border/50">
+                                        No outstanding balance markers matched on ledger.
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -248,7 +275,7 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
                 )}
 
                 {/* Footer Controls */}
-                <div className="p-6 border-t border-border bg-card/50 flex justify-end gap-3 mt-auto">
+                <div className="p-6 border-t border-border bg-card/50 flex justify-end gap-3 mt-auto shrink-0">
                     <Button variant="ghost" onClick={onClose} className="text-xs font-bold">Cancel</Button>
                     <Button
                         type="button"

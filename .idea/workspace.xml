@@ -18,12 +18,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="fix(layout): remove cache configuration in `tenantId` fetch logic in layout file&#10;&#10;- Removed `revalidate: 300` from fetch request headers for `tenantId` data.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/paymentsClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/tenants/[subdomain]/(member)/payments/paymentsClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/platform/dashboard/workspace-grid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/platform/dashboard/workspace-grid.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tenant/shared/InviteMemberSheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tenant/shared/InviteMemberSheet.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -145,15 +140,7 @@
       <workItem from="1779613270757" duration="32705000" />
       <workItem from="1779763657851" duration="684000" />
       <workItem from="1779854190627" duration="11957000" />
-      <workItem from="1779957076716" duration="7123000" />
-    </task>
-    <task id="LOCAL-00036" summary="fix(domain): update domain references from `stride.lk` to `dsmhgroup.com`&#10;&#10;- Replaced all URL references to use the new production domain `dsmhgroup.com`.&#10;- Updated client-side redirection logic, tenant subdomains, and related UI elements.">
-      <option name="closed" value="true" />
-      <created>1779615949261</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1779615949261</updated>
+      <workItem from="1779957076716" duration="7442000" />
     </task>
     <task id="LOCAL-00037" summary="fix(auth): update login redirect to use HTTPS">
       <option name="closed" value="true" />
@@ -539,7 +526,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779968495193</updated>
     </task>
-    <option name="localTasksCounter" value="85" />
+    <task id="LOCAL-00085" summary="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators.">
+      <option name="closed" value="true" />
+      <created>1779970937303</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1779970937303</updated>
+    </task>
+    <option name="localTasksCounter" value="86" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -547,7 +542,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="feat(sidebar): refactor `TenantSidebarManager` with unified role-based navigation&#10;&#10;- Introduced `getRoleConfig` for centralized role-based navigation configuration.&#10;- Replaced individual role-specific sidebars with a unified `UnifiedSidebar` component.&#10;- Improved code readability and maintainability by reducing duplication.&#10;- Added support for badge notifications and simplified error and loading states.&#10;- Enhanced user experience with dynamic role-based themes and streamlined API calls." />
     <MESSAGE value="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements)." />
     <MESSAGE value="feat(invites): add `InviteMemberSheet` component and refactor invite workflow&#10;&#10;- Introduced `InviteMemberSheet` for inviting users to a workspace with role selection, email, and phone inputs.&#10;- Replaced redundant inline logic in `MembersClient` with the new component for improved modularity.&#10;- Enhanced maintainability by centralizing shared invite logic and UI." />
     <MESSAGE value="fix(invites): adjust padding in `InviteMemberSheet` form for consistent layout" />
@@ -572,6 +566,7 @@
     <MESSAGE value="feat(invites): adjust padding in `InviteMemberSheet` for improved layout consistency" />
     <MESSAGE value="fix(invites): adjust padding in `InviteMemberSheet` for layout consistency and spacing improvements" />
     <MESSAGE value="fix(layout): remove cache configuration in `tenantId` fetch logic in layout file&#10;&#10;- Removed `revalidate: 300` from fetch request headers for `tenantId` data." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(layout): remove cache configuration in `tenantId` fetch logic in layout file&#10;&#10;- Removed `revalidate: 300` from fetch request headers for `tenantId` data." />
+    <MESSAGE value="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
   </component>
 </project>
