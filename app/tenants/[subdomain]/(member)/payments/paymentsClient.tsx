@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Script from "next/script"; // 🚀 NEW: Import Next.js Script component
+import Script from "next/script";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Coins, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Coins, Loader2, AlertCircle, CheckCircle2, CreditCard } from "lucide-react"; // 🚀 NEW: Added CreditCard icon
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { striveClientFetch } from "@/lib/api";
 
-// 🚀 NEW: Tell TypeScript about the global PayHere object injected by the script
 declare global {
     interface Window {
         payhere: any;
@@ -77,14 +76,13 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         enabled: !!tenantId
     });
 
-    // 🚀 NEW: Centralized PayHere Checkout Handler
+    // Centralized PayHere Checkout Handler
     const initiatePayHereCheckout = (serverPayload: any) => {
         if (typeof window === "undefined" || !window.payhere) {
             toast.error("Payment gateway failed to initialize. Please refresh the page.");
             return;
         }
 
-        // Merge backend hash payload with dynamic frontend redirect URLs
         const payment = {
             ...serverPayload,
             return_url: `${window.location.origin}/member/payments`,
@@ -92,16 +90,13 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             notify_url: "https://strive-core-development.up.railway.app/api/v1/billing/webhook/payhere",
         };
 
-        // Open the PayHere Modal
         window.payhere.startPayment(payment);
 
-        // Listeners for modal events
         window.payhere.onCompleted = function onCompleted(orderId: string) {
             toast.info("Payment captured! Processing activation...", {
                 description: "We are finalizing your membership ledger status."
             });
 
-            // Give Railway backend 1.5 seconds to process the webhook before refetching
             setTimeout(() => {
                 queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
                 queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
@@ -119,7 +114,6 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
     // --- MUTATIONS ---
 
-    // Cancel Subscription Auto-Renew
     const cancelSubMutation = useMutation({
         mutationFn: async () => {
             const res = await striveClientFetch("/api/v1/billing/subscriptions/me/cancel", {
@@ -136,7 +130,6 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         onError: (err: any) => toast.error(err.message)
     });
 
-    // Pay Existing Invoice (Onboarding / Activation)
     const payInvoiceMutation = useMutation({
         mutationFn: async (invoiceId: string) => {
             const res = await striveClientFetch("/api/v1/billing/checkout/invoice", {
@@ -145,15 +138,14 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                 body: JSON.stringify({ invoiceId })
             });
             if (!res.ok) throw new Error(await res.text() || "Payment failed");
-            return res.json(); // Returns the generated PayHere payload
+            return res.json();
         },
         onSuccess: (data) => {
-            initiatePayHereCheckout(data); // 🚀 Trigger Gateway Instead of Instant Success
+            initiatePayHereCheckout(data);
         },
         onError: (err: any) => toast.error(`Payment initialization failed: ${err.message}`)
     });
 
-    // Trigger Token Top Up Checkout
     const topUpMutation = useMutation({
         mutationFn: async (amount: number) => {
             const res = await striveClientFetch("/api/v1/billing/checkout/top-up", {
@@ -165,13 +157,12 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             return res.json();
         },
         onSuccess: (data) => {
-            setIsTopUpOpen(false); // Close React Dialog
-            initiatePayHereCheckout(data); // 🚀 Trigger Gateway
+            setIsTopUpOpen(false);
+            initiatePayHereCheckout(data);
         },
         onError: (err: any) => toast.error(`Top-up initialization failed: ${err.message}`)
     });
 
-    // Trigger Subscription Upgrade Checkout
     const subscribeMutation = useMutation({
         mutationFn: async (planId: string) => {
             const res = await striveClientFetch("/api/v1/billing/checkout/subscribe", {
@@ -183,13 +174,11 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             return res.json();
         },
         onSuccess: (data) => {
-            setIsUpgradeOpen(false); // Close React Dialog
-            initiatePayHereCheckout(data); // 🚀 Trigger Gateway
+            setIsUpgradeOpen(false);
+            initiatePayHereCheckout(data);
         },
-        onError: (err: any) => toast.error(`Upgrade initialization failed: ${err.message}`)
+        onError: (err: any) => toast.error(`Checkout initialization failed: ${err.message}`)
     });
-
-    // --- RENDER ---
 
     if (isMemberLoading || isInvoicesLoading) {
         return (
@@ -208,7 +197,6 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
     return (
         <>
-            {/* 🚀 NEW: Inject the PayHere SDK asynchronously */}
             <Script src="https://www.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
 
             <div className="space-y-6 text-white select-none animate-in fade-in duration-500">
@@ -258,11 +246,28 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                             </div>
                             <div className="text-xs text-zinc-400 font-medium font-mono flex items-center gap-2">
                                 {activePlan ? `LKR ${Number(activePlan.monthlyPrice).toLocaleString()}/mo` : "Pay-As-You-Go"}
-                                {isAutoRenew ? ` · Renews ${expiresAt}` : ` · Expires ${expiresAt}`}
+                                {activePlan && (isAutoRenew ? ` · Renews ${expiresAt}` : ` · Expires ${expiresAt}`)}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 pt-2 sm:pt-0">
+
+                            {/* 🚀 NEW: Contextual "Renew Plan" button directly handles current active plan checkouts */}
+                            {activePlan && memberProfile?.status !== "PENDING" && (
+                                <Button
+                                    onClick={() => subscribeMutation.mutate(activePlan.id)}
+                                    disabled={subscribeMutation.isPending}
+                                    className="bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-white text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors"
+                                >
+                                    {subscribeMutation.isPending ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+                                    )}
+                                    Renew Current Plan
+                                </Button>
+                            )}
+
                             {/* Token Top Up Modal */}
                             <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
                                 <DialogTrigger>
@@ -309,10 +314,10 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                                                 <Button
                                                     size="sm"
                                                     onClick={() => subscribeMutation.mutate(plan.id)}
-                                                    disabled={subscribeMutation.isPending || activePlan?.id === plan.id}
+                                                    disabled={subscribeMutation.isPending}
                                                     className="text-xs font-bold bg-primary text-black hover:bg-primary/90"
                                                 >
-                                                    {activePlan?.id === plan.id ? "Current" : "Select"}
+                                                    {activePlan?.id === plan.id ? "Current (Renew)" : "Select"}
                                                 </Button>
                                             </div>
                                         ))}
