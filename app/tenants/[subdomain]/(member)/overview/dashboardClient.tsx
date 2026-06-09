@@ -58,6 +58,14 @@ const calculateDuration = (start: string, end: string | null) => {
 
 export default function DashboardClient({ subdomain, tenantId }: DashboardClientProps) {
 
+    // 🚀 Dynamic Time-Based Greeting
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+    }, []);
+
     // 🚀 Parallel REST Fetching via React Query
     const { data: rawData, isLoading, isError } = useQuery({
         queryKey: ["memberDashboardAggregated", tenantId],
@@ -196,7 +204,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
                 <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                    Good morning, {profile.firstName}
+                    {greeting}, {profile.firstName}
                 </h1>
             </div>
 
