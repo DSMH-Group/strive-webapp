@@ -6,6 +6,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import {
     type ChartConfig,
     ChartContainer,
     ChartTooltip,
@@ -15,10 +23,11 @@ import { Bar, BarChart, XAxis, ResponsiveContainer } from "recharts";
 import {
     Calendar,
     Flame,
-    Activity,
     ArrowRight,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Clock,
+    Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -36,6 +45,17 @@ const chartConfig = {
     }
 } satisfies ChartConfig;
 
+// Helper to calculate time spent in gym
+const calculateDuration = (start: string, end: string | null) => {
+    if (!end) return "Active Now";
+    const diffMs = new Date(end).getTime() - new Date(start).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins}m`;
+    const hrs = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hrs}h ${mins}m`;
+};
+
 export default function DashboardClient({ subdomain, tenantId }: DashboardClientProps) {
 
     // 🚀 Parallel REST Fetching via React Query
@@ -44,7 +64,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
         queryFn: async () => {
             const headers = { "X-Tenant-ID": tenantId };
 
-            // Fire all necessary REST requests simultaneously
             const [userRes, memberRes, bookingsRes, attendancesRes] = await Promise.all([
                 striveClientFetch("/api/v1/users/me", { method: "GET", headers }),
                 striveClientFetch("/api/v1/members/me", { method: "GET", headers }),
@@ -56,11 +75,12 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 user: userRes.ok ? await userRes.json() : null,
                 membership: memberRes.ok ? await memberRes.json() : null,
                 bookings: bookingsRes.ok ? await bookingsRes.json() : [],
-                attendances: attendancesRes.ok ? await attendancesRes.json() : { history: [] }
+                // Ensure we handle arrays directly based on your API response
+                attendances: attendancesRes.ok ? await attendancesRes.json() : []
             };
         },
         enabled: !!tenantId,
-        staleTime: 1000 * 60 * 2, // Cache for 2 minutes
+        staleTime: 1000 * 60 * 2,
     });
 
     // 🚀 Client-Side Data Aggregation & Logic processing
@@ -71,7 +91,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
         const now = new Date();
         const todayStr = now.toISOString().split("T")[0];
 
-        // 1. Process Bookings (Find Today's vs Next)
+        // 1. Process Bookings
         let todaySession = null;
         let nextSession = null;
 
@@ -85,8 +105,18 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             }
         }
 
-        // 2. Process Attendance History (Weekly Chart & Streak)
-        const historyList = attendances.history || [];
+        // 2. Process Attendance History
+        // Handle case where API returns array directly or wrapped in { history: [] }
+        const historyList = Array.isArray(attendances) ? attendances : (attendances.history || []);
+
+        // Sort history descending by Check-in Time
+        const sortedHistory = [...historyList].sort((a: any, b: any) =>
+            new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime()
+        );
+
+        // Check if the user is CURRENTLY checked in (checkOutTime is null on the most recent record)
+        const currentActiveVisit = sortedHistory.find((a: any) => a.checkOutTime === null);
+
         const sessionsThisMonth = historyList.filter((a: any) => new Date(a.checkInTime).getMonth() === now.getMonth()).length;
 
         // Generate last 7 days chart data
@@ -94,7 +124,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             const d = new Date();
             d.setDate(d.getDate() - (6 - i));
             const dateStr = d.toISOString().split("T")[0];
-
             const visitsThatDay = historyList.filter((a: any) => a.checkInTime.startsWith(dateStr)).length;
 
             return {
@@ -104,7 +133,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             };
         });
 
-        // Basic Streak Calculation (Counting consecutive days backwards)
+        // Basic Streak Calculation
         let streak = 0;
         let checkDate = new Date();
         while (true) {
@@ -114,7 +143,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 streak++;
                 checkDate.setDate(checkDate.getDate() - 1);
             } else {
-                // If checking today and no visit yet, check yesterday before breaking
                 if (streak === 0 && cStr === todayStr) {
                     checkDate.setDate(checkDate.getDate() - 1);
                     continue;
@@ -126,22 +154,20 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
         return {
             firstName: user?.firstName || "Member",
             lastName: user?.lastName || "",
-            plan: membership?.plan || "Standard Access",
+            plan: membership?.activePlan?.name || "Standard Access", // Safely map relational plan
             expires: membership?.expiresAt ? new Date(membership.expiresAt).toLocaleDateString() : "Active",
-            tokensLeft: membership?.tokens || 0,
+            tokensLeft: membership?.tokensLeft || 0, // Using tokensLeft from your schema
             streak,
             sessionsThisMonth,
-            prsThisMonth: 0, // Would require fetching /api/v1/metrics
+            prsThisMonth: 0,
             avgPerWeek: (sessionsThisMonth / 4).toFixed(1),
             todaySession,
             nextSession,
-            weeklyHistory
+            weeklyHistory,
+            recentVisits: sortedHistory.slice(0, 5), // Top 5 recent visits for the table
+            currentActiveVisit
         };
     }, [rawData]);
-
-    const handleDynamicCheckIn = () => {
-        toast.success("Dynamic QR / Location context validated. Attendance logged successfully via Stride Core API!");
-    };
 
     if (isLoading || !profile) {
         return (
@@ -174,8 +200,29 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 </h1>
             </div>
 
-            {/* Live Session Status / Check-in Actions Bracket */}
-            {profile.todaySession ? (
+            {/* 🚀 LIVE STATUS / CHECK-IN BANNER */}
+            {profile.currentActiveVisit ? (
+                // User is currently in the gym
+                <Card className="bg-emerald-950/30 border border-emerald-500/50 rounded-2xl p-4 overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.05)] relative">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 animate-pulse" />
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-2">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-400">
+                                <Activity className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <h3 className="text-sm font-bold text-emerald-400">
+                                    Currently in Facility
+                                </h3>
+                                <p className="text-xs text-emerald-500/70 font-medium">
+                                    Checked in at {new Date(profile.currentActiveVisit.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+            ) : profile.todaySession ? (
+                // User has a session booked today but is not in yet
                 <Card className="bg-[#111917] border border-emerald-500/10 rounded-2xl p-4 overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.02)]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
@@ -192,10 +239,10 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                             </div>
                         </div>
                         <Button
-                            onClick={handleDynamicCheckIn}
+                            onClick={() => toast.success("Access request sent.")}
                             className="bg-zinc-950 hover:bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl h-10 px-4 self-stretch sm:self-auto shrink-0 transition-all"
                         >
-                            Check In <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                            Generate Entry QR <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                     </div>
                 </Card>
@@ -235,8 +282,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
 
             {/* Core Metrics & Gamification Split Block */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                {/* Next Booking Ledger Tracking Card */}
                 <Card className="md:col-span-2 bg-zinc-900/30 border border-white/5 rounded-2xl p-5 flex flex-col justify-between min-h-[110px]">
                     <div className="space-y-1">
                         <span className="text-[9px] font-extrabold text-primary uppercase tracking-widest font-mono">Next Session</span>
@@ -253,7 +298,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                     </div>
                 </Card>
 
-                {/* Gamified Streak Track Widget */}
                 <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
                     <div className="space-y-3 flex-1">
                         <div className="flex items-center gap-2 text-orange-400">
@@ -264,7 +308,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                             </div>
                         </div>
 
-                        {/* Interactive Weekly Dot Sequence Representation */}
                         <div className="flex items-center justify-between text-[9px] font-mono font-bold text-zinc-600 px-0.5">
                             {profile.weeklyHistory.map((d: any, i: number) => {
                                 const isFulfilled = d.visits > 0;
@@ -290,38 +333,90 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 <SummaryMiniCard label="Avg / Week" value={profile.avgPerWeek.toString()} isCyan />
             </div>
 
-            {/* Custom shadcn/ui Structured History Visual Bar Chart Component */}
-            <Card className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="space-y-0.5">
+            {/* 🚀 NEW: Recent Attendance Ledger */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-6">
                         <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono">This Week's Visits</span>
                     </div>
-                </div>
-                <div className="h-28 w-full">
-                    <ChartContainer config={chartConfig} className="h-full w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={profile.weeklyHistory} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                                <XAxis
-                                    dataKey="day"
-                                    stroke="#3f3f46"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickMargin={8}
-                                    className="text-[10px] font-bold font-sans text-zinc-600"
-                                />
-                                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                <Bar
-                                    dataKey="visits"
-                                    fill="var(--color-visits)"
-                                    radius={[4, 4, 0, 0]}
-                                    maxBarSize={28}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </ChartContainer>
-                </div>
-            </Card>
+                    <div className="h-40 w-full">
+                        <ChartContainer config={chartConfig} className="h-full w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={profile.weeklyHistory} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                    <XAxis
+                                        dataKey="day"
+                                        stroke="#3f3f46"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickMargin={8}
+                                        className="text-[10px] font-bold font-sans text-zinc-600"
+                                    />
+                                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                    <Bar
+                                        dataKey="visits"
+                                        fill="var(--color-visits)"
+                                        radius={[4, 4, 0, 0]}
+                                        maxBarSize={28}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </div>
+                </Card>
 
+                <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono">Recent Activity</span>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-zinc-400 hover:text-white px-2">View All</Button>
+                    </div>
+
+                    <div className="flex-1 overflow-hidden">
+                        {profile.recentVisits.length > 0 ? (
+                            <div className="space-y-3">
+                                {profile.recentVisits.map((visit: any) => {
+                                    const checkInDate = new Date(visit.checkInTime);
+                                    const isActive = visit.checkOutTime === null;
+
+                                    return (
+                                        <div key={visit.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-950/40 border border-white/5">
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "p-2 rounded-lg border",
+                                                    isActive ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-zinc-900 border-white/5 text-zinc-500"
+                                                )}>
+                                                    <Clock className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-zinc-200">
+                                                        {checkInDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                                    </p>
+                                                    <p className="text-[10px] font-mono text-zinc-500">
+                                                        {checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {visit.checkOutTime && ` → ${new Date(visit.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={cn(
+                                                    "text-xs font-black font-mono",
+                                                    isActive ? "text-emerald-400 animate-pulse" : "text-zinc-400"
+                                                )}>
+                                                    {calculateDuration(visit.checkInTime, visit.checkOutTime)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center space-y-2 py-8">
+                                <Clock className="w-6 h-6 text-zinc-700" />
+                                <p className="text-xs font-medium text-zinc-500">No recent visits recorded.</p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
         </div>
     );
 }
