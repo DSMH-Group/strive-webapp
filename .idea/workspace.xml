@@ -18,7 +18,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
+    <list default="true" id="3ab1500b-7e2e-488a-a5d7-cbff9b572432" name="Changes" comment="feat(admin): enhance `ManageMemberSheet` with new UI components and functionality&#10;&#10;- Replaced dropdowns with `Select` components for status and plan selection.&#10;- Improved state handling by setting default values for `activePlanId` and member status.&#10;- Added query invalidation for real-time `tenantMembersGrid` updates on success.&#10;- Enhanced manual payment handling with accurate invoice details and improved error feedback.&#10;- Refined UI for better usability, including adjusted invoice layout and button styles.">
+      <change afterPath="$PROJECT_DIR$/types/payhere.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -140,15 +143,8 @@
       <workItem from="1779613270757" duration="32705000" />
       <workItem from="1779763657851" duration="684000" />
       <workItem from="1779854190627" duration="11957000" />
-      <workItem from="1779957076716" duration="7442000" />
-    </task>
-    <task id="LOCAL-00037" summary="fix(auth): update login redirect to use HTTPS">
-      <option name="closed" value="true" />
-      <created>1779616083696</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1779616083696</updated>
+      <workItem from="1779957076716" duration="18935000" />
+      <workItem from="1781012328383" duration="2917000" />
     </task>
     <task id="LOCAL-00038" summary="fix(proxy): simplify subdomain extraction logic and update link path&#10;&#10;- Adjusted logic to handle subdomains with fewer conditional checks.&#10;- Fixed incorrect support link path in the dashboard component.">
       <option name="closed" value="true" />
@@ -534,7 +530,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779970937303</updated>
     </task>
-    <option name="localTasksCounter" value="86" />
+    <task id="LOCAL-00086" summary="feat(admin): enhance `ManageMemberSheet` with new UI components and functionality&#10;&#10;- Replaced dropdowns with `Select` components for status and plan selection.&#10;- Improved state handling by setting default values for `activePlanId` and member status.&#10;- Added query invalidation for real-time `tenantMembersGrid` updates on success.&#10;- Enhanced manual payment handling with accurate invoice details and improved error feedback.&#10;- Refined UI for better usability, including adjusted invoice layout and button styles.">
+      <option name="closed" value="true" />
+      <created>1779971518614</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1779971518614</updated>
+    </task>
+    <option name="localTasksCounter" value="87" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -542,7 +546,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="fix(layout): add input validation and fix UI layout inconsistencies&#10;&#10;- Added hex string validation to `hexToHslString` to prevent crashes on malformed inputs.&#10;- Fixed viewport and scrolling issues by updating layout classes (`min-h-screen` -&gt; `h-screen`, added `overflow-hidden`).&#10;- Ensured consistent sidebar and mobile nav behavior (`h-full`, `shrink-0`, pinned elements)." />
     <MESSAGE value="feat(invites): add `InviteMemberSheet` component and refactor invite workflow&#10;&#10;- Introduced `InviteMemberSheet` for inviting users to a workspace with role selection, email, and phone inputs.&#10;- Replaced redundant inline logic in `MembersClient` with the new component for improved modularity.&#10;- Enhanced maintainability by centralizing shared invite logic and UI." />
     <MESSAGE value="fix(invites): adjust padding in `InviteMemberSheet` form for consistent layout" />
     <MESSAGE value="fix(ui): adjust layout spacing and width for form and button components&#10;&#10;- Added `px-6` padding for better horizontal spacing on `InviteMemberSheet` form.&#10;- Set button width to `w-full` in `consoleClient` for improved visual consistency." />
@@ -567,6 +570,7 @@
     <MESSAGE value="fix(invites): adjust padding in `InviteMemberSheet` for layout consistency and spacing improvements" />
     <MESSAGE value="fix(layout): remove cache configuration in `tenantId` fetch logic in layout file&#10;&#10;- Removed `revalidate: 300` from fetch request headers for `tenantId` data." />
     <MESSAGE value="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(payments): add pending invoice payment flow and improve UI feedback&#10;&#10;- Introduced pending invoice payment functionality with real-time updates and success/error handling.&#10;- Added action-required banners for unpaid invoices with contextual messages.&#10;- Updated UI components for better state management and usability, including conditional disabling of actions for pending users.&#10;- Enhanced invoice table with improved status indicators." />
+    <MESSAGE value="feat(admin): enhance `ManageMemberSheet` with new UI components and functionality&#10;&#10;- Replaced dropdowns with `Select` components for status and plan selection.&#10;- Improved state handling by setting default values for `activePlanId` and member status.&#10;- Added query invalidation for real-time `tenantMembersGrid` updates on success.&#10;- Enhanced manual payment handling with accurate invoice details and improved error feedback.&#10;- Refined UI for better usability, including adjusted invoice layout and button styles." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(admin): enhance `ManageMemberSheet` with new UI components and functionality&#10;&#10;- Replaced dropdowns with `Select` components for status and plan selection.&#10;- Improved state handling by setting default values for `activePlanId` and member status.&#10;- Added query invalidation for real-time `tenantMembersGrid` updates on success.&#10;- Enhanced manual payment handling with accurate invoice details and improved error feedback.&#10;- Refined UI for better usability, including adjusted invoice layout and button styles." />
   </component>
 </project>
