@@ -18,7 +18,7 @@ interface TenantConfigResponse {
 
 async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse | null> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: {"X-Tenant-ID": tenantId},
         });
