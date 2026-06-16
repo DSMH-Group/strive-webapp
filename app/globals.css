@@ -44,6 +44,11 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-roboto: var(--font-roboto);
+  --font-poppins: var(--font-poppins);
 }
 
 @layer base {
