@@ -25,7 +25,7 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
         // 🚀 FIX 1: Bypass Next.js aggressive layout caching
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: {"X-Tenant-ID": tenantId},
-            cache: 'no-store' // <--- Forces real-time DB read on every reload
+            cache: 'no-store' // <--- Forces real-stime DB read on every reload
         });
         if (!res.ok) return null;
         return await res.json();
