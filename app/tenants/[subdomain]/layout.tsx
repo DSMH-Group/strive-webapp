@@ -13,14 +13,19 @@ interface TenantConfigResponse {
     themeConfig: {
         primaryColor: string;
         logoUrl: string;
+        themeMode?: "dark" | "light";
+        radius?: number;
+        fontFamily?: string;
     };
 }
 
 async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse | null> {
     try {
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+        // 🚀 FIX 1: Bypass Next.js aggressive layout caching
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: {"X-Tenant-ID": tenantId},
+            cache: 'no-store' // <--- Forces real-stime DB read on every reload
         });
         if (!res.ok) return null;
         return await res.json();
@@ -31,11 +36,9 @@ async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse |
 }
 
 function hexToHslString(hex: string): string {
-    // FIX: Added validation to prevent server crashes on malformed hex strings
     if (!hex || !/^#?[0-9A-Fa-f]{6}$/i.test(hex)) {
-        hex = "#ea580c"; // Default fallback (Strive Primary)
+        hex = "#ea580c";
     }
-
     hex = hex.replace(/^#/, '');
     let r = parseInt(hex.substring(0, 2), 16) / 255;
     let g = parseInt(hex.substring(2, 4), 16) / 255;
@@ -46,20 +49,23 @@ function hexToHslString(hex: string): string {
         let d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break;
-            case g:
-                h = (b - r) / d + 2;
-                break;
-            case b:
-                h = (r - g) / d + 4;
-                break;
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
         }
         h /= 6;
     }
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
+
+// 🚀 FIX 2: Static font mapping for Tailwind JIT compiler
+const fontMap: Record<string, string> = {
+    sans: "font-sans",
+    serif: "font-serif",
+    roboto: "font-roboto",
+    poppins: "font-poppins",
+    merriweather: "font-serif"
+};
 
 export default async function TenantLayout({
                                                children,
@@ -77,43 +83,49 @@ export default async function TenantLayout({
     if (!tenantId) redirect(`https://${rootDomain}/explore`);
 
     const tenantConfig = await getTenantConfig(tenantId);
-    const dynamicPrimaryHsl = hexToHslString(tenantConfig?.themeConfig?.primaryColor || "#ea580c");
 
-    const authData = await auth.api.getSession({headers: reqHeaders}); // Micro-optimization: reuse reqHeaders
+    const themeParams = tenantConfig?.themeConfig;
+    const dynamicPrimaryHsl = hexToHslString(themeParams?.primaryColor || "#ea580c");
+    const radius = themeParams?.radius ?? 0.5;
+    const themeMode = themeParams?.themeMode || "dark";
+
+    // Resolve the static class string
+    const fontClass = fontMap[themeParams?.fontFamily || "sans"] || "font-sans";
+
+    const authData = await auth.api.getSession({headers: reqHeaders});
     if (!authData) {
         redirect(`https://${rootDomain}/login`);
     }
 
     return (
-        // FIX: Changed min-h-screen to h-screen and added overflow-hidden to lock the viewport
-        <div
-            className="flex h-screen w-full overflow-hidden bg-background text-foreground"
-            style={{'--primary': dynamicPrimaryHsl} as React.CSSProperties}
-        >
-            {/* Structural Sidebar Isolation */}
-            {/* FIX: Added h-full to explicitly size the sidebar */}
-            <aside className="hidden md:flex w-64 h-full border-r border-border bg-background shrink-0">
-                <TenantSidebarManager
-                    tenantId={tenantId}
-                    config={tenantConfig}
-                />
-            </aside>
+        // 🚀 FIX 3: Extracted `.dark` to an invisible parent wrapper so `bg-background` inherits correctly
+        <div className={themeMode === 'dark' ? 'dark' : ''}>
+            <div
+                className={`flex h-screen w-full overflow-hidden bg-background text-foreground ${fontClass}`}
+                style={{
+                    '--primary': dynamicPrimaryHsl,
+                    '--radius': `${radius}rem`
+                } as React.CSSProperties}
+            >
+                <aside className="hidden md:flex w-64 h-full border-r border-border bg-background shrink-0">
+                    <TenantSidebarManager
+                        tenantId={tenantId}
+                        config={tenantConfig}
+                    />
+                </aside>
 
-            {/* Subdomain Content Viewport */}
-            {/* FIX: Added h-full and overflow-hidden to bound the main scroll area */}
-            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-                <DashboardHeader user={authData.user}/>
+                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                    <DashboardHeader user={authData.user}/>
 
-                {/* FIX: Added overflow-y-auto here so ONLY the content scrolls, leaving Header and Mobile Nav pinned */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full animate-in fade-in duration-500">
-                    <div className="max-w-7xl mx-auto w-full">
-                        {children}
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full animate-in fade-in duration-500">
+                        <div className="max-w-7xl mx-auto w-full">
+                            {children}
+                        </div>
+                    </main>
+
+                    <div className="md:hidden shrink-0 border-t border-border bg-background">
+                        <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
                     </div>
-                </main>
-
-                {/* FIX: Wrapped MobileNavManager to prevent it from shrinking, keeping it pinned to bottom on mobile */}
-                <div className="md:hidden shrink-0 border-t border-border bg-background">
-                    <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
                 </div>
             </div>
         </div>
