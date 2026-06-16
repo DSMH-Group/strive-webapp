@@ -7,7 +7,6 @@ import {auth} from "@/lib/auth";
 import {TenantSidebarManager} from "@/components/tenant/shared/TenantSidebarManager";
 import {MobileNavManager} from "@/components/tenant/shared/MobileNavManager";
 
-// 1. 🚀 UPDATE INTERFACE: Added new theme configurations
 interface TenantConfigResponse {
     id: string;
     name: string;
@@ -23,8 +22,10 @@ interface TenantConfigResponse {
 async function getTenantConfig(tenantId: string): Promise<TenantConfigResponse | null> {
     try {
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+        // 🚀 FIX 1: Bypass Next.js aggressive layout caching
         const res = await fetch(`${baseUrl}/api/v1/tenants/${tenantId}`, {
             headers: {"X-Tenant-ID": tenantId},
+            cache: 'no-store' // <--- Forces real-time DB read on every reload
         });
         if (!res.ok) return null;
         return await res.json();
@@ -38,7 +39,6 @@ function hexToHslString(hex: string): string {
     if (!hex || !/^#?[0-9A-Fa-f]{6}$/i.test(hex)) {
         hex = "#ea580c";
     }
-
     hex = hex.replace(/^#/, '');
     let r = parseInt(hex.substring(0, 2), 16) / 255;
     let g = parseInt(hex.substring(2, 4), 16) / 255;
@@ -58,6 +58,15 @@ function hexToHslString(hex: string): string {
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+// 🚀 FIX 2: Static font mapping for Tailwind JIT compiler
+const fontMap: Record<string, string> = {
+    sans: "font-sans",
+    serif: "font-serif",
+    roboto: "font-roboto",
+    poppins: "font-poppins",
+    merriweather: "font-serif"
+};
+
 export default async function TenantLayout({
                                                children,
                                                params
@@ -75,12 +84,13 @@ export default async function TenantLayout({
 
     const tenantConfig = await getTenantConfig(tenantId);
 
-    // 2. 🚀 EXTRACT THEME VARIABLES WITH FALLBACKS
     const themeParams = tenantConfig?.themeConfig;
     const dynamicPrimaryHsl = hexToHslString(themeParams?.primaryColor || "#ea580c");
     const radius = themeParams?.radius ?? 0.5;
     const themeMode = themeParams?.themeMode || "dark";
-    const fontFamily = themeParams?.fontFamily || "sans";
+
+    // Resolve the static class string
+    const fontClass = fontMap[themeParams?.fontFamily || "sans"] || "font-sans";
 
     const authData = await auth.api.getSession({headers: reqHeaders});
     if (!authData) {
@@ -88,32 +98,34 @@ export default async function TenantLayout({
     }
 
     return (
-        // 3. 🚀 INJECT CSS CLASSES AND INLINE STYLES FOR FULL RUNTIME CUSTOMIZATION
-        <div
-            className={`flex h-screen w-full overflow-hidden bg-background text-foreground ${themeMode === 'dark' ? 'dark' : ''} font-${fontFamily}`}
-            style={{
-                '--primary': dynamicPrimaryHsl,
-                '--radius': `${radius}rem`
-            } as React.CSSProperties}
-        >
-            <aside className="hidden md:flex w-64 h-full border-r border-border bg-background shrink-0">
-                <TenantSidebarManager
-                    tenantId={tenantId}
-                    config={tenantConfig}
-                />
-            </aside>
+        // 🚀 FIX 3: Extracted `.dark` to an invisible parent wrapper so `bg-background` inherits correctly
+        <div className={themeMode === 'dark' ? 'dark' : ''}>
+            <div
+                className={`flex h-screen w-full overflow-hidden bg-background text-foreground ${fontClass}`}
+                style={{
+                    '--primary': dynamicPrimaryHsl,
+                    '--radius': `${radius}rem`
+                } as React.CSSProperties}
+            >
+                <aside className="hidden md:flex w-64 h-full border-r border-border bg-background shrink-0">
+                    <TenantSidebarManager
+                        tenantId={tenantId}
+                        config={tenantConfig}
+                    />
+                </aside>
 
-            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-                <DashboardHeader user={authData.user}/>
+                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                    <DashboardHeader user={authData.user}/>
 
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full animate-in fade-in duration-500">
-                    <div className="max-w-7xl mx-auto w-full">
-                        {children}
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full animate-in fade-in duration-500">
+                        <div className="max-w-7xl mx-auto w-full">
+                            {children}
+                        </div>
+                    </main>
+
+                    <div className="md:hidden shrink-0 border-t border-border bg-background">
+                        <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
                     </div>
-                </main>
-
-                <div className="md:hidden shrink-0 border-t border-border bg-background">
-                    <MobileNavManager tenantId={tenantId} user={authData.user} config={tenantConfig}/>
                 </div>
             </div>
         </div>
