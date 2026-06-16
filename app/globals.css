@@ -6,7 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Core shadcn palette mapped cleanly to your context HSL variables */
+  /* Core shadcn palette mapped to CSS variables */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
@@ -35,54 +35,80 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Custom component token extensions matching your exact mockup palettes */
-  --color-chart-1: hsl(var(--primary));
-  --color-sidebar-background: hsl(var(--background));
-  --color-sidebar-foreground: hsl(var(--muted-foreground));
+  /* Map the Next.js font variables so Tailwind compiler recognizes font-poppins, font-serif, etc. */
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-roboto: var(--font-roboto);
+  --font-poppins: var(--font-poppins);
 
   /* Setup fluid universal component rounding mechanics */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-
-  --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
-  --font-roboto: var(--font-roboto);
-  --font-poppins: var(--font-poppins);
 }
 
 @layer base {
+  /* LIGHT MODE (Fallback / Standard) */
   :root {
-    /* BASE LAYOUT ENGINE TOKENS: Match your layout design specifications precisely */
-    --background: 240 10% 3.9%;          /* High-Contrast Zinc-950 */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    /* Primary is injected dynamically, but here is a fallback */
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 24 95% 53%;
+
+    /* Dynamic radius injected via layout style, fallback here */
+    --radius: 0.5rem;
+  }
+
+  /* DARK MODE (Activated when .dark is applied to the wrapper) */
+  .dark {
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-
-    --card: 240 10% 5.9%;                /* Zinc-900 Cards */
+    --card: 240 10% 5.9%;
     --card-foreground: 0 0% 98%;
-
     --popover: 240 10% 4.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 24 95% 53%;               /* Vibrant Stride Orange Brand Accent */
+    /* Primary is injected dynamically, but here is a fallback */
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;         /* Muted Slate Overlays */
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-
     --muted: 240 3.7% 10%;
-    --muted-foreground: 240 5% 65%;      /* Balanced text-muted grey readouts */
-
+    --muted-foreground: 240 5% 65%;
     --accent: 240 3.7% 13%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 12%;               /* High-elegance border-white/5 line tracking */
+    --border: 240 3.7% 12%;
     --input: 240 3.7% 12%;
     --ring: 24 95% 53%;
+  }
+}
 
-    /* Universal rounding anchor scaled down to a sharp, high-performance profile */
-    --radius: 0.375rem;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
