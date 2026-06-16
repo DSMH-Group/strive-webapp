@@ -218,7 +218,7 @@ export default function WalletDashboardClient({ globalUser }: WalletDashboardCli
                     {!isLoading && !isError && invoices && (
                         <div className="space-y-3">
                             {invoices.map((invoice) => (
-                                <Card key={invoice.id} className="bg-card border-border rounded-lg overflow-hidden group">
+                                <Card key={invoice?.id} className="bg-card border-border rounded-lg overflow-hidden group">
                                     <CardContent className="p-5 flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className={cn(
@@ -227,20 +227,20 @@ export default function WalletDashboardClient({ globalUser }: WalletDashboardCli
                                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                             )}>
-                                                {invoice.status === "PAID" ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                                {invoice?.status === "PAID" ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
-                                                        {invoice.lineItems[0]?.description || "Cycle Statement Settlement"}
+                                                        {invoice?.lineItems[0]?.description || "Cycle Statement Settlement"}
                                                     </h4>
                                                     <span className="text-[10px] text-muted-foreground/60">•</span>
                                                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold italic">
-                                                        {invoice.tenantName || "Strive Space"}
+                                                        {invoice?.tenantName || "Strive Space"}
                                                     </span>
                                                 </div>
                                                 <p className="text-[11px] text-muted-foreground/60 font-mono">
-                                                    {new Date(invoice.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • ID: {invoice.id.substring(0, 8).toUpperCase()}
+                                                    {new Date(invoice?.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • ID: {invoice.id.substring(0, 8).toUpperCase()}
                                                 </p>
                                             </div>
                                         </div>
