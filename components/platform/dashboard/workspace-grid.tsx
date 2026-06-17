@@ -1,10 +1,10 @@
 // app/(platform)/(dashboard)/dashboard/components/workspace-grid.tsx
-"use client"; // Ensure this is marked as a client component if using window.location
+"use client";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Building, Dumbbell, ShieldAlert, Users } from "lucide-react";
-import { PrismaMembershipDto, Role } from "@/db/types"; // Adjust import path if needed
+import { PrismaMembershipDto, Role } from "@/db/types";
 
 export function WorkspaceGrid({ memberships }: { memberships: PrismaMembershipDto[] }) {
 
@@ -43,7 +43,7 @@ export function WorkspaceGrid({ memberships }: { memberships: PrismaMembershipDt
     return (
         <div className="space-y-4">
             <h3 className="text-lg font-bold italic uppercase tracking-tighter border-b border-border pb-2 text-foreground">
-                Your Workspaces
+                {memberships[0]?.roles.some(r => r.role === "MEMBER") ? "Your Facilities": 'Your Workspaces'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {memberships.map((membership) => {
