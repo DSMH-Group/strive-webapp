@@ -12,6 +12,7 @@ import {striveClientFetch} from "@/lib/api";
 import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
 import {Button} from "@/components/ui/button";
 import {ManageMemberSheet} from "@/components/tenant/admin/ManageMemberSheet";
+import { useRouter } from "next/navigation"
 
 interface MembersClientProps {
     subdomain: string;
@@ -21,6 +22,8 @@ interface MembersClientProps {
 type FilterStatus = "ALL" | "ACTIVE" | "GRACE" | "SUSPENDED";
 
 export default function MembersClient({subdomain, tenantId}: MembersClientProps) {
+    const router = useRouter();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("ALL");
     const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
@@ -147,6 +150,7 @@ export default function MembersClient({subdomain, tenantId}: MembersClientProps)
                     <TableBody>
                         {filteredMembers.map((member) => (
                             <TableRow key={member.id}
+                                      onClick={() => router.push(`/clients/${member.id}`)}
                                       className="border-b border-border hover:bg-muted/30 group transition-colors">
                                 <TableCell className="py-3.5 pl-6">
                                     <div className="flex items-center gap-3">
@@ -188,7 +192,10 @@ export default function MembersClient({subdomain, tenantId}: MembersClientProps)
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => setSelectedMemberId(member.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedMemberId(member.id);
+                                        }}
                                         className="h-8 text-xs font-bold border-border hover:bg-accent gap-1 shadow-sm"
                                     >
                                         <SlidersHorizontal className="w-3 h-3"/> Action Panel
