@@ -1,7 +1,13 @@
 // src/lib/api.ts
 import {authClient} from "@/lib/auth-client";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+// In dev, route through the same-origin BFF proxy (app/api/be/[...path]) so the
+// browser never makes a cross-origin call the backend's CORS would reject from
+// a *.localhost tenant host. Production calls the backend directly.
+const BASE_URL =
+    process.env.NODE_ENV === "development"
+        ? "/api/be"
+        : process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
 /**
  * Extended RequestInit to natively support Stride's Multi-Tenant architecture.
@@ -18,7 +24,8 @@ export const striveClientFetch = async (endpoint: string, options: StriveFetchOp
     // Change 2: Automatically get the Better-Auth session
     const sessionResponse = await authClient.getSession();
 
-    // This is your new "Source of Truth" token
+    // The deployed backend validates the bearer against the session row id
+    // (verified empirically: id -> 200, token -> 401). Do not switch to .token.
     const sessionToken = sessionResponse?.data?.session?.id;
 
     if (!sessionToken) {

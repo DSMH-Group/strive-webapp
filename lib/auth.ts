@@ -56,10 +56,15 @@ export const auth = betterAuth({
     },
 
     socialProviders: {
-        google: {
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        },
+        // Same treatment as Keycloak: only wire Google when credentials exist.
+        ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+            ? {
+                  google: {
+                      clientId: process.env.GOOGLE_CLIENT_ID,
+                      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                  },
+              }
+            : {}),
     },
 
     session: {
@@ -69,21 +74,30 @@ export const auth = betterAuth({
         }
     },
 
-    // 2. Automated Production Cookie Isolation Policy
-    advanced: {
-        useSecureCookies: true,
-        crossSubDomainCookies: {
-            enabled: true,
-            additionalCookies: ["better-auth.session_data"],
-            domain: "dsmhgroup.com"
-        },
-        defaultCookieAttributes: {
-            sameSite: "lax",
-            secure: true,
-            httpOnly: true,
-            domain: ".dsmhgroup.com",
-        }
-    },
+    // 2. Cookie isolation policy.
+    // Production locks cookies to the dsmhgroup.com apex so a session is shared
+    // across tenant subdomains. Locally that breaks login: the browser drops
+    // `secure` cookies and a `.dsmhgroup.com` domain on http://localhost, so we
+    // relax to plain host cookies in development only.
+    advanced:
+        process.env.NODE_ENV === "development"
+            ? {
+                  useSecureCookies: false,
+              }
+            : {
+                  useSecureCookies: true,
+                  crossSubDomainCookies: {
+                      enabled: true,
+                      additionalCookies: ["better-auth.session_data"],
+                      domain: "dsmhgroup.com",
+                  },
+                  defaultCookieAttributes: {
+                      sameSite: "lax",
+                      secure: true,
+                      httpOnly: true,
+                      domain: ".dsmhgroup.com",
+                  },
+              },
 
     trustedOrigins: [
         "https://dsmhgroup.com",
@@ -103,15 +117,24 @@ export const auth = betterAuth({
     },
 
     plugins: [
-        genericOAuth({
-            config: [
-                keycloak({
-                    issuer: process.env.KEYCLOAK_ISSUER!,
-                    clientId: process.env.KEYCLOAK_CLIENT_ID!,
-                    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-                })
-            ]
-        })
+        // Only register the Keycloak OAuth provider when its env vars are set.
+        // Locally these are unset, so the plugin is skipped and email/password
+        // auth still works without crashing on an undefined OIDC issuer.
+        ...(process.env.KEYCLOAK_ISSUER &&
+        process.env.KEYCLOAK_CLIENT_ID &&
+        process.env.KEYCLOAK_CLIENT_SECRET
+            ? [
+                  genericOAuth({
+                      config: [
+                          keycloak({
+                              issuer: process.env.KEYCLOAK_ISSUER,
+                              clientId: process.env.KEYCLOAK_CLIENT_ID,
+                              clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+                          }),
+                      ],
+                  }),
+              ]
+            : []),
     ],
     callbacks: {
         onSuccess: async ({account, user}: { account: any, user: any }) => {

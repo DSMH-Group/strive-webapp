@@ -112,12 +112,18 @@ export async function proxy(request: NextRequest) {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://strive-core-development.up.railway.app";
         const internalSecretExists = !!process.env.INTERNAL_API_SECRET;
 
+        // Local dev hosts (*.localhost / *.dsmhgroup.local) are not valid public
+        // domains the backend can resolve, so map them to the real public domain
+        // the tenant is registered under (e.g. test.localhost -> test.dsmhgroup.com).
+        const isDevHost = hostname.endsWith('.localhost') || hostname.endsWith('.dsmhgroup.local');
+        const resolveDomain = isDevHost ? `${subdomain}.dsmhgroup.com` : hostname;
+
         console.log(`[PROXY TRACE] [BACKEND-FETCH] Handshaking NestJS Infrastructure metadata registry...`, {
-            resolutionTargetUrl: `${backendUrl}/api/v1/meta/resolve?domain=${hostname}`,
+            resolutionTargetUrl: `${backendUrl}/api/v1/meta/resolve?domain=${resolveDomain}`,
             internalSecretConfigured: internalSecretExists
         });
 
-        const resolveRes = await fetch(`${backendUrl}/api/v1/meta/resolve?domain=${hostname}`, {
+        const resolveRes = await fetch(`${backendUrl}/api/v1/meta/resolve?domain=${resolveDomain}`, {
             headers: {
                 'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
             }

@@ -13,7 +13,7 @@ interface StrideMinimalUserRoster {
  */
 async function fetchTrainerAssignedIdentityRoster(jwtToken: string, tenantId: string): Promise<StrideMinimalUserRoster[]> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
         const res = await fetch(`${baseUrl}/api/v1/members?role=MEMBER`, {
             headers: {

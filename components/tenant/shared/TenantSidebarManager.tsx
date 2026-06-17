@@ -166,7 +166,6 @@ export function TenantSidebarManager({tenantId, config}: SidebarManagerProps) {
 }
 
 // --- Unified Presentational Component ---
-
 function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, logoUrl: string, config: SidebarConfig }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -191,28 +190,24 @@ function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, log
 
     return (
         <div className="flex flex-col h-full bg-background border-r border-border text-foreground select-none w-64">
-            {/* Header */}
+            {/* Header: Focused on Gym Identity */}
             <div className="p-6 pb-4">
                 <div className="flex items-center gap-3">
                     {logoUrl ? (
                         <img
                             src={logoUrl}
                             alt={tenantName}
-                            className="w-8 h-8 rounded-md object-cover border border-border shadow-sm"
+                            className="w-10 h-10 rounded-lg object-cover border border-border shadow-sm"
                         />
                     ) : (
                         <div
-                            className="w-8 h-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm uppercase shadow-sm">
+                            className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg uppercase shadow-sm">
                             {tenantName?.[0] || "S"}
                         </div>
                     )}
                     <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold truncate">
+                        <span className="text-sm font-bold truncate tracking-tight">
                             {tenantName}
-                        </span>
-                        <span
-                            className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground leading-none mt-0.5">
-                            by <span className="text-primary font-bold">Strive</span>
                         </span>
                     </div>
                 </div>
@@ -266,10 +261,17 @@ function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, log
                 ))}
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-border mt-auto bg-background/50">
+            {/* Footer: Strive Branding + Access + Sign Out */}
+            <div className="p-4 border-t border-border mt-auto bg-background/50 space-y-3">
+                {/* Powered By Strive */}
+                <div className="px-2 flex items-center gap-1.5 opacity-60">
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                        Powered by <span className="text-primary font-bold">Strive</span>
+                    </span>
+                </div>
+
                 <div
-                    className="px-2 py-2 mb-2 rounded-md bg-secondary/50 border border-border/50 flex items-center gap-2">
+                    className="px-2 py-2 rounded-md bg-secondary/50 border border-border/50 flex items-center gap-2">
                     <ShieldCheck size={14} className="text-primary shrink-0"/>
                     <span className="text-[11px] font-medium text-muted-foreground truncate">
                         Access: {config.rolesDisplay.join(", ")}
@@ -279,7 +281,7 @@ function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, log
                 <button
                     onClick={handleSignOut}
                     disabled={isLoggingOut}
-                    className="flex items-center gap-3 w-full px-2 py-2 rounded-md text-[13px] font-medium text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="flex items-center gap-3 w-full px-2 py-2 rounded-md text-[13px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                     {isLoggingOut ? (
                         <Loader2 size={16} className="animate-spin"/>
