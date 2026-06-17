@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
     Table,
     TableBody,
@@ -11,7 +11,6 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
 import { Dumbbell, ShieldAlert, CheckCircle2, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -59,7 +58,7 @@ export default function ActivitiesClient({ subdomain, initialActivitiesData }: A
     };
 
     return (
-        <div className="space-y-6 text-white select-none animate-in fade-in duration-500">
+        <div className="space-y-6 text-foreground select-none animate-in fade-in duration-500 max-w-7xl mx-auto">
 
             {/* Header Content Section Title */}
             <div className="space-y-0.5">
@@ -67,20 +66,20 @@ export default function ActivitiesClient({ subdomain, initialActivitiesData }: A
             </div>
 
             {/* Dynamic Core Program High-Contrast Tracker Panel Card */}
-            <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <Card className="bg-card border-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <div className="space-y-0.5">
-                        <h2 className="text-lg font-black text-white tracking-tight">{activityMeta.programName}</h2>
-                        <p className="text-xs text-zinc-500 font-medium">{activityMeta.scheduleContext}</p>
+                        <h2 className="text-lg font-black text-foreground tracking-tight">{activityMeta.programName}</h2>
+                        <p className="text-xs text-muted-foreground font-medium">{activityMeta.scheduleContext}</p>
                     </div>
                     <div className="text-2xl font-black text-primary font-mono tracking-tight">
                         {activityMeta.completionPercentage}%
                     </div>
                 </div>
                 {/* Custom Styled Progress Track Bar Element */}
-                <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full transition-all duration-500"
+                        className="h-full bg-primary rounded-full transition-all duration-500"
                         style={{ width: `${activityMeta.completionPercentage}%` }}
                     />
                 </div>
@@ -94,17 +93,17 @@ export default function ActivitiesClient({ subdomain, initialActivitiesData }: A
             </div>
 
             {/* Primary Activities Allocation Data Grid Sheet */}
-            <Card className="bg-zinc-900/30 border border-white/5 rounded-[1.5rem] overflow-hidden">
+            <Card className="bg-card border-border rounded-[1.5rem] overflow-hidden shadow-sm">
                 <Table>
-                    <TableHeader className="bg-zinc-950/80 border-b border-white/5">
-                        <TableRow className="border-b border-white/5 hover:bg-transparent">
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4 pl-6">Exercise</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4">Target</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4 text-center">Sets</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4 text-center">Reps</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4">Weight / Load</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4">Rest Interval</TableHead>
-                            <TableHead className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase py-4 pr-6 text-right">Status</TableHead>
+                    <TableHeader className="bg-muted/50 border-b border-border">
+                        <TableRow className="border-b-0 hover:bg-transparent">
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4 pl-6">Exercise</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4">Target</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4 text-center">Sets</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4 text-center">Reps</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4">Weight / Load</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4">Rest Interval</TableHead>
+                            <TableHead className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase py-4 pr-6 text-right">Status</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -113,11 +112,11 @@ export default function ActivitiesClient({ subdomain, initialActivitiesData }: A
                             return (
                                 <TableRow
                                     key={idx}
-                                    className="border-b border-white/5 hover:bg-zinc-900/40 group cursor-pointer transition-colors"
+                                    className="border-b border-border last:border-0 hover:bg-accent/50 group cursor-pointer transition-colors"
                                     onClick={() => handleRowInteraction(row.name, row.status)}
                                 >
                                     {/* Action Core Label Box item row element */}
-                                    <TableCell className="py-4 pl-6 font-bold text-sm text-zinc-100 group-hover:text-primary transition-colors">
+                                    <TableCell className="py-4 pl-6 font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                                         {row.name}
                                     </TableCell>
 
@@ -125,41 +124,42 @@ export default function ActivitiesClient({ subdomain, initialActivitiesData }: A
                                     <TableCell className="py-4">
                                         <span className={cn(
                                             "text-[10px] font-bold px-2.5 py-0.5 rounded border tracking-wide",
-                                            row.target === "Quads" && "bg-emerald-500/5 text-emerald-400 border-emerald-500/10",
-                                            row.target === "Hamstrings" && "bg-amber-500/5 text-amber-400 border-amber-500/10",
-                                            row.target === "Calves" && "bg-zinc-800 text-zinc-400 border-white/5",
-                                            row.target !== "Quads" && row.target !== "Hamstrings" && row.target !== "Calves" && "bg-primary/5 text-primary border-primary/10"
+                                            row.target === "Quads" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                                                row.target === "Hamstrings" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
+                                                    row.target === "Calves" ? "bg-secondary text-muted-foreground border-border" :
+                                                        "bg-primary/10 text-primary border-primary/20"
                                         )}>
                                             {row.target}
                                         </span>
                                     </TableCell>
 
                                     {/* Quantified System Track Weights */}
-                                    <TableCell className="text-center font-mono text-sm text-zinc-300 py-4">
+                                    <TableCell className="text-center font-mono text-sm font-medium py-4">
                                         {row.sets}
                                     </TableCell>
-                                    <TableCell className="text-center font-mono text-sm text-zinc-300 py-4">
+                                    <TableCell className="text-center font-mono text-sm font-medium py-4">
                                         {row.reps}
                                     </TableCell>
 
                                     {/* Load Target Metrics */}
-                                    <TableCell className="font-mono text-sm font-black text-white py-4">
+                                    <TableCell className="font-mono text-sm font-black text-foreground py-4">
                                         {row.weight}
                                     </TableCell>
 
                                     {/* Duration Interval Variables */}
-                                    <TableCell className="text-zinc-400 text-xs font-medium font-mono py-4">
+                                    <TableCell className="text-muted-foreground text-xs font-medium font-mono py-4">
                                         {row.rest}
                                     </TableCell>
 
                                     {/* Execution State Status Modifiers */}
                                     <TableCell className="py-4 pr-6 text-right">
                                         <span className={cn(
-                                            "text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border tracking-tight",
+                                            "text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border tracking-tight inline-flex items-center gap-1",
                                             isDone
-                                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                : "bg-amber-500/5 text-amber-400 border-amber-500/10"
+                                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                                         )}>
+                                            {isDone ? <CheckCircle2 className="w-3 h-3"/> : <Circle className="w-3 h-3"/>}
                                             {isDone ? "Done" : "Pending"}
                                         </span>
                                     </TableCell>
@@ -188,8 +188,8 @@ function RoutineSelectorTab({
         <button
             onClick={onClick}
             className={cn(
-                "px-4 h-9 rounded-xl text-xs font-bold transition-all whitespace-nowrap border border-transparent text-zinc-400 hover:text-zinc-200 bg-zinc-900/40",
-                active && "bg-zinc-950 text-amber-500 border-amber-500/20 shadow-md font-black"
+                "px-5 h-9 rounded-xl text-xs font-bold transition-all whitespace-nowrap border border-transparent text-muted-foreground hover:text-foreground bg-secondary/50",
+                active && "bg-card text-primary border-primary/20 shadow-sm font-black"
             )}
         >
             {label}
