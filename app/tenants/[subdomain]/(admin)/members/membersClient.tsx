@@ -42,7 +42,7 @@ export default function MembersClient({subdomain, tenantId}: MembersClientProps)
         enabled: !!tenantId
     });
 
-    // --- Dynamic KPI Summary Metric Calculations ---
+    // --- Dynamic KPI Summary Metric Calculations de ---
     const summaryKPIs = useMemo(() => {
         const total = membersList.length;
         const active = membersList.filter(m => m.status === "ACTIVE").length;
