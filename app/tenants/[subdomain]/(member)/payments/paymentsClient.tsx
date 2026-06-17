@@ -10,8 +10,6 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableHead,
-    TableHeader,
     TableRow
 } from "@/components/ui/table";
 import {
@@ -22,7 +20,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Coins, Loader2, AlertCircle, CheckCircle2, CreditCard } from "lucide-react"; // 🚀 NEW: Added CreditCard icon
+import { Coins, Loader2, AlertCircle, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { striveClientFetch } from "@/lib/api";
@@ -182,7 +180,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
     if (isMemberLoading || isInvoicesLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-zinc-500 gap-3">
+            <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Financial Ledger...
             </div>
         );
@@ -192,28 +190,27 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
     const isAutoRenew = memberProfile?.autoRenewEnabled;
     const expiresAt = memberProfile?.expiresAt ? new Date(memberProfile.expiresAt).toLocaleDateString() : "N/A";
 
-    // Find any open invoice that needs paying
     const pendingInvoice = invoices.find((inv: any) => inv.status === "OPEN");
 
     return (
         <>
             <Script src="https://www.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
 
-            <div className="space-y-6 text-white select-none animate-in fade-in duration-500">
+            <div className="space-y-6 text-foreground select-none animate-in fade-in duration-500">
                 <div className="space-y-0.5">
                     <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
                 </div>
 
                 {/* ACTION REQUIRED BANNER */}
                 {pendingInvoice && (
-                    <Card className="bg-amber-950/30 border border-amber-500/50 rounded-2xl p-6 shadow-lg shadow-amber-900/10">
+                    <Card className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 shadow-sm">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-amber-500 flex items-center gap-2">
                                     <AlertCircle className="w-5 h-5 text-amber-500" />
                                     Action Required: Pending Payment
                                 </h3>
-                                <p className="text-sm text-amber-200/70 mt-1">
+                                <p className="text-sm text-amber-600 mt-1">
                                     You have an unpaid invoice for LKR {Number(pendingInvoice.totalAmount).toLocaleString()}.
                                     {memberProfile?.status === "PENDING" ? " Pay this to activate your membership." : ""}
                                 </p>
@@ -221,7 +218,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                             <Button
                                 onClick={() => payInvoiceMutation.mutate(pendingInvoice.id)}
                                 disabled={payInvoiceMutation.isPending}
-                                className="bg-amber-500 hover:bg-amber-400 text-black font-bold whitespace-nowrap w-full sm:w-auto"
+                                className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold whitespace-nowrap w-full sm:w-auto"
                             >
                                 {payInvoiceMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 Pay LKR {Number(pendingInvoice.totalAmount).toLocaleString()}
@@ -231,20 +228,20 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                 )}
 
                 {/* Active Subscription Overview Card Container */}
-                <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6">
+                <Card className="bg-card border border-border rounded-2xl p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div className="space-y-2">
-                            <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono block">Active Subscription</span>
+                            <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono block">Active Subscription</span>
                             <div className="flex items-center gap-2.5">
-                                <h2 className="text-lg font-black text-white tracking-tight">{activePlan?.name || "No Active Plan"}</h2>
+                                <h2 className="text-lg font-black text-foreground tracking-tight">{activePlan?.name || "No Active Plan"}</h2>
                                 {memberProfile?.status === "ACTIVE" && (
-                                    <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 tracking-wide uppercase">Active</span>
+                                    <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 tracking-wide uppercase">Active</span>
                                 )}
                                 {memberProfile?.status === "PENDING" && (
-                                    <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide uppercase">Pending Activation</span>
+                                    <span className="text-[10px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide uppercase">Pending Activation</span>
                                 )}
                             </div>
-                            <div className="text-xs text-zinc-400 font-medium font-mono flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground font-medium font-mono flex items-center gap-2">
                                 {activePlan ? `LKR ${Number(activePlan.monthlyPrice).toLocaleString()}/mo` : "Pay-As-You-Go"}
                                 {activePlan && (isAutoRenew ? ` · Renews ${expiresAt}` : ` · Expires ${expiresAt}`)}
                             </div>
@@ -252,17 +249,18 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
                         <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 pt-2 sm:pt-0">
 
-                            {/* 🚀 NEW: Contextual "Renew Plan" button directly handles current active plan checkouts */}
+                            {/* Renew Current Plan */}
                             {activePlan && memberProfile?.status !== "PENDING" && (
                                 <Button
                                     onClick={() => subscribeMutation.mutate(activePlan.id)}
                                     disabled={subscribeMutation.isPending}
-                                    className="bg-zinc-950 hover:bg-zinc-900 border border-white/10 text-white text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors"
+                                    variant="outline"
+                                    className="border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors"
                                 >
                                     {subscribeMutation.isPending ? (
                                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                     ) : (
-                                        <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+                                        <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
                                     )}
                                     Renew Current Plan
                                 </Button>
@@ -271,22 +269,22 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                             {/* Token Top Up Modal */}
                             <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
                                 <DialogTrigger>
-                                    <Button disabled={memberProfile?.status === "PENDING"} className="bg-zinc-950 hover:bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors">
+                                    <Button disabled={memberProfile?.status === "PENDING"} variant="outline" className="border-border hover:bg-accent text-primary text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors">
                                         <Coins className="w-3.5 h-3.5" /> Top Up Tokens
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="bg-zinc-950 border border-white/10 text-white sm:max-w-md">
+                                <DialogContent className="bg-card border border-border text-foreground sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Purchase Session Tokens</DialogTitle>
-                                        <DialogDescription className="text-zinc-400 text-xs">
+                                        <DialogDescription className="text-muted-foreground text-xs">
                                             Tokens allow you to book classes or facility access.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid grid-cols-2 gap-3 py-4">
-                                        <Button variant="outline" onClick={() => topUpMutation.mutate(5)} disabled={topUpMutation.isPending} className="h-16 border-white/10 hover:bg-white/5 flex flex-col gap-1">
+                                        <Button variant="outline" onClick={() => topUpMutation.mutate(5)} disabled={topUpMutation.isPending} className="h-16 border-border hover:bg-accent flex flex-col gap-1">
                                             <span className="font-bold">5 Tokens</span>
                                         </Button>
-                                        <Button variant="outline" onClick={() => topUpMutation.mutate(10)} disabled={topUpMutation.isPending} className="h-16 border-white/10 hover:bg-white/5 flex flex-col gap-1">
+                                        <Button variant="outline" onClick={() => topUpMutation.mutate(10)} disabled={topUpMutation.isPending} className="h-16 border-border hover:bg-accent flex flex-col gap-1">
                                             <span className="font-bold">10 Tokens</span>
                                         </Button>
                                     </div>
@@ -296,32 +294,32 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                             {/* Upgrade Plan Modal */}
                             <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
                                 <DialogTrigger>
-                                    <Button variant="outline" disabled={memberProfile?.status === "PENDING"} className="bg-zinc-900 border-white/5 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none transition-colors">
+                                    <Button variant="ghost" disabled={memberProfile?.status === "PENDING"} className="bg-muted border border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none transition-colors">
                                         Upgrade Plan
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="bg-zinc-950 border border-white/10 text-white sm:max-w-md">
+                                <DialogContent className="bg-card border border-border text-foreground sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Available Membership Tiers</DialogTitle>
                                     </DialogHeader>
                                     <div className="flex flex-col gap-3 py-2">
                                         {availablePlans.map((plan: any) => (
-                                            <div key={plan.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-zinc-900/30">
+                                            <div key={plan.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-background">
                                                 <div>
                                                     <h4 className="font-bold text-sm">{plan.name}</h4>
-                                                    <p className="text-xs text-zinc-400 font-mono">LKR {Number(plan.monthlyPrice).toLocaleString()} · {plan.sessionTokens} Tokens</p>
+                                                    <p className="text-xs text-muted-foreground font-mono">LKR {Number(plan.monthlyPrice).toLocaleString()} · {plan.sessionTokens} Tokens</p>
                                                 </div>
                                                 <Button
                                                     size="sm"
                                                     onClick={() => subscribeMutation.mutate(plan.id)}
                                                     disabled={subscribeMutation.isPending}
-                                                    className="text-xs font-bold bg-primary text-black hover:bg-primary/90"
+                                                    className="text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
                                                 >
                                                     {activePlan?.id === plan.id ? "Current (Renew)" : "Select"}
                                                 </Button>
                                             </div>
                                         ))}
-                                        {availablePlans.length === 0 && <p className="text-xs text-center text-zinc-500 py-4">No plans available.</p>}
+                                        {availablePlans.length === 0 && <p className="text-xs text-center text-muted-foreground py-4">No plans available.</p>}
                                     </div>
                                 </DialogContent>
                             </Dialog>
@@ -329,13 +327,13 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                     </div>
 
                     {isAutoRenew && (
-                        <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+                        <div className="mt-4 pt-4 border-t border-border flex justify-end">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => cancelSubMutation.mutate()}
                                 disabled={cancelSubMutation.isPending}
-                                className="text-[10px] text-zinc-500 hover:text-red-400 uppercase tracking-widest font-bold"
+                                className="text-[10px] text-muted-foreground hover:text-destructive uppercase tracking-widest font-bold"
                             >
                                 Cancel Auto-Renew
                             </Button>
@@ -344,10 +342,10 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                 </Card>
 
                 {/* Isolated Tenant Payment History Table Grid */}
-                <Card className="bg-zinc-900/30 border border-white/5 rounded-[1.5rem] p-6 space-y-4">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block border-b border-white/5 pb-2">Payment History</span>
+                <Card className="bg-card border border-border rounded-[1.5rem] p-6 space-y-4">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">Payment History</span>
 
-                    <div className="border border-white/5 rounded-xl overflow-hidden bg-zinc-950/40">
+                    <div className="border border-border rounded-xl overflow-hidden bg-background">
                         <Table>
                             <TableBody>
                                 {invoices.map((invoice: any) => {
@@ -357,22 +355,22 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                                     const desc = invoice.items?.[0]?.description || invoice.type;
 
                                     return (
-                                        <TableRow key={invoice.id} className="border-b border-white/5 hover:bg-zinc-900/40 group transition-colors duration-150">
-                                            <TableCell className="py-4 pl-5 font-mono text-xs font-bold text-zinc-500 w-24">
+                                        <TableRow key={invoice.id} className="border-b border-border hover:bg-accent group transition-colors duration-150">
+                                            <TableCell className="py-4 pl-5 font-mono text-xs font-bold text-muted-foreground w-24">
                                                 {date}
                                             </TableCell>
-                                            <TableCell className="py-4 font-bold text-sm text-zinc-200 group-hover:text-primary transition-colors">
+                                            <TableCell className="py-4 font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                                                 {desc}
                                             </TableCell>
-                                            <TableCell className="py-4 font-mono text-sm font-black text-white text-right">
+                                            <TableCell className="py-4 font-mono text-sm font-black text-foreground text-right">
                                                 LKR {Number(invoice.totalAmount).toLocaleString()}
                                             </TableCell>
                                             <TableCell className="py-4 pr-5 text-right w-24">
                                                 <span className={cn(
                                                     "text-[9px] font-black font-mono uppercase px-2 py-0.5 rounded border tracking-wide",
-                                                    isPaid && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-                                                    isOpen && "bg-amber-500/10 text-amber-400 border-amber-500/20",
-                                                    (!isPaid && !isOpen) && "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                                                    isPaid && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                                                    isOpen && "bg-amber-500/10 text-amber-500 border-amber-500/20",
+                                                    (!isPaid && !isOpen) && "bg-muted text-muted-foreground border-border"
                                                 )}>
                                                     {invoice.status}
                                                 </span>
@@ -383,7 +381,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
                                 {invoices.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center py-10 text-zinc-500 text-xs italic">
+                                        <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-xs italic">
                                             No transaction logs matched this facility scope parameter.
                                         </TableCell>
                                     </TableRow>
