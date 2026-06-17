@@ -7,7 +7,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, RefreshCw, Palette, Circle, CheckCircle2, LayoutTemplate, Type, PanelLeft, Moon } from "lucide-react";
+import {
+    Loader2,
+    RefreshCw,
+    Palette,
+    Circle,
+    CheckCircle2,
+    LayoutTemplate,
+    Type,
+    PanelLeft,
+    Moon,
+    ImageIcon
+} from "lucide-react";
 import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
 import { SaveButton, SectionHeader } from "@/app/tenants/[subdomain]/(admin)/settings/settingsClient";
@@ -220,6 +231,17 @@ export function GymProfile({ tenantId, onComplete }: GymProfileProps) {
                                 <Label className="text-xs font-bold text-muted-foreground uppercase">Initials</Label>
                                 <Input value={formData.initials} maxLength={4} onChange={(e) => setFormData({ ...formData, initials: e.target.value.toUpperCase() })} className="h-10 text-center font-mono font-black" />
                             </div>
+                        </div>
+                        <div className="md:col-span-3 space-y-2">
+                            <Label className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">
+                                <ImageIcon className="w-3 h-3" /> Logo URL
+                            </Label>
+                            <Input
+                                value={formData.logoUrl}
+                                placeholder="https://cdn.example.com/logo.png"
+                                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                                className="h-10 text-sm font-mono"
+                            />
                         </div>
                     </Card>
 

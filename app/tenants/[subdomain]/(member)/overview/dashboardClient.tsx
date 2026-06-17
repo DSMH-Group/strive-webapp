@@ -41,7 +41,7 @@ interface DashboardClientProps {
 const chartConfig = {
     visits: {
         label: "Check-ins",
-        color: "var(--primary)",
+        color: "hsl(var(--primary))",
     }
 } satisfies ChartConfig;
 
@@ -83,7 +83,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 user: userRes.ok ? await userRes.json() : null,
                 membership: memberRes.ok ? await memberRes.json() : null,
                 bookings: bookingsRes.ok ? await bookingsRes.json() : [],
-                // Ensure we handle arrays directly based on your API response
                 attendances: attendancesRes.ok ? await attendancesRes.json() : []
             };
         },
@@ -114,7 +113,6 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
         }
 
         // 2. Process Attendance History
-        // Handle case where API returns array directly or wrapped in { history: [] }
         const historyList = Array.isArray(attendances) ? attendances : (attendances.history || []);
 
         // Sort history descending by Check-in Time
@@ -122,9 +120,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime()
         );
 
-        // Check if the user is CURRENTLY checked in (checkOutTime is null on the most recent record)
         const currentActiveVisit = sortedHistory.find((a: any) => a.checkOutTime === null);
-
         const sessionsThisMonth = historyList.filter((a: any) => new Date(a.checkInTime).getMonth() === now.getMonth()).length;
 
         // Generate last 7 days chart data
@@ -162,9 +158,9 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
         return {
             firstName: user?.firstName || "Member",
             lastName: user?.lastName || "",
-            plan: membership?.activePlan?.name || "Standard Access", // Safely map relational plan
+            plan: membership?.activePlan?.name || "Standard Access",
             expires: membership?.expiresAt ? new Date(membership.expiresAt).toLocaleDateString() : "Active",
-            tokensLeft: membership?.tokensLeft || 0, // Using tokensLeft from your schema
+            tokensLeft: membership?.tokensLeft || 0,
             streak,
             sessionsThisMonth,
             prsThisMonth: 0,
@@ -172,14 +168,14 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             todaySession,
             nextSession,
             weeklyHistory,
-            recentVisits: sortedHistory.slice(0, 5), // Top 5 recent visits for the table
+            recentVisits: sortedHistory.slice(0, 5),
             currentActiveVisit
         };
     }, [rawData]);
 
     if (isLoading || !profile) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-zinc-500 gap-3">
+            <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Workspace Data...
             </div>
         );
@@ -188,19 +184,19 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
     if (isError) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-2">
-                <AlertCircle className="w-8 h-8 text-red-500" />
-                <h3 className="font-bold text-sm text-white">Dashboard Sync Failed</h3>
-                <p className="text-xs text-zinc-500">Could not retrieve your fitness data. Please refresh.</p>
+                <AlertCircle className="w-8 h-8 text-destructive" />
+                <h3 className="font-bold text-sm text-foreground">Dashboard Sync Failed</h3>
+                <p className="text-xs text-muted-foreground">Could not retrieve your fitness data. Please refresh.</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 text-white select-none animate-in fade-in duration-500">
+        <div className="space-y-6 text-foreground select-none animate-in fade-in duration-500">
 
             {/* Header Salutation Banner */}
             <div className="space-y-1">
-                <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
                 <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
@@ -211,18 +207,18 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             {/* 🚀 LIVE STATUS / CHECK-IN BANNER */}
             {profile.currentActiveVisit ? (
                 // User is currently in the gym
-                <Card className="bg-emerald-950/30 border border-emerald-500/50 rounded-2xl p-4 overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.05)] relative">
+                <Card className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 animate-pulse" />
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-2">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-400">
+                            <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-500">
                                 <Activity className="w-5 h-5 animate-pulse" />
                             </div>
                             <div className="space-y-0.5">
-                                <h3 className="text-sm font-bold text-emerald-400">
+                                <h3 className="text-sm font-bold text-emerald-500">
                                     Currently in Facility
                                 </h3>
-                                <p className="text-xs text-emerald-500/70 font-medium">
+                                <p className="text-xs text-emerald-500/80 font-medium">
                                     Checked in at {new Date(profile.currentActiveVisit.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
@@ -231,57 +227,57 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                 </Card>
             ) : profile.todaySession ? (
                 // User has a session booked today but is not in yet
-                <Card className="bg-[#111917] border border-emerald-500/10 rounded-2xl p-4 overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.02)]">
+                <Card className="bg-primary/5 border border-primary/20 rounded-2xl p-4 overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+                            <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary">
                                 <Calendar className="w-5 h-5" />
                             </div>
                             <div className="space-y-0.5">
-                                <h3 className="text-sm font-bold text-emerald-400">
+                                <h3 className="text-sm font-bold text-primary">
                                     Session today at {new Date(profile.todaySession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </h3>
-                                <p className="text-xs text-zinc-400 font-medium">
+                                <p className="text-xs text-muted-foreground font-medium">
                                     {profile.todaySession.resource?.name || "Facility Access"}
                                 </p>
                             </div>
                         </div>
                         <Button
                             onClick={() => toast.success("Access request sent.")}
-                            className="bg-zinc-950 hover:bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl h-10 px-4 self-stretch sm:self-auto shrink-0 transition-all"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl h-10 px-4 self-stretch sm:self-auto shrink-0 transition-all"
                         >
                             Generate Entry QR <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                     </div>
                 </Card>
             ) : (
-                <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                    <p className="text-sm font-bold text-zinc-400">No sessions scheduled for today.</p>
-                    <Button variant="outline" className="text-xs border-white/10 hover:bg-white/5 text-white h-9">
+                <Card className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
+                    <p className="text-sm font-bold text-muted-foreground">No sessions scheduled for today.</p>
+                    <Button variant="outline" className="text-xs border-border hover:bg-accent text-foreground h-9">
                         Book Session
                     </Button>
                 </Card>
             )}
 
             {/* B2C Account Context Plan Overview Segment */}
-            <Card className="bg-gradient-to-r from-zinc-900 via-zinc-900/40 to-transparent border border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-primary/5 via-transparent to-transparent pointer-events-none" />
+            <Card className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-primary/10 via-transparent to-transparent pointer-events-none" />
                 <div className="space-y-4">
                     <div className="space-y-0.5">
-                        <p className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono">MEMBER PROFILE</p>
-                        <h2 className="text-xl font-black text-white tracking-tight">{profile.firstName} {profile.lastName}</h2>
+                        <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono">MEMBER PROFILE</p>
+                        <h2 className="text-xl font-black text-foreground tracking-tight">{profile.firstName} {profile.lastName}</h2>
                     </div>
                     <div className="grid grid-cols-3 gap-6 max-w-sm">
                         <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Plan</span>
-                            <p className="text-sm font-black text-zinc-200">{profile.plan}</p>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Plan</span>
+                            <p className="text-sm font-black text-foreground">{profile.plan}</p>
                         </div>
                         <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Expires</span>
-                            <p className="text-sm font-black text-zinc-200">{profile.expires}</p>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Expires</span>
+                            <p className="text-sm font-black text-foreground">{profile.expires}</p>
                         </div>
                         <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tokens</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tokens</span>
                             <p className="text-sm font-black text-primary font-mono">{profile.tokensLeft} left</p>
                         </div>
                     </div>
@@ -290,40 +286,40 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
 
             {/* Core Metrics & Gamification Split Block */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="md:col-span-2 bg-zinc-900/30 border border-white/5 rounded-2xl p-5 flex flex-col justify-between min-h-[110px]">
+                <Card className="md:col-span-2 bg-card border border-border rounded-2xl p-5 flex flex-col justify-between min-h-[110px]">
                     <div className="space-y-1">
                         <span className="text-[9px] font-extrabold text-primary uppercase tracking-widest font-mono">Next Session</span>
                         {profile.nextSession ? (
                             <>
-                                <h4 className="text-base font-black text-zinc-100">{profile.nextSession.resource?.name || "Reserved Slot"}</h4>
-                                <p className="text-xs text-zinc-500 font-medium font-mono mt-2">
+                                <h4 className="text-base font-black text-foreground">{profile.nextSession.resource?.name || "Reserved Slot"}</h4>
+                                <p className="text-xs text-muted-foreground font-medium font-mono mt-2">
                                     {new Date(profile.nextSession.startTime).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} · {new Date(profile.nextSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </>
                         ) : (
-                            <h4 className="text-sm font-bold text-zinc-500 mt-2">No upcoming bookings found.</h4>
+                            <h4 className="text-sm font-bold text-muted-foreground mt-2">No upcoming bookings found.</h4>
                         )}
                     </div>
                 </Card>
 
-                <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
+                <Card className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between gap-4">
                     <div className="space-y-3 flex-1">
-                        <div className="flex items-center gap-2 text-orange-400">
+                        <div className="flex items-center gap-2 text-orange-500">
                             <Flame className="w-5 h-5 fill-current" />
                             <div className="space-y-0.5">
                                 <div className="text-2xl font-black font-mono leading-none">{profile.streak}</div>
-                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight">day streak</span>
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">day streak</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[9px] font-mono font-bold text-zinc-600 px-0.5">
+                        <div className="flex items-center justify-between text-[9px] font-mono font-bold text-muted-foreground px-0.5">
                             {profile.weeklyHistory.map((d: any, i: number) => {
                                 const isFulfilled = d.visits > 0;
                                 return (
                                     <div key={i} className="flex flex-col items-center gap-1.5">
                                         <div className={cn(
                                             "w-2 h-2 rounded-full border",
-                                            isFulfilled ? "bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]" : "bg-zinc-800 border-white/5"
+                                            isFulfilled ? "bg-orange-500 border-orange-500 shadow-sm" : "bg-muted border-border"
                                         )} />
                                         <span>{d.day.charAt(0)}</span>
                                     </div>
@@ -343,9 +339,9 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
 
             {/* 🚀 NEW: Recent Attendance Ledger */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6">
+                <Card className="bg-card border border-border rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono">This Week's Visits</span>
+                        <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono">This Week's Visits</span>
                     </div>
                     <div className="h-40 w-full">
                         <ChartContainer config={chartConfig} className="h-full w-full">
@@ -353,16 +349,16 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                                 <BarChart data={profile.weeklyHistory} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                                     <XAxis
                                         dataKey="day"
-                                        stroke="#3f3f46"
+                                        stroke="hsl(var(--muted-foreground))"
                                         tickLine={false}
                                         axisLine={false}
                                         tickMargin={8}
-                                        className="text-[10px] font-bold font-sans text-zinc-600"
+                                        className="text-[10px] font-bold font-sans"
                                     />
                                     <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                                     <Bar
                                         dataKey="visits"
-                                        fill="var(--color-visits)"
+                                        fill="hsl(var(--primary))"
                                         radius={[4, 4, 0, 0]}
                                         maxBarSize={28}
                                     />
@@ -372,10 +368,10 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                     </div>
                 </Card>
 
-                <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 flex flex-col">
+                <Card className="bg-card border border-border rounded-2xl p-6 flex flex-col">
                     <div className="flex items-center justify-between mb-4">
-                        <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-widest font-mono">Recent Activity</span>
-                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-zinc-400 hover:text-white px-2">View All</Button>
+                        <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono">Recent Activity</span>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground hover:text-foreground px-2">View All</Button>
                     </div>
 
                     <div className="flex-1 overflow-hidden">
@@ -386,19 +382,19 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                                     const isActive = visit.checkOutTime === null;
 
                                     return (
-                                        <div key={visit.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-950/40 border border-white/5">
+                                        <div key={visit.id} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border">
                                             <div className="flex items-center gap-3">
                                                 <div className={cn(
                                                     "p-2 rounded-lg border",
-                                                    isActive ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-zinc-900 border-white/5 text-zinc-500"
+                                                    isActive ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground"
                                                 )}>
                                                     <Clock className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-zinc-200">
+                                                    <p className="text-sm font-bold text-foreground">
                                                         {checkInDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                                     </p>
-                                                    <p className="text-[10px] font-mono text-zinc-500">
+                                                    <p className="text-[10px] font-mono text-muted-foreground">
                                                         {checkInDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         {visit.checkOutTime && ` → ${new Date(visit.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                                     </p>
@@ -407,7 +403,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                                             <div className="text-right">
                                                 <span className={cn(
                                                     "text-xs font-black font-mono",
-                                                    isActive ? "text-emerald-400 animate-pulse" : "text-zinc-400"
+                                                    isActive ? "text-emerald-500 animate-pulse" : "text-muted-foreground"
                                                 )}>
                                                     {calculateDuration(visit.checkInTime, visit.checkOutTime)}
                                                 </span>
@@ -418,8 +414,8 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                             </div>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-2 py-8">
-                                <Clock className="w-6 h-6 text-zinc-700" />
-                                <p className="text-xs font-medium text-zinc-500">No recent visits recorded.</p>
+                                <Clock className="w-6 h-6 text-muted-foreground" />
+                                <p className="text-xs font-medium text-muted-foreground">No recent visits recorded.</p>
                             </div>
                         )}
                     </div>
@@ -433,11 +429,11 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
 
 function SummaryMiniCard({ label, value, suffix, isCyan = false }: { label: string; value: string; suffix?: string; isCyan?: boolean; }) {
     return (
-        <Card className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex flex-col justify-between min-h-[75px]">
-            <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider leading-tight">{label}</span>
+        <Card className="bg-card border border-border rounded-2xl p-4 flex flex-col justify-between min-h-[75px]">
+            <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider leading-tight">{label}</span>
             <div className={cn(
                 "text-2xl font-black font-mono leading-none tracking-tight flex items-center gap-1.5 mt-2",
-                isCyan ? "text-cyan-400" : "text-white"
+                isCyan ? "text-cyan-500" : "text-foreground"
             )}>
                 {value} {suffix && <span className="text-sm shrink-0">{suffix}</span>}
             </div>
