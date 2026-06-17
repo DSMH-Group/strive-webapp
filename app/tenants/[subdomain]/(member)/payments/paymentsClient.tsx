@@ -20,7 +20,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Coins, Loader2, AlertCircle, CreditCard } from "lucide-react";
+import { Coins, Loader2, AlertCircle, CreditCard, Plus, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { striveClientFetch } from "@/lib/api";
@@ -40,6 +40,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
     const queryClient = useQueryClient();
     const [isTopUpOpen, setIsTopUpOpen] = useState(false);
     const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+    const [isCardsModalOpen, setIsCardsModalOpen] = useState(false);
 
     // 🚀 1. Fetch Core Member Data
     const { data: memberProfile, isLoading: isMemberLoading } = useQuery({
@@ -74,7 +75,22 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         enabled: !!tenantId
     });
 
-    // Centralized PayHere Checkout Handler
+    // 🚀 4. Fetch Saved Cards (Tokenized)
+    const { data: savedCards = [], isLoading: isCardsLoading } = useQuery({
+        queryKey: ["memberCards", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/billing/cards", { headers: { "X-Tenant-ID": tenantId } });
+            if (!res.ok) throw new Error("Failed to fetch saved cards");
+            return res.json();
+        },
+        enabled: !!tenantId
+    });
+
+    const defaultCard = savedCards.find((card: any) => card.isDefault) || savedCards[0];
+
+    // --- PAYHERE HANDLERS ---
+
+    // Handler for Standard Manual Checkout
     const initiatePayHereCheckout = (serverPayload: any) => {
         if (typeof window === "undefined" || !window.payhere) {
             toast.error("Payment gateway failed to initialize. Please refresh the page.");
@@ -90,27 +106,84 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
         window.payhere.startPayment(payment);
 
-        window.payhere.onCompleted = function onCompleted(orderId: string) {
+        window.payhere.onCompleted = function onCompleted() {
             toast.info("Payment captured! Processing activation...", {
                 description: "We are finalizing your membership ledger status."
             });
-
             setTimeout(() => {
                 queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
                 queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
             }, 1500);
         };
 
-        window.payhere.onDismissed = function onDismissed() {
-            toast.error("Payment modal closed. The transaction was cancelled.");
+        window.payhere.onDismissed = () => toast.error("Payment modal closed. The transaction was cancelled.");
+        window.payhere.onError = (error: string) => toast.error(`PayHere Gateway Error: ${error}`);
+    };
+
+    // Handler for Card Preapproval (Tokenization)
+    const initiateCardSave = (serverPayload: any) => {
+        if (typeof window === "undefined" || !window.payhere) {
+            toast.error("Payment gateway failed to initialize. Please refresh the page.");
+            return;
+        }
+
+        // 🚀 THE FIX: We must inject "preapprove: true" and empty the return URLs
+        const preapprovalPayload = {
+            ...serverPayload,
+            preapprove: true,
+            return_url: "",
+            cancel_url: "",
+            notify_url: "https://strive-core-development.up.railway.app/api/v1/billing/webhook/payhere-preapproval",
         };
 
-        window.payhere.onError = function onError(error: string) {
-            toast.error(`PayHere Gateway Error: ${error}`);
+        // 🚀 THE FIX: Use startPayment, not startPreapproval
+        window.payhere.startPayment(preapprovalPayload);
+
+        window.payhere.onCompleted = function onCompleted() {
+            toast.success("Card securely saved!", {
+                description: "Future transactions will be processed with 1-click."
+            });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ["memberCards", tenantId] });
+            }, 1500);
         };
+
+        window.payhere.onDismissed = () => toast.error("Card setup was cancelled.");
+        window.payhere.onError = (error: string) => toast.error(`PayHere Preapproval Error: ${error}`);
     };
 
     // --- MUTATIONS ---
+
+    // 1. Add New Card Mutation
+    const addCardMutation = useMutation({
+        mutationFn: async () => {
+            const res = await striveClientFetch("/api/v1/billing/cards/setup", {
+                method: "POST",
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) throw new Error("Failed to initialize card setup");
+            return res.json();
+        },
+        onSuccess: (data) => initiateCardSave(data),
+        onError: (err: any) => toast.error(`Card setup initialization failed: ${err.message}`)
+    });
+
+    // 2. Remove Card Mutation
+    const removeCardMutation = useMutation({
+        mutationFn: async (cardId: string) => {
+            const res = await striveClientFetch(`/api/v1/billing/cards/${cardId}`, {
+                method: "DELETE",
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) throw new Error("Failed to remove card");
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Card removed successfully.");
+            queryClient.invalidateQueries({ queryKey: ["memberCards", tenantId] });
+        },
+        onError: (err: any) => toast.error(`Failed to remove card: ${err.message}`)
+    });
 
     const cancelSubMutation = useMutation({
         mutationFn: async () => {
@@ -128,19 +201,31 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
         onError: (err: any) => toast.error(err.message)
     });
 
+    // Modified to pass cardId for 1-click payment
+    const handleCheckoutSuccess = (data: any, closeModals: () => void) => {
+        closeModals();
+        if (data.charged) {
+            // Backend already charged the saved token successfully
+            toast.success("Payment successful via saved card!");
+            queryClient.invalidateQueries({ queryKey: ["memberProfile", tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["memberInvoices", tenantId] });
+        } else {
+            // Backend returned PayHere payload for manual checkout
+            initiatePayHereCheckout(data);
+        }
+    };
+
     const payInvoiceMutation = useMutation({
         mutationFn: async (invoiceId: string) => {
             const res = await striveClientFetch("/api/v1/billing/checkout/invoice", {
                 method: "POST",
                 headers: { "X-Tenant-ID": tenantId },
-                body: JSON.stringify({ invoiceId })
+                body: JSON.stringify({ invoiceId, cardId: defaultCard?.id })
             });
             if (!res.ok) throw new Error(await res.text() || "Payment failed");
             return res.json();
         },
-        onSuccess: (data) => {
-            initiatePayHereCheckout(data);
-        },
+        onSuccess: (data) => handleCheckoutSuccess(data, () => {}),
         onError: (err: any) => toast.error(`Payment initialization failed: ${err.message}`)
     });
 
@@ -149,15 +234,12 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             const res = await striveClientFetch("/api/v1/billing/checkout/top-up", {
                 method: "POST",
                 headers: { "X-Tenant-ID": tenantId },
-                body: JSON.stringify({ tokenAmount: amount })
+                body: JSON.stringify({ tokenAmount: amount, cardId: defaultCard?.id })
             });
             if (!res.ok) throw new Error(await res.text() || "Checkout failed");
             return res.json();
         },
-        onSuccess: (data) => {
-            setIsTopUpOpen(false);
-            initiatePayHereCheckout(data);
-        },
+        onSuccess: (data) => handleCheckoutSuccess(data, () => setIsTopUpOpen(false)),
         onError: (err: any) => toast.error(`Top-up initialization failed: ${err.message}`)
     });
 
@@ -166,19 +248,16 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             const res = await striveClientFetch("/api/v1/billing/checkout/subscribe", {
                 method: "POST",
                 headers: { "X-Tenant-ID": tenantId },
-                body: JSON.stringify({ planId })
+                body: JSON.stringify({ planId, cardId: defaultCard?.id })
             });
             if (!res.ok) throw new Error(await res.text() || "Checkout failed");
             return res.json();
         },
-        onSuccess: (data) => {
-            setIsUpgradeOpen(false);
-            initiatePayHereCheckout(data);
-        },
+        onSuccess: (data) => handleCheckoutSuccess(data, () => setIsUpgradeOpen(false)),
         onError: (err: any) => toast.error(`Checkout initialization failed: ${err.message}`)
     });
 
-    if (isMemberLoading || isInvoicesLoading) {
+    if (isMemberLoading || isInvoicesLoading || isCardsLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Financial Ledger...
@@ -189,7 +268,6 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
     const activePlan = memberProfile?.activePlan;
     const isAutoRenew = memberProfile?.autoRenewEnabled;
     const expiresAt = memberProfile?.expiresAt ? new Date(memberProfile.expiresAt).toLocaleDateString() : "N/A";
-
     const pendingInvoice = invoices.find((inv: any) => inv.status === "OPEN");
 
     return (
@@ -221,63 +299,96 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                                 className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold whitespace-nowrap w-full sm:w-auto"
                             >
                                 {payInvoiceMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                Pay LKR {Number(pendingInvoice.totalAmount).toLocaleString()}
+                                Pay {defaultCard ? `with •••• ${defaultCard.mask.slice(-4)}` : `LKR ${Number(pendingInvoice.totalAmount).toLocaleString()}`}
                             </Button>
                         </div>
                     </Card>
                 )}
 
-                {/* Active Subscription Overview Card Container */}
-                <Card className="bg-card border border-border rounded-2xl p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                        <div className="space-y-2">
-                            <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono block">Active Subscription</span>
-                            <div className="flex items-center gap-2.5">
-                                <h2 className="text-lg font-black text-foreground tracking-tight">{activePlan?.name || "No Active Plan"}</h2>
-                                {memberProfile?.status === "ACTIVE" && (
-                                    <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 tracking-wide uppercase">Active</span>
-                                )}
-                                {memberProfile?.status === "PENDING" && (
-                                    <span className="text-[10px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide uppercase">Pending Activation</span>
-                                )}
-                            </div>
-                            <div className="text-xs text-muted-foreground font-medium font-mono flex items-center gap-2">
-                                {activePlan ? `LKR ${Number(activePlan.monthlyPrice).toLocaleString()}/mo` : "Pay-As-You-Go"}
-                                {activePlan && (isAutoRenew ? ` · Renews ${expiresAt}` : ` · Expires ${expiresAt}`)}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Active Subscription Overview */}
+                    <Card className="bg-card border border-border rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
+                        <div>
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                <div className="space-y-2">
+                                    <span className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-widest font-mono block">Active Subscription</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <h2 className="text-lg font-black text-foreground tracking-tight">{activePlan?.name || "No Active Plan"}</h2>
+                                        {memberProfile?.status === "ACTIVE" && (
+                                            <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 tracking-wide uppercase">Active</span>
+                                        )}
+                                        {memberProfile?.status === "PENDING" && (
+                                            <span className="text-[10px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide uppercase">Pending Activation</span>
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground font-medium font-mono flex items-center gap-2">
+                                        {activePlan ? `LKR ${Number(activePlan.monthlyPrice).toLocaleString()}/mo` : "Pay-As-You-Go"}
+                                        {activePlan && (isAutoRenew ? ` · Renews ${expiresAt}` : ` · Expires ${expiresAt}`)}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-2 self-stretch sm:self-auto shrink-0 pt-2 sm:pt-0">
+                                    {/* Upgrade Plan Modal */}
+                                    <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
+                                        <DialogTrigger>
+                                            <Button variant="ghost" disabled={memberProfile?.status === "PENDING"} className="bg-muted border border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-9 px-4 transition-colors w-full sm:w-auto">
+                                                Upgrade Plan
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="bg-card border border-border text-foreground sm:max-w-md">
+                                            <DialogHeader>
+                                                <DialogTitle>Available Membership Tiers</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="flex flex-col gap-3 py-2">
+                                                {availablePlans.map((plan: any) => (
+                                                    <div key={plan.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-background">
+                                                        <div>
+                                                            <h4 className="font-bold text-sm">{plan.name}</h4>
+                                                            <p className="text-xs text-muted-foreground font-mono">LKR {Number(plan.monthlyPrice).toLocaleString()} · {plan.sessionTokens} Tokens</p>
+                                                        </div>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => subscribeMutation.mutate(plan.id)}
+                                                            disabled={subscribeMutation.isPending}
+                                                            className="text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
+                                                        >
+                                                            {activePlan?.id === plan.id ? "Current (Renew)" : (defaultCard ? "1-Click Pay" : "Select")}
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                                {availablePlans.length === 0 && <p className="text-xs text-center text-muted-foreground py-4">No plans available.</p>}
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+
+                                    {/* Renew Current Plan */}
+                                    {activePlan && memberProfile?.status !== "PENDING" && (
+                                        <Button
+                                            onClick={() => subscribeMutation.mutate(activePlan.id)}
+                                            disabled={subscribeMutation.isPending}
+                                            variant="outline"
+                                            className="border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-9 px-4 gap-1.5 transition-colors w-full sm:w-auto"
+                                        >
+                                            {subscribeMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />}
+                                            {defaultCard ? `Renew w/ •••• ${defaultCard.mask.slice(-4)}` : "Renew Plan"}
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 pt-2 sm:pt-0">
-
-                            {/* Renew Current Plan */}
-                            {activePlan && memberProfile?.status !== "PENDING" && (
-                                <Button
-                                    onClick={() => subscribeMutation.mutate(activePlan.id)}
-                                    disabled={subscribeMutation.isPending}
-                                    variant="outline"
-                                    className="border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors"
-                                >
-                                    {subscribeMutation.isPending ? (
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    ) : (
-                                        <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-                                    )}
-                                    Renew Current Plan
-                                </Button>
-                            )}
-
-                            {/* Token Top Up Modal */}
+                        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between border-t border-border pt-4 gap-4">
                             <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
                                 <DialogTrigger>
-                                    <Button disabled={memberProfile?.status === "PENDING"} variant="outline" className="border-border hover:bg-accent text-primary text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none gap-1.5 transition-colors">
-                                        <Coins className="w-3.5 h-3.5" /> Top Up Tokens
+                                    <Button disabled={memberProfile?.status === "PENDING"} variant="outline" className="border-border hover:bg-accent text-primary text-xs font-bold rounded-xl h-10 px-4 gap-1.5 w-full sm:w-auto">
+                                        <Coins className="w-3.5 h-3.5" /> Top Up Session Tokens
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="bg-card border border-border text-foreground sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Purchase Session Tokens</DialogTitle>
                                         <DialogDescription className="text-muted-foreground text-xs">
-                                            Tokens allow you to book classes or facility access.
+                                            {defaultCard ? `Payments will be securely charged to your saved card ending in ${defaultCard.mask.slice(-4)}.` : "Tokens allow you to book classes or facility access."}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid grid-cols-2 gap-3 py-4">
@@ -291,55 +402,69 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                                 </DialogContent>
                             </Dialog>
 
-                            {/* Upgrade Plan Modal */}
-                            <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
-                                <DialogTrigger>
-                                    <Button variant="ghost" disabled={memberProfile?.status === "PENDING"} className="bg-muted border border-border hover:bg-accent text-foreground text-xs font-bold rounded-xl h-10 px-4 flex-1 sm:flex-none transition-colors">
-                                        Upgrade Plan
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="bg-card border border-border text-foreground sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle>Available Membership Tiers</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="flex flex-col gap-3 py-2">
-                                        {availablePlans.map((plan: any) => (
-                                            <div key={plan.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-background">
-                                                <div>
-                                                    <h4 className="font-bold text-sm">{plan.name}</h4>
-                                                    <p className="text-xs text-muted-foreground font-mono">LKR {Number(plan.monthlyPrice).toLocaleString()} · {plan.sessionTokens} Tokens</p>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => subscribeMutation.mutate(plan.id)}
-                                                    disabled={subscribeMutation.isPending}
-                                                    className="text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
-                                                >
-                                                    {activePlan?.id === plan.id ? "Current (Renew)" : "Select"}
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        {availablePlans.length === 0 && <p className="text-xs text-center text-muted-foreground py-4">No plans available.</p>}
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
+                            {isAutoRenew && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => cancelSubMutation.mutate()}
+                                    disabled={cancelSubMutation.isPending}
+                                    className="text-[10px] text-muted-foreground hover:text-destructive uppercase tracking-widest font-bold"
+                                >
+                                    Cancel Auto-Renew
+                                </Button>
+                            )}
                         </div>
-                    </div>
+                    </Card>
 
-                    {isAutoRenew && (
-                        <div className="mt-4 pt-4 border-t border-border flex justify-end">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => cancelSubMutation.mutate()}
-                                disabled={cancelSubMutation.isPending}
-                                className="text-[10px] text-muted-foreground hover:text-destructive uppercase tracking-widest font-bold"
-                            >
-                                Cancel Auto-Renew
-                            </Button>
+                    {/* Saved Payment Methods Card */}
+                    <Card className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-border">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Payment Methods</span>
+                            <ShieldCheck className="w-4 h-4 text-emerald-500/70" />
                         </div>
-                    )}
-                </Card>
+
+                        <div className="flex-1 space-y-3">
+                            {savedCards.map((card: any) => (
+                                <div key={card.id} className="flex items-center justify-between p-3 border border-border rounded-xl bg-background group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-muted p-2 rounded-lg">
+                                            <CreditCard className="w-4 h-4 text-foreground" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold tracking-tight">{card.brand || "Card"}</span>
+                                            <span className="text-xs text-muted-foreground font-mono">•••• {card.mask?.slice(-4) || "****"}</span>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeCardMutation.mutate(card.id)}
+                                        disabled={removeCardMutation.isPending}
+                                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                </div>
+                            ))}
+
+                            {savedCards.length === 0 && (
+                                <div className="text-center py-6 text-muted-foreground text-xs italic">
+                                    No payment methods saved. Add one for 1-click checkouts and auto-renewals.
+                                </div>
+                            )}
+                        </div>
+
+                        <Button
+                            onClick={() => addCardMutation.mutate()}
+                            disabled={addCardMutation.isPending}
+                            variant="secondary"
+                            className="w-full text-xs font-bold h-10 bg-muted hover:bg-accent transition-colors gap-2"
+                        >
+                            {addCardMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                            Add New Card
+                        </Button>
+                    </Card>
+                </div>
 
                 {/* Isolated Tenant Payment History Table Grid */}
                 <Card className="bg-card border border-border rounded-[1.5rem] p-6 space-y-4">
@@ -390,7 +515,6 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
                         </Table>
                     </div>
                 </Card>
-
             </div>
         </>
     );
