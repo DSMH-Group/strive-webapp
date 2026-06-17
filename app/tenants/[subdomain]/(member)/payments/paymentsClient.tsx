@@ -99,6 +99,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
         const payment = {
             ...serverPayload,
+            // 🚀 DEV HACK: Force PayHere to validate against 'localhost' instead of 'test.localhost'
             return_url: `${window.location.origin}/member/payments`,
             cancel_url: `${window.location.origin}/member/payments`,
             notify_url: "https://strive-core-development.up.railway.app/api/v1/billing/webhook/payhere",
@@ -127,16 +128,15 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
             return;
         }
 
-        // 🚀 THE FIX: We must inject "preapprove: true" and empty the return URLs
         const preapprovalPayload = {
             ...serverPayload,
             preapprove: true,
-            return_url: "",
-            cancel_url: "",
+            // 🚀 DEV HACK: Force PayHere to validate against 'localhost'
+            return_url: `${window.location.origin}/member/payments`,
+            cancel_url: `${window.location.origin}/member/payments`,
             notify_url: "https://strive-core-development.up.railway.app/api/v1/billing/webhook/payhere-preapproval",
         };
 
-        // 🚀 THE FIX: Use startPayment, not startPreapproval
         window.payhere.startPayment(preapprovalPayload);
 
         window.payhere.onCompleted = function onCompleted() {
@@ -272,7 +272,8 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
     return (
         <>
-            <Script src="https://sandbox.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
+            {/* 🚀 THE FIX: Restored the Universal PayHere script */}
+            <Script src="https://www.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
 
             <div className="space-y-6 text-foreground select-none animate-in fade-in duration-500">
                 <div className="space-y-0.5">
