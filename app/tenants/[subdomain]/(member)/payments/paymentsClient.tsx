@@ -272,7 +272,7 @@ export default function PaymentsClient({ subdomain, tenantId }: PaymentsClientPr
 
     return (
         <>
-            <Script src="https://www.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
+            <Script src="https://sandbox.payhere.lk/lib/payhere.js" strategy="lazyOnload" />
 
             <div className="space-y-6 text-foreground select-none animate-in fade-in duration-500">
                 <div className="space-y-0.5">
