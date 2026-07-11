@@ -88,8 +88,18 @@ export default function InvitesClient({ subdomain, tenantId }: InvitesClientProp
 
     // 🚀 4. NEW: Construct and copy the magic link to the clipboard
     const handleCopyMagicLink = (invite: any) => {
-        // Fallback to localhost:3000 if the env var isn't set
-        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "http://localhost:3000";
+        let baseUrl = "http://localhost:3000";
+        if (typeof window !== "undefined") {
+            const host = window.location.host;
+            if (host.includes("dsmhgroup.local")) {
+                baseUrl = "http://dsmhgroup.local";
+            } else if (host.includes("dsmhgroup.com")) {
+                baseUrl = "https://dsmhgroup.com";
+            } else if (host.includes("localhost:")) {
+                const port = host.split(":")[1] || "3000";
+                baseUrl = `http://localhost:${port}`;
+            }
+        }
         // Grab the current tenant domain so the redirect works after they register
         const currentDomain = typeof window !== "undefined" ? window.location.host : `${subdomain}.dsmhgroup.com`;
 

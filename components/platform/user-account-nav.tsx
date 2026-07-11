@@ -49,7 +49,10 @@ export function UserAccountNav({ user }: { user: any }) {
                 <DropdownMenuSeparator className="bg-border" />
 
                 {/* 🚀 FIXED: Hover states now use standard accent tokens */}
-                <DropdownMenuItem className="focus:bg-accent focus:text-accent-foreground cursor-pointer gap-2 py-2.5 rounded-md transition-colors">
+                <DropdownMenuItem 
+                    onClick={() => router.push("/settings")}
+                    className="focus:bg-accent focus:text-accent-foreground cursor-pointer gap-2 py-2.5 rounded-md transition-colors"
+                >
                     <Settings className="w-4 h-4" /> Account Settings
                 </DropdownMenuItem>
 

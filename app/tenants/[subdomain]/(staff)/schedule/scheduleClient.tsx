@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import {
     Clock,
     RefreshCw,
-    Plus
+    Plus,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +20,9 @@ interface ScheduleClientProps {
 
 export default function ScheduleClient({ subdomain, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+    const [blockTime, setBlockTime] = useState("10:00");
+    const [blockReason, setBlockReason] = useState("");
 
     // --- Core Timeline Data (Structured explicitly to match your design) ---
     const [timeSlots, setTimeSlots] = useState([
@@ -60,12 +64,36 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
 
     const handleSlotAction = (id: string, currentStatus: string) => {
         if (currentStatus === "OPEN") {
-            toast.success("Initializing manual block reservation...");
+            const slot = timeSlots.find(s => s.id === id);
+            if (slot) {
+                setBlockTime(slot.time);
+                setIsBlockModalOpen(true);
+            }
             return;
         }
         if (currentStatus === "NOW") {
             toast.info("Session management controls activated.");
         }
+    };
+
+    const handleConfirmBlock = (e: React.FormEvent) => {
+        e.preventDefault();
+        setTimeSlots((prev) =>
+            prev.map((slot) => {
+                if (slot.time === blockTime) {
+                    return {
+                        ...slot,
+                        title: blockReason || "Out-of-office block",
+                        type: "BREAK",
+                        status: "OOO",
+                    };
+                }
+                return slot;
+            })
+        );
+        toast.success(`Blocked calendar time slot at ${blockTime}.`);
+        setIsBlockModalOpen(false);
+        setBlockReason("");
     };
 
     return (
@@ -88,7 +116,7 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                         {isSyncing ? "Syncing..." : "Sync Calendar"}
                     </Button>
                     <Button
-                        onClick={() => toast.success("Configuring custom Out-Of-Office blocking window...")}
+                        onClick={() => setIsBlockModalOpen(true)}
                         variant="outline"
                         className="bg-card text-primary border border-primary/20 hover:bg-accent hover:text-accent-foreground rounded-md h-10 text-xs font-bold gap-1.5 px-4 shadow-sm"
                     >
@@ -108,6 +136,7 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                         const isSoon = slot.status === "SOON";
                         const isDone = slot.status === "DONE";
                         const isBreak = slot.status === "BREAK";
+                        const isOoo = slot.status === "OOO";
 
                         return (
                             <div
@@ -119,7 +148,8 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                     isNow && "border-primary/50 bg-primary/5 ring-1 ring-primary/20 shadow-sm",
                                     isSoon && "border-border hover:border-accent-foreground/30",
                                     isDone && "opacity-40 hover:opacity-70",
-                                    isBreak && "bg-muted/40 opacity-50 cursor-default"
+                                    isBreak && "bg-muted/40 opacity-50 cursor-default",
+                                    isOoo && "bg-destructive/5 border-destructive/20 opacity-80 hover:opacity-100"
                                 )}
                             >
                                 <div className="flex items-center gap-4 min-w-0">
@@ -161,6 +191,9 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                     {isBreak && (
                                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight bg-background px-2 py-0.5 border border-border rounded-sm">Break</span>
                                     )}
+                                    {isOoo && (
+                                        <span className="text-[10px] font-bold text-destructive uppercase tracking-tight bg-destructive/10 px-2 py-0.5 border border-destructive/20 rounded-sm">Blocked</span>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -193,6 +226,69 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                 </div>
 
             </div>
+
+            {/* Block Time Modal */}
+            {isBlockModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-card border border-border w-full max-w-sm rounded-2xl p-6 relative shadow-2xl space-y-4 animate-in zoom-in-95 duration-200 text-left">
+                        <button
+                            onClick={() => setIsBlockModalOpen(false)}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground rounded-xl p-1.5 hover:bg-accent/50 transition-all"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="space-y-1">
+                            <h3 className="font-extrabold text-foreground text-base tracking-tight">Block Calendar Time</h3>
+                            <p className="text-[11px] text-muted-foreground">Mark a slot as Out-Of-Office to prevent client bookings.</p>
+                        </div>
+
+                        <form onSubmit={handleConfirmBlock} className="space-y-4 pt-2">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">Selected Time Slot</label>
+                                <select 
+                                    value={blockTime}
+                                    onChange={(e) => setBlockTime(e.target.value)}
+                                    className="w-full bg-background border border-border rounded-xl h-10 px-3 text-xs text-foreground focus:ring-1 focus:ring-primary/20 outline-none"
+                                >
+                                    {timeSlots.map((s) => (
+                                        <option key={s.id} value={s.time}>{s.time} {s.title !== "— Available —" && `(${s.title})`}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">Blocking Reason / Event Title</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Lunch Break, Personal Errand, Maintenance"
+                                    value={blockReason}
+                                    onChange={(e) => setBlockReason(e.target.value)}
+                                    className="w-full bg-background border border-border rounded-xl h-10 px-3 text-xs text-foreground focus:ring-1 focus:ring-primary/20 outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <Button 
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setIsBlockModalOpen(false)}
+                                    className="flex-1 text-muted-foreground hover:text-foreground text-xs font-bold h-10 rounded-xl"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    type="submit"
+                                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 rounded-xl"
+                                >
+                                    Confirm Block
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
