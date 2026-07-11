@@ -34,7 +34,7 @@ const HOURS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "1
 export default function ScheduleClient({ subdomain, tenantId, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
-    const [currentDate, setCurrentDate] = useState<Date>(new Date(2026, 4, 8)); // May 8, 2026
+    const [currentDate, setCurrentDate] = useState<Date>(new Date()); // Dynamic "today"
 
     // Customizable lunch break state
     const [lunchStart, setLunchStart] = useState("12:00");
@@ -43,7 +43,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     // Modal state for assigning sessions and blocking time
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
     const [selectedHour, setSelectedHour] = useState("10:00");
-    const [selectedDateStr, setSelectedDateStr] = useState("2026-05-08");
+    const [selectedDateStr, setSelectedDateStr] = useState("");
     const [actionMode, setActionMode] = useState<"SESSION" | "BLOCK">("SESSION");
     
     // Cancellation modal states
@@ -53,29 +53,42 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     // Assign session states
     const [selectedMemberId, setSelectedMemberId] = useState("");
     const [sessionTitle, setSessionTitle] = useState("");
-    const [sessionDuration, setSessionDuration] = useState("60"); // "30" or "60"
+    const [sessionDuration, setSessionDuration] = useState("60");
 
     // Block time states
     const [blockReason, setBlockReason] = useState("");
 
+    // Dynamic mock date calculator
+    const getRelativeDateStr = (offsetDays: number) => {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        return d.toISOString().split("T")[0];
+    };
+
     // Local static/mock bookings state (to overlay on top of database bookings)
-    const [localBookings, setLocalBookings] = useState<any[]>([
-        { id: "mock-1", date: "2026-05-08", time: "07:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "DONE" },
-        { id: "mock-2", date: "2026-05-08", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "DONE" },
-        { id: "mock-3", date: "2026-05-08", time: "09:00", duration: 60, title: "Group HIIT (8 pax)", type: "CLASS", status: "DONE" },
-        { id: "mock-4", date: "2026-05-08", time: "11:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "NOW" },
-        { id: "mock-5", date: "2026-05-08", time: "14:00", duration: 60, title: "Sachini G. — PT", type: "PT", status: "SOON" },
-        { id: "mock-6", date: "2026-05-08", time: "15:00", duration: 60, title: "Core & Mobility", type: "CLASS", status: "SOON" },
-        { id: "mock-7", date: "2026-05-08", time: "17:00", duration: 60, title: "Ruwani J. — PT", type: "PT", status: "SOON" },
-        { id: "mock-8", date: "2026-05-09", time: "09:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "SOON" },
-        { id: "mock-9", date: "2026-05-09", time: "10:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "SOON" },
-        { id: "mock-10", date: "2026-05-11", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "SOON" }
-    ]);
+    const [localBookings, setLocalBookings] = useState<any[]>([]);
+
+    useEffect(() => {
+        setLocalBookings([
+            { id: "mock-1", date: getRelativeDateStr(0), time: "07:00", duration: 60, title: "Amara Silva — PT", clientEmail: "amara.silva@strive.com", type: "PT", status: "DONE" },
+            { id: "mock-2", date: getRelativeDateStr(0), time: "08:00", duration: 60, title: "Dilshan Raj — PT", clientEmail: "dilshan.raj@strive.com", type: "PT", status: "DONE" },
+            { id: "mock-3", date: getRelativeDateStr(0), time: "09:00", duration: 60, title: "Group HIIT (8 pax)", clientEmail: "hiit.class@strive.com", type: "CLASS", status: "DONE" },
+            { id: "mock-4", date: getRelativeDateStr(0), time: "11:00", duration: 60, title: "Kasun Mendis — PT", clientEmail: "kasun.m@strive.com", type: "PT", status: "NOW" },
+            { id: "mock-5", date: getRelativeDateStr(0), time: "14:00", duration: 60, title: "Sachini G. — PT", clientEmail: "sachini.g@strive.com", type: "PT", status: "SOON" },
+            { id: "mock-6", date: getRelativeDateStr(0), time: "15:00", duration: 60, title: "Core & Mobility", clientEmail: "core.mobility@strive.com", type: "CLASS", status: "SOON" },
+            { id: "mock-7", date: getRelativeDateStr(0), time: "17:00", duration: 60, title: "Ruwani J. — PT", clientEmail: "ruwani.j@strive.com", type: "PT", status: "SOON" },
+            { id: "mock-8", date: getRelativeDateStr(1), time: "09:00", duration: 60, title: "Amara Silva — PT", clientEmail: "amara.silva@strive.com", type: "PT", status: "SOON" },
+            { id: "mock-9", date: getRelativeDateStr(1), time: "10:00", duration: 60, title: "Kasun Mendis — PT", clientEmail: "kasun.m@strive.com", type: "PT", status: "SOON" },
+            { id: "mock-10", date: getRelativeDateStr(3), time: "08:00", duration: 60, title: "Dilshan Raj — PT", clientEmail: "dilshan.raj@strive.com", type: "PT", status: "SOON" }
+        ]);
+        setBlocks([
+            { id: "block-1", date: getRelativeDateStr(0), time: "16:00", title: "Equipment Maintenance" }
+        ]);
+        setSelectedDateStr(getRelativeDateStr(0));
+    }, []);
 
     // Blocked/OOO slots state
-    const [blocks, setBlocks] = useState<any[]>([
-        { id: "block-1", date: "2026-05-08", time: "16:00", title: "Equipment Maintenance" }
-    ]);
+    const [blocks, setBlocks] = useState<any[]>([]);
 
     // --- DB CONNECTIVITY: Resources Fetch & Auto-Provision ---
     const { data: resources = [], isLoading: isLoadingResources, refetch: refetchResources } = useQuery<any[]>({
@@ -131,6 +144,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
             const memberName = b.membership?.user 
                 ? `${b.membership.user.firstName} ${b.membership.user.lastName}` 
                 : "Assigned Session";
+            const memberEmail = b.membership?.user?.email || "";
 
             return {
                 id: b.id,
@@ -138,12 +152,12 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                 time: hourStr,
                 duration: durationMins,
                 title: `${memberName} — PT`,
+                clientEmail: memberEmail,
                 type: "PT",
                 status: "SOON"
             };
         });
 
-        // Avoid duplication if mock items share same slot
         const filteredLocal = localBookings.filter(lb => 
             !mappedDb.some(db => db.date === lb.date && db.time === lb.time)
         );
@@ -194,6 +208,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                     id: booking.id,
                     time: hour,
                     title: booking.title,
+                    clientEmail: booking.clientEmail,
                     type: booking.type === "CLASS" ? "CLASS" : "CLIENT",
                     status: booking.status
                 };
@@ -274,7 +289,6 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
         if (slot.status === "OPEN") {
             handleOpenActionModal(slot.time, formattedDateString);
         } else if (slot.type === "CLIENT") {
-            // Prompt cancellation modal
             setSelectedBookingId(slot.id);
             setIsCancelModalOpen(true);
         }
@@ -301,24 +315,23 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
             const endObj = new Date(startObj.getTime() + Number(sessionDuration) * 60 * 1000);
 
             try {
-                // If using a fallback mock member not in DB, create mock booking locally
                 if (selectedMemberId.startsWith("m-")) {
                     const newMock = {
                         id: `mock-${Date.now()}`,
                         date: selectedDateStr,
                         time: selectedHour,
                         duration: Number(sessionDuration),
-                        title: `${selectedMemberName} — PT (${sessionDuration}m)`,
+                        title: `${selectedMemberName} — PT`,
+                        clientEmail: fallbackMembers.find(fm => fm.id === selectedMemberId)?.user?.email || "member@strive.com",
                         type: "PT",
                         status: "SOON"
                     };
                     setLocalBookings(prev => [...prev, newMock]);
-                    toast.success(`Local mock session assigned for ${selectedMemberName} at ${selectedHour}.`);
+                    toast.success(`Session assigned for ${selectedMemberName} at ${selectedHour}.`);
                     setIsActionModalOpen(false);
                     return;
                 }
 
-                // Call real PostgreSQL scheduling mutation
                 const res = await striveClientFetch("/api/v1/scheduling/bookings", {
                     method: "POST",
                     tenantId,
@@ -400,7 +413,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     };
 
     const setToday = () => {
-        setCurrentDate(new Date(2026, 4, 8));
+        setCurrentDate(new Date());
     };
 
     return (
@@ -517,12 +530,17 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                             <span className="font-mono text-xs font-black text-muted-foreground/60 w-10 shrink-0">
                                                 {slot.time}
                                             </span>
-                                            <span className={cn(
-                                                "text-sm font-bold truncate",
-                                                isOpen ? "text-muted-foreground/75 font-semibold italic" : "text-foreground"
-                                            )}>
-                                                {slot.title}
-                                            </span>
+                                            <div className="flex flex-col text-left min-w-0">
+                                                <span className={cn(
+                                                    "text-sm font-bold truncate",
+                                                    isOpen ? "text-muted-foreground/75 font-semibold italic" : "text-foreground"
+                                                )}>
+                                                    {slot.title}
+                                                </span>
+                                                {slot.clientEmail && (
+                                                    <span className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">{slot.clientEmail}</span>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="flex items-center gap-3 shrink-0 pl-2">
@@ -636,60 +654,82 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
                                     <div key={day} className="text-center text-[10px] font-black uppercase text-muted-foreground py-2">{day}</div>
                                 ))}
-                              </div>
-                              <div className="grid grid-cols-7 grid-rows-5 gap-1.5 mt-2">
-                                  {Array.from({ length: 35 }).map((_, idx) => {
-                                      const dayNum = idx - 4; 
-                                      const isWithinMonth = dayNum > 0 && dayNum <= 31;
-                                      const dateStr = `2026-05-${dayNum < 10 ? `0${dayNum}` : dayNum}`;
+                            </div>
+                            
+                            {(() => {
+                                const year = currentDate.getFullYear();
+                                const month = currentDate.getMonth(); // 0-indexed
+                                
+                                // First day of selected month
+                                const firstDayOfMonth = new Date(year, month, 1);
+                                // Day of the week (0-6) of the first day
+                                const startDayOfWeek = firstDayOfMonth.getDay();
+                                
+                                // Total days in selected month
+                                const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+                                
+                                // We render a grid of 35 or 42 cells. If starting day + total days > 35, we need 42 cells.
+                                const gridCellsCount = startDayOfWeek + totalDaysInMonth > 35 ? 42 : 35;
+                                
+                                return (
+                                    <div className="grid grid-cols-7 grid-rows-5 gap-1.5 mt-2">
+                                        {Array.from({ length: gridCellsCount }).map((_, idx: number) => {
+                                            const dayNum = idx - startDayOfWeek + 1;
+                                            const isWithinMonth = dayNum > 0 && dayNum <= totalDaysInMonth;
+                                            
+                                            const monthStr = String(month + 1).padStart(2, "0");
+                                            const dayStr = String(dayNum).padStart(2, "0");
+                                            const dateStr = `${year}-${monthStr}-${dayStr}`;
 
-                                      const dayBookings = bookings.filter(b => b.date === dateStr);
-                                      const dayBlocks = blocks.filter(b => b.date === dateStr);
+                                            const dayBookings = bookings.filter((b: any) => b.date === dateStr);
+                                            const dayBlocks = blocks.filter((b: any) => b.date === dateStr);
 
-                                      return (
-                                          <div
-                                              key={idx}
-                                              onClick={() => {
-                                                  if (isWithinMonth) {
-                                                      setCurrentDate(new Date(2026, 4, dayNum));
-                                                      setView("DAY");
-                                                  }
-                                              }}
-                                              className={cn(
-                                                  "min-h-[85px] border border-border/60 rounded-lg p-2 flex flex-col justify-between transition-all bg-card/15 text-left",
-                                                  isWithinMonth ? "hover:border-primary hover:bg-accent/40 cursor-pointer" : "opacity-20 pointer-events-none bg-background/5"
-                                              )}
-                                          >
-                                              <span className={cn(
-                                                  "text-xs font-bold font-mono self-end",
-                                                  isWithinMonth && dayNum === 8 && "bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center"
-                                              )}>
-                                                  {isWithinMonth ? dayNum : ""}
-                                              </span>
-                                              
-                                              {isWithinMonth && (dayBookings.length > 0 || dayBlocks.length > 0) && (
-                                                  <div className="space-y-1 mt-1 max-h-[50px] overflow-hidden">
-                                                      {dayBookings.slice(0, 2).map(b => (
-                                                          <div key={b.id} className="text-[9px] font-bold bg-primary/10 border border-primary/20 text-foreground truncate px-1 rounded-sm">
-                                                              {b.title}
-                                                          </div>
-                                                      ))}
-                                                      {dayBlocks.slice(0, 1).map(bl => (
-                                                          <div key={bl.id} className="text-[9px] font-bold bg-destructive/10 border border-destructive/20 text-destructive truncate px-1 rounded-sm">
-                                                              {bl.title}
-                                                          </div>
-                                                      ))}
-                                                      {(dayBookings.length + dayBlocks.length) > 3 && (
-                                                          <div className="text-[8px] text-muted-foreground font-black pl-1">
-                                                              +{(dayBookings.length + dayBlocks.length) - 3} more
-                                                          </div>
-                                                      )}
-                                                  </div>
-                                              )}
-                                          </div>
-                                      );
-                                  })}
-                              </div>
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        if (isWithinMonth) {
+                                                            setCurrentDate(new Date(year, month, dayNum));
+                                                            setView("DAY");
+                                                        }
+                                                    }}
+                                                    className={cn(
+                                                        "min-h-[85px] border border-border/60 rounded-lg p-2 flex flex-col justify-between transition-all bg-card/15 text-left",
+                                                        isWithinMonth ? "hover:border-primary hover:bg-accent/40 cursor-pointer" : "opacity-20 pointer-events-none bg-background/5"
+                                                    )}
+                                                >
+                                                    <span className={cn(
+                                                        "text-xs font-bold font-mono self-end",
+                                                        isWithinMonth && dayNum === currentDate.getDate() && "bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center"
+                                                    )}>
+                                                        {isWithinMonth ? dayNum : ""}
+                                                    </span>
+                                                    
+                                                    {isWithinMonth && (dayBookings.length > 0 || dayBlocks.length > 0) && (
+                                                        <div className="space-y-1 mt-1 max-h-[50px] overflow-hidden">
+                                                            {dayBookings.slice(0, 2).map((b: any) => (
+                                                                <div key={b.id} className="text-[9px] font-bold bg-primary/10 border border-primary/20 text-foreground truncate px-1 rounded-sm">
+                                                                    {b.title}
+                                                                </div>
+                                                            ))}
+                                                            {dayBlocks.slice(0, 1).map((bl: any) => (
+                                                                <div key={bl.id} className="text-[9px] font-bold bg-destructive/10 border border-destructive/20 text-destructive truncate px-1 rounded-sm">
+                                                                    {bl.title}
+                                                                </div>
+                                                            ))}
+                                                            {(dayBookings.length + dayBlocks.length) > 3 && (
+                                                                <div className="text-[8px] text-muted-foreground font-black pl-1">
+                                                                    +{(dayBookings.length + dayBlocks.length) - 3} more
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
                         </Card>
                     )}
                 </div>
