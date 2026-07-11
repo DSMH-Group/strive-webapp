@@ -10,12 +10,17 @@ import {
     ChartTooltipContent
 } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { Trophy, Info, Flame } from "lucide-react";
+import { Trophy, Info, Flame, Compass, Smartphone, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MuscleMap } from "@/components/tenant/shared/MuscleMap";
+import { WearableSyncWizard } from "@/components/tenant/member/WearableSyncWizard";
+import { WearableProgressBoards } from "@/components/tenant/member/WearableProgressBoards";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface ProgressClientProps {
     subdomain: string;
+    tenantId: string;
     progressData: any;
 }
 
@@ -26,8 +31,10 @@ const chartConfig = {
     }
 } satisfies ChartConfig;
 
-export default function ProgressClient({ subdomain, progressData }: ProgressClientProps) {
+export default function ProgressClient({ subdomain, tenantId, progressData }: ProgressClientProps) {
     const [hoveredMuscle, setHoveredMuscle] = useState<string | null>(null);
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [isGoogleLinked, setIsGoogleLinked] = useState(false);
 
     const activeProgress = useMemo(() => {
         if (progressData) return progressData;
@@ -186,6 +193,87 @@ export default function ProgressClient({ subdomain, progressData }: ProgressClie
                     })}
                 </div>
             </Card>
+
+            {/* 🚀 Wearables Integration Panel */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Google Fit / Wear OS Integration Card */}
+                <Card className="bg-card border-border rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">Android & Google wearables</span>
+                            <h3 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
+                                🤖 Wear OS / Health Connect
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-normal pr-4">
+                                Link pixel watch, galaxy watch, or health connect streams to auto-sync biometrics.
+                            </p>
+                        </div>
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
+                            isGoogleLinked 
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                : 'bg-muted text-muted-foreground border border-border'
+                        }`}>
+                            {isGoogleLinked ? "Linked & Syncing" : "Not Connected"}
+                        </span>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button 
+                            onClick={() => setIsWizardOpen(true)}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 px-4 rounded-xl flex items-center gap-1.5"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" /> Sync Wear OS
+                        </Button>
+                    </div>
+                </Card>
+
+                {/* Apple Health Integration Card */}
+                <Card className="bg-card border-border rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 opacity-75">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">iOS & Apple wearables</span>
+                            <h3 className="text-sm font-extrabold text-muted-foreground flex items-center gap-1.5">
+                                🍎 Apple HealthKit
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-normal pr-4">
+                                Sync apple watch activity pools, resting HR levels, and exercise rings.
+                            </p>
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            Coming Soon
+                        </span>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button 
+                            disabled 
+                            variant="outline"
+                            className="border-border text-muted-foreground text-xs font-bold h-10 px-4 rounded-xl cursor-not-allowed flex items-center gap-1.5"
+                        >
+                            <Smartphone className="w-3.5 h-3.5" /> iOS Companion Required
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+
+            {/* 🚀 Wearables Recharts Board */}
+            <div className="space-y-4">
+                <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">Health Dashboard</span>
+                    <h2 className="text-lg font-black text-foreground">Wearable Metrics</h2>
+                </div>
+                <WearableProgressBoards tenantId={tenantId} />
+            </div>
+
+            <WearableSyncWizard
+                isOpen={isWizardOpen}
+                onClose={() => setIsWizardOpen(false)}
+                tenantId={tenantId}
+                onSyncComplete={() => {
+                    setIsGoogleLinked(true);
+                    toast.success("Successfully synced health metrics from Google Wear OS device!");
+                }}
+            />
         </div>
     );
 }

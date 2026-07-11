@@ -58,6 +58,7 @@ export default async function MemberProgressPage({
     return (
         <ProgressClient
             subdomain={subdomain}
+            tenantId={tenantId ?? ""}
             progressData={progressData}
         />
     );
