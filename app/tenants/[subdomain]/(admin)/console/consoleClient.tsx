@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {InviteMemberSheet} from "@/components/tenant/shared/InviteMemberSheet";
+import {LogCashPaymentSheet} from "@/components/tenant/shared/LogCashPaymentSheet";
+import {BroadcastSmsSheet} from "@/components/tenant/shared/BroadcastSmsSheet";
 
 // --- API Schema Interfaces ---
 interface PrismaTenantDto {
@@ -392,9 +394,17 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                                     <CommandButton label="Onboard Member" icon={<UserPlus className="w-4 h-4"/>} />
                                 </InviteMemberSheet>
 
-                                <CommandButton label="Log Cash Payment" icon={<CreditCard className="w-4 h-4"/>} onClick={() => toast.success("Accessing local cash engine...")} />
-                                <CommandButton label="Front Desk Mode" icon={<MonitorPlay className="w-4 h-4"/>} onClick={() => toast.success("Launching check-in monitor...")} />
-                                <CommandButton label="Broadcast SMS" icon={<MessageSquare className="w-4 h-4"/>} onClick={() => toast.info("Initializing transaction SMS client...")} />
+                                <LogCashPaymentSheet tenantId={tenantId} members={members}>
+                                    <CommandButton label="Log Cash Payment" icon={<CreditCard className="w-4 h-4"/>} />
+                                </LogCashPaymentSheet>
+
+                                <Link href={`/tenants/${subdomain}/front-desk`} className="w-full">
+                                    <CommandButton label="Front Desk Mode" icon={<MonitorPlay className="w-4 h-4"/>} />
+                                </Link>
+
+                                <BroadcastSmsSheet tenantId={tenantId} members={members}>
+                                    <CommandButton label="Broadcast SMS" icon={<MessageSquare className="w-4 h-4"/>} />
+                                </BroadcastSmsSheet>
                             </div>
                         </div>
                     </Card>
