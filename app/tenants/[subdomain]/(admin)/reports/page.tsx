@@ -1,6 +1,7 @@
 // app/tenants/[subdomain]/(admin)/reports/page.tsx
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import ReportsClient from "./reportsClient";
 
 /**
@@ -16,18 +17,18 @@ async function fetchOperationalMetrics(jwtToken: string, tenantId: string) {
                 headers: { "Authorization": `Bearer ${jwtToken}`, "X-Tenant-ID": tenantId },
                 next: { revalidate: 30 }
             }),
-            fetch(`${baseUrl}/api/v1/attendances`, {
+            fetch(`${baseUrl}/api/v1/attendance`, {
                 headers: { "Authorization": `Bearer ${jwtToken}`, "X-Tenant-ID": tenantId },
                 next: { revalidate: 60 }
             })
         ]);
 
         const invoices = invoiceRes.ok ? await invoiceRes.json() : [];
-        const attendanceData = attendanceRes.ok ? await attendanceRes.json() : { history: [] };
+        const attendanceData = attendanceRes.ok ? await attendanceRes.json() : [];
 
         return {
             financials: { invoices, pendingTransfers: [] },
-            utilization: { history: attendanceData.history }
+            utilization: { history: Array.isArray(attendanceData) ? attendanceData : [] }
         };
     } catch (error) {
         console.error("Failed executing operational metrics queries:", error);
@@ -50,15 +51,12 @@ export default async function ReportsPage({
         redirect("https://dsmhgroup.com/explore");
     }
 
-    // Server-side session validation framework placeholders
-    /*
     const authData = await auth.api.getSession({ headers: requestHeaders });
-    if (!authData) redirect("/login");
+    if (!authData) {
+        redirect("/login");
+    }
     const token = authData.session.token;
     const data = await fetchOperationalMetrics(token, tenantId);
-    */
-
-    const data = { financials: null, utilization: null };
 
     return (
         <ReportsClient
