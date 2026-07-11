@@ -98,17 +98,20 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         }
     });
 
-    const targetMembership = userProfile?.memberships?.find(m => m.tenant.id === tenantId || m.tenant.domain === subdomain);
+    const targetMembership = userProfile?.memberships?.find(
+        m => m.tenant.id === tenantId || m.tenant.slug === subdomain || m.tenant.domain === subdomain
+    );
+    const resolvedTenantId = targetMembership?.tenant.id || tenantId;
     const hasAdminAccess = targetMembership?.roles.some(r => r.role === "ORG_ADMIN" || r.role === "MANAGER");
 
     // 3. Parallel Operational Admin Data Core Loader (Polling at 3s for live ingress updates)
     const { data: adminMetrics, isLoading: dataLoading } = useQuery({
-        queryKey: ["consoleOperationalLedger", tenantId],
+        queryKey: ["consoleOperationalLedger", resolvedTenantId],
         queryFn: async () => {
             const [membersRes, invoicesRes, attendancesRes] = await Promise.all([
-                striveClientFetch("/api/v1/members", { method: "GET", tenantId }),
-                striveClientFetch("/api/v1/billing/invoices", { method: "GET", tenantId }),
-                striveClientFetch("/api/v1/attendances", { method: "GET", tenantId })
+                striveClientFetch("/api/v1/members", { method: "GET", tenantId: resolvedTenantId }),
+                striveClientFetch("/api/v1/billing/invoices", { method: "GET", tenantId: resolvedTenantId }),
+                striveClientFetch("/api/v1/attendances", { method: "GET", tenantId: resolvedTenantId })
             ]);
 
             return {
@@ -117,7 +120,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                 attendances: attendancesRes.ok ? await attendancesRes.json() as any : { history: [], monthlyCount: 0 }
             };
         },
-        enabled: !!tenantId && !!hasAdminAccess,
+        enabled: !!resolvedTenantId && !!hasAdminAccess,
         refetchInterval: 3000,
     });
 
@@ -126,10 +129,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         mutationFn: async (attendanceId: string) => {
             const res = await striveClientFetch(`/api/v1/attendances/${attendanceId}`, {
                 method: "PATCH",
-                headers: {
-                    "X-Tenant-ID": tenantId,
-                    "Content-Type": "application/json"
-                },
+                tenantId: resolvedTenantId,
                 body: JSON.stringify({ checkoutTime: new Date().toISOString() })
             });
             if (!res.ok) throw new Error("Verification checkout override rejected.");
@@ -137,7 +137,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
         },
         onSuccess: () => {
             toast.success("Client checked out successfully.");
-            queryClient.invalidateQueries({ queryKey: ["consoleOperationalLedger", tenantId] });
+            queryClient.invalidateQueries({ queryKey: ["consoleOperationalLedger", resolvedTenantId] });
         },
         onError: (err: any) => {
             toast.error(`Checkout failed: ${err.message}`);
@@ -390,11 +390,11 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                             </div>
                             <div className="grid grid-cols-2 gap-2.5">
                                 {/* Wrap the button directly in the reusable sheet */}
-                                <InviteMemberSheet tenantId={tenantId}>
+                                <InviteMemberSheet tenantId={resolvedTenantId}>
                                     <CommandButton label="Onboard Member" icon={<UserPlus className="w-4 h-4"/>} />
                                 </InviteMemberSheet>
 
-                                <LogCashPaymentSheet tenantId={tenantId} members={members}>
+                                <LogCashPaymentSheet tenantId={resolvedTenantId} members={members}>
                                     <CommandButton label="Log Cash Payment" icon={<CreditCard className="w-4 h-4"/>} />
                                 </LogCashPaymentSheet>
 
@@ -402,7 +402,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                                     <CommandButton label="Front Desk Mode" icon={<MonitorPlay className="w-4 h-4"/>} />
                                 </Link>
 
-                                <BroadcastSmsSheet tenantId={tenantId} members={members}>
+                                <BroadcastSmsSheet tenantId={resolvedTenantId} members={members}>
                                     <CommandButton label="Broadcast SMS" icon={<MessageSquare className="w-4 h-4"/>} />
                                 </BroadcastSmsSheet>
                             </div>
