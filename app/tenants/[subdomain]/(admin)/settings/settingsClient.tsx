@@ -26,6 +26,7 @@ import {cn} from "@/lib/utils";
 import {MembershipPlans} from "@/components/tenant/admin/settings/MembershipPlans";
 import {GymProfile} from "@/components/tenant/admin/settings/GymProfile";
 import {TeamMembers} from "@/components/tenant/admin/settings/TeamMembers";
+import {DeviceManager} from "@/components/tenant/admin/DeviceManager";
 
 interface SettingsClientProps {
     subdomain: string;
@@ -339,6 +340,8 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
                         </div>
                         <SaveButton onClick={() => handleSaveChangesMock("RBAC Workspace Scoping Rules")}/>
                     </Card>
+
+                    <DeviceManager tenantId={tenantId} />
                 </div>
             )}
 

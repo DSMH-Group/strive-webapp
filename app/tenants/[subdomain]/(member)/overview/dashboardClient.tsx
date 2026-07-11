@@ -1,7 +1,8 @@
 // app/tenants/[subdomain]/(admin)/member/dashboard/dashboardClient.tsx
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { QrEntryModal } from "@/components/tenant/member/QrEntryModal";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ const calculateDuration = (start: string, end: string | null) => {
 };
 
 export default function DashboardClient({ subdomain, tenantId }: DashboardClientProps) {
+    const [isQrOpen, setIsQrOpen] = useState(false);
 
     // 🚀 Dynamic Time-Based Greeting
     const greeting = useMemo(() => {
@@ -169,7 +171,9 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
             nextSession,
             weeklyHistory,
             recentVisits: sortedHistory.slice(0, 5),
-            currentActiveVisit
+            currentActiveVisit,
+            membership,
+            user
         };
     }, [rawData]);
 
@@ -243,7 +247,7 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                             </div>
                         </div>
                         <Button
-                            onClick={() => toast.success("Access request sent.")}
+                            onClick={() => setIsQrOpen(true)}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl h-10 px-4 self-stretch sm:self-auto shrink-0 transition-all"
                         >
                             Generate Entry QR <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -421,6 +425,16 @@ export default function DashboardClient({ subdomain, tenantId }: DashboardClient
                     </div>
                 </Card>
             </div>
+
+            {profile?.membership && (
+                <QrEntryModal
+                    isOpen={isQrOpen}
+                    onClose={() => setIsQrOpen(false)}
+                    membershipId={profile.membership.id}
+                    memberName={`${profile.user?.firstName || ''} ${profile.user?.lastName || ''}`}
+                    membershipStatus={profile.membership.status}
+                />
+            )}
         </div>
     );
 }
