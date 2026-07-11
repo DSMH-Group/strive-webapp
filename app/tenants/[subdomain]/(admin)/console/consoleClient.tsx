@@ -114,10 +114,20 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                 striveClientFetch("/api/v1/attendances", { method: "GET", tenantId: resolvedTenantId })
             ]);
 
+            const rawAttendances = attendancesRes.ok ? await attendancesRes.json() : null;
+            const attendanceHistory = Array.isArray(rawAttendances)
+                ? rawAttendances
+                : rawAttendances && Array.isArray((rawAttendances as any).history)
+                    ? (rawAttendances as any).history
+                    : [];
+
             return {
                 members: membersRes.ok ? await membersRes.json() as any[] : [],
                 invoices: invoicesRes.ok ? await invoicesRes.json() as any[] : [],
-                attendances: attendancesRes.ok ? await attendancesRes.json() as any : { history: [], monthlyCount: 0 }
+                attendances: {
+                    history: attendanceHistory,
+                    monthlyCount: attendanceHistory.length
+                }
             };
         },
         enabled: !!resolvedTenantId && !!hasAdminAccess,
