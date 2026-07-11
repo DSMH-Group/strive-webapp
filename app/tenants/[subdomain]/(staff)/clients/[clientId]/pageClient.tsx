@@ -262,7 +262,7 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                             onClick={() => setIsAssignModalOpen(true)}
                             className="text-xs font-bold h-10 px-4 rounded-xl flex-1 md:flex-none"
                         >
-                            {client.activeProgram ? "Reassign Program" : "+ New Program"}
+                            {client.activeProgram ? "Change Program" : "+ New Program"}
                         </Button>
                     </div>
                 </div>
