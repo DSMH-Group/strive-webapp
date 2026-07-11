@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
 import { SectionHeader } from "@/app/tenants/[subdomain]/(admin)/settings/settingsClient";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { ExerciseCombobox } from "@/app/tenants/[subdomain]/(staff)/log/_components/ExerciseCombobox";
 
 interface ProgramTemplatesProps {
     tenantId: string;
@@ -50,6 +52,22 @@ export function ProgramTemplates({ tenantId, onComplete }: ProgramTemplatesProps
         totalWeeks: 12,
         routines: [{ dayName: "Day 1", exercises: [{ name: "", sets: 3, reps: 10, muscleGroup: "All" }] }]
     });
+
+    // Get Exercise Bank library
+    const { data: dbExercises = [] } = useQuery<any[]>({
+        queryKey: ["settingsExerciseBank", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/exercises", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const exerciseLibraryNames = React.useMemo(() => {
+        return dbExercises.map((ex: any) => ex.name);
+    }, [dbExercises]);
 
     const { data: templates = [], isLoading: templatesLoading } = useQuery<any[]>({
         queryKey: ["programTemplates", tenantId],
@@ -294,37 +312,38 @@ export function ProgramTemplates({ tenantId, onComplete }: ProgramTemplatesProps
 
                         <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-hidden">
                             <div className="space-y-4 overflow-y-auto flex-1 pr-1 pb-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs text-muted-foreground font-bold">Program Name</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="e.g. Strength Blast"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                            className="bg-background border-border h-10 text-sm rounded-md"
-                                            required
-                                        />
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-10 gap-4">
+                                        <div className="space-y-2 col-span-7">
+                                            <Label className="text-xs text-muted-foreground font-bold">Program Name</Label>
+                                            <Input
+                                                type="text"
+                                                placeholder="e.g. Strength Blast"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                                className="bg-background border-border h-10 text-sm rounded-md"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2 col-span-3">
+                                            <Label className="text-xs text-muted-foreground font-bold">Duration (Weeks)</Label>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                value={formData.totalWeeks}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, totalWeeks: Number(e.target.value) || 12 }))}
+                                                className="bg-background border-border h-10 text-sm rounded-md font-mono"
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs text-muted-foreground font-bold">Goal</Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="e.g. Hypertrophy"
+                                        <Textarea
+                                            placeholder="Describe the targets of this program blueprint..."
                                             value={formData.goal}
                                             onChange={(e) => setFormData(prev => ({ ...prev, goal: e.target.value }))}
-                                            className="bg-background border-border h-10 text-sm rounded-md"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs text-muted-foreground font-bold">Duration (Weeks)</Label>
-                                        <Input
-                                            type="number"
-                                            min={1}
-                                            value={formData.totalWeeks}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, totalWeeks: Number(e.target.value) || 12 }))}
-                                            className="bg-background border-border h-10 text-sm rounded-md font-mono"
+                                            className="bg-background border-border min-h-[70px] text-sm rounded-md resize-none focus-visible:ring-primary/20"
                                             required
                                         />
                                     </div>
@@ -332,7 +351,7 @@ export function ProgramTemplates({ tenantId, onComplete }: ProgramTemplatesProps
 
                                 <div className="space-y-4 pt-4 border-t border-border">
                                     <div className="flex items-center justify-between">
-                                        <Label className="text-xs text-muted-foreground font-bold">RoutinesSplit & Days</Label>
+                                        <Label className="text-xs text-muted-foreground font-bold">Routines Split & Workout Days</Label>
                                         <Button type="button" onClick={handleAddRoutineDay} variant="outline" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider border-border bg-card hover:bg-accent text-primary px-2.5 rounded">
                                             + Add Workout Day
                                         </Button>
@@ -360,6 +379,7 @@ export function ProgramTemplates({ tenantId, onComplete }: ProgramTemplatesProps
                                                         {formData.routines.length > 1 && (
                                                             <Button
                                                                 type="button"
+                                                                variant="ghost"
                                                                 onClick={() => handleRemoveRoutineDay(rIdx)}
                                                                 className="h-7 text-[10px] font-bold uppercase tracking-wider text-destructive hover:bg-destructive/10 rounded-md px-2"
                                                             >
@@ -372,14 +392,14 @@ export function ProgramTemplates({ tenantId, onComplete }: ProgramTemplatesProps
                                                 <div className="space-y-2">
                                                     {routine.exercises.map((ex, eIdx) => (
                                                         <div key={eIdx} className="grid grid-cols-12 gap-2 items-center">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Exercise Name"
-                                                                value={ex.name}
-                                                                onChange={(e) => handleExerciseChange(rIdx, eIdx, "name", e.target.value)}
-                                                                className="col-span-6 h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold focus-visible:outline-primary"
-                                                                required
-                                                            />
+                                                            <div className="col-span-6">
+                                                                <ExerciseCombobox
+                                                                    value={ex.name}
+                                                                    onChange={(v) => handleExerciseChange(rIdx, eIdx, "name", v)}
+                                                                    placeholder="Exercise name"
+                                                                    library={exerciseLibraryNames}
+                                                                />
+                                                            </div>
                                                             <input
                                                                 type="number"
                                                                 placeholder="Sets"

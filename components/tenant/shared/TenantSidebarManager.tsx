@@ -83,7 +83,7 @@ const generateSidebarConfig = (roles: string[], baseUrl: string, badgeCounts: an
                 {
                     icon: <Calendar size={16}/>,
                     label: "Schedule",
-                    href: `${baseUrl}/schedule`,
+                     href: `${baseUrl}/schedule`,
                     badge: badgeCounts?.schedule
                 },
                 {icon: <ClipboardSignature size={16}/>, label: "Log Session", href: `${baseUrl}/log`},

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { ExerciseCombobox } from "@/app/tenants/[subdomain]/(staff)/log/_components/ExerciseCombobox";
 
 export default function ClientDetailClient({ tenantId, clientId }: { tenantId: string, clientId: string }) {
 
@@ -101,6 +102,21 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
         },
         enabled: isAssignModalOpen
     });
+
+    const { data: dbExercises = [] } = useQuery<any[]>({
+        queryKey: ["settingsExerciseBank", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/exercises", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const exerciseLibraryNames = React.useMemo(() => {
+        return dbExercises.map((ex: any) => ex.name);
+    }, [dbExercises]);
 
     const assignProgramMutation = useMutation({
         mutationFn: async (payload: any) => {
@@ -861,35 +877,36 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                     {/* Custom Builder Content */}
                     {modalTab === "custom" && (
                         <div className="space-y-6 text-left">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Program Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Strength Phase 1"
-                                        value={customProgName}
-                                        onChange={(e) => setCustomProgName(e.target.value)}
-                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
-                                    />
+                            <div className="space-y-4 text-left">
+                                <div className="grid grid-cols-10 gap-4">
+                                    <div className="space-y-1.5 col-span-7">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Program Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Strength Phase 1"
+                                            value={customProgName}
+                                            onChange={(e) => setCustomProgName(e.target.value)}
+                                            className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5 col-span-3">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Weeks</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            value={customProgWeeks}
+                                            onChange={(e) => setCustomProgWeeks(Number(e.target.value) || 12)}
+                                            className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Goal</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Mass Gaining"
+                                    <textarea
+                                        placeholder="Describe the targets of this custom program..."
                                         value={customProgGoal}
                                         onChange={(e) => setCustomProgGoal(e.target.value)}
-                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Weeks</label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        value={customProgWeeks}
-                                        onChange={(e) => setCustomProgWeeks(Number(e.target.value) || 12)}
-                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                        className="w-full min-h-[70px] px-3 py-2 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary resize-none focus-visible:ring-primary/20"
                                     />
                                 </div>
                             </div>
@@ -897,7 +914,7 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                             {/* Routines List */}
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center border-b border-border pb-2">
-                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Routines & Workouts</h4>
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Routines Split & Workout Days</h4>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -952,17 +969,18 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                                             <div className="space-y-2">
                                                 {routine.exercises.map((ex: any, eIdx: number) => (
                                                     <div key={eIdx} className="grid grid-cols-12 gap-2 items-center">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Exercise Name"
-                                                            value={ex.name}
-                                                            onChange={(e) => {
-                                                                const next = [...customRoutines];
-                                                                next[rIdx].exercises[eIdx].name = e.target.value;
-                                                                setCustomRoutines(next);
-                                                            }}
-                                                            className="col-span-6 h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold focus-visible:outline-primary"
-                                                        />
+                                                        <div className="col-span-6">
+                                                            <ExerciseCombobox
+                                                                value={ex.name}
+                                                                onChange={(v) => {
+                                                                    const next = [...customRoutines];
+                                                                    next[rIdx].exercises[eIdx].name = v;
+                                                                    setCustomRoutines(next);
+                                                                }}
+                                                                placeholder="Exercise name"
+                                                                library={exerciseLibraryNames}
+                                                            />
+                                                        </div>
                                                         <input
                                                             type="number"
                                                             placeholder="Sets"
