@@ -1,7 +1,7 @@
 // app/tenants/[subdomain]/(staff)/schedule/scheduleClient.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,8 @@ import {
     Coffee,
     User,
     Check,
-    Lock
+    Lock,
+    Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,12 +25,13 @@ import { striveClientFetch } from "@/lib/api";
 
 interface ScheduleClientProps {
     subdomain: string;
+    tenantId: string;
     initialBookings: any[];
 }
 
 const HOURS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
-export default function ScheduleClient({ subdomain, initialBookings = [] }: ScheduleClientProps) {
+export default function ScheduleClient({ subdomain, tenantId, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
     const [currentDate, setCurrentDate] = useState<Date>(new Date(2026, 4, 8)); // May 8, 2026
@@ -44,6 +46,10 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
     const [selectedDateStr, setSelectedDateStr] = useState("2026-05-08");
     const [actionMode, setActionMode] = useState<"SESSION" | "BLOCK">("SESSION");
     
+    // Cancellation modal states
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+
     // Assign session states
     const [selectedMemberId, setSelectedMemberId] = useState("");
     const [sessionTitle, setSessionTitle] = useState("");
@@ -52,19 +58,18 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
     // Block time states
     const [blockReason, setBlockReason] = useState("");
 
-    // Bookings state
-    const [bookings, setBookings] = useState<any[]>([
-        { id: "b1", date: "2026-05-08", time: "07:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "DONE" },
-        { id: "b2", date: "2026-05-08", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "DONE" },
-        { id: "b3", date: "2026-05-08", time: "09:00", duration: 60, title: "Group HIIT (8 pax)", type: "CLASS", status: "DONE" },
-        { id: "b4", date: "2026-05-08", time: "11:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "NOW" },
-        { id: "b5", date: "2026-05-08", time: "14:00", duration: 60, title: "Sachini G. — PT", type: "PT", status: "SOON" },
-        { id: "b6", date: "2026-05-08", time: "15:00", duration: 60, title: "Core & Mobility", type: "CLASS", status: "SOON" },
-        { id: "b7", date: "2026-05-08", time: "17:00", duration: 60, title: "Ruwani J. — PT", type: "PT", status: "SOON" },
-        // Other days
-        { id: "b8", date: "2026-05-09", time: "09:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "SOON" },
-        { id: "b9", date: "2026-05-09", time: "10:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "SOON" },
-        { id: "b10", date: "2026-05-11", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "SOON" }
+    // Local static/mock bookings state (to overlay on top of database bookings)
+    const [localBookings, setLocalBookings] = useState<any[]>([
+        { id: "mock-1", date: "2026-05-08", time: "07:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "DONE" },
+        { id: "mock-2", date: "2026-05-08", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "DONE" },
+        { id: "mock-3", date: "2026-05-08", time: "09:00", duration: 60, title: "Group HIIT (8 pax)", type: "CLASS", status: "DONE" },
+        { id: "mock-4", date: "2026-05-08", time: "11:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "NOW" },
+        { id: "mock-5", date: "2026-05-08", time: "14:00", duration: 60, title: "Sachini G. — PT", type: "PT", status: "SOON" },
+        { id: "mock-6", date: "2026-05-08", time: "15:00", duration: 60, title: "Core & Mobility", type: "CLASS", status: "SOON" },
+        { id: "mock-7", date: "2026-05-08", time: "17:00", duration: 60, title: "Ruwani J. — PT", type: "PT", status: "SOON" },
+        { id: "mock-8", date: "2026-05-09", time: "09:00", duration: 60, title: "Amara Silva — PT", type: "PT", status: "SOON" },
+        { id: "mock-9", date: "2026-05-09", time: "10:00", duration: 60, title: "Kasun Mendis — PT", type: "PT", status: "SOON" },
+        { id: "mock-10", date: "2026-05-11", time: "08:00", duration: 60, title: "Dilshan Raj — PT", type: "PT", status: "SOON" }
     ]);
 
     // Blocked/OOO slots state
@@ -72,11 +77,85 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
         { id: "block-1", date: "2026-05-08", time: "16:00", title: "Equipment Maintenance" }
     ]);
 
+    // --- DB CONNECTIVITY: Resources Fetch & Auto-Provision ---
+    const { data: resources = [], isLoading: isLoadingResources, refetch: refetchResources } = useQuery<any[]>({
+        queryKey: ["scheduleResources", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/scheduling/resources", { tenantId });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const [isProvisioning, setIsProvisioning] = useState(false);
+    useEffect(() => {
+        if (!isLoadingResources && resources.length === 0 && !isProvisioning) {
+            setIsProvisioning(true);
+            striveClientFetch("/api/v1/scheduling/resources", {
+                method: "POST",
+                tenantId,
+                body: JSON.stringify({
+                    name: "Personal Trainer",
+                    type: "HUMAN",
+                    capacity: 1
+                })
+            }).then(() => {
+                refetchResources();
+            }).catch((err) => {
+                console.error("Auto resource provisioning failed:", err);
+            }).finally(() => {
+                setIsProvisioning(false);
+            });
+        }
+    }, [resources, isLoadingResources, isProvisioning, tenantId, refetchResources]);
+
+    // --- DB CONNECTIVITY: Bookings Fetch ---
+    const { data: dbBookings = [], refetch: refetchBookings } = useQuery<any[]>({
+        queryKey: ["scheduleBookings", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/scheduling/bookings", { tenantId });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    // Merge database bookings and local mock bookings
+    const bookings = useMemo(() => {
+        const mappedDb = dbBookings.map((b: any) => {
+            const start = new Date(b.startTime);
+            const end = new Date(b.endTime);
+            const dateStr = start.toISOString().split("T")[0];
+            const hourStr = start.toTimeString().split(" ")[0].slice(0, 5); // "HH:MM"
+            const durationMins = Math.round((end.getTime() - start.getTime()) / 60000);
+            
+            const memberName = b.membership?.user 
+                ? `${b.membership.user.firstName} ${b.membership.user.lastName}` 
+                : "Assigned Session";
+
+            return {
+                id: b.id,
+                date: dateStr,
+                time: hourStr,
+                duration: durationMins,
+                title: `${memberName} — PT`,
+                type: "PT",
+                status: "SOON"
+            };
+        });
+
+        // Avoid duplication if mock items share same slot
+        const filteredLocal = localBookings.filter(lb => 
+            !mappedDb.some(db => db.date === lb.date && db.time === lb.time)
+        );
+
+        return [...mappedDb, ...filteredLocal];
+    }, [dbBookings, localBookings]);
+
     // Fetch members list for session assignment
     const { data: members = [] } = useQuery<any[]>({
         queryKey: ["membersListSchedule", subdomain],
         queryFn: async () => {
-            const res = await striveClientFetch("/api/v1/members?role=MEMBER");
+            const res = await striveClientFetch("/api/v1/members?role=MEMBER", { tenantId });
             if (!res.ok) return [];
             return await res.json();
         }
@@ -151,7 +230,7 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
     const weekDates = useMemo(() => {
         const startOfWeek = new Date(currentDate);
         const day = startOfWeek.getDay();
-        const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
         startOfWeek.setDate(diff);
 
         return Array.from({ length: 7 }).map((_, idx) => {
@@ -191,7 +270,17 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
         setIsActionModalOpen(true);
     };
 
-    const handleConfirmAction = (e: React.FormEvent) => {
+    const handleSlotClick = (slot: any) => {
+        if (slot.status === "OPEN") {
+            handleOpenActionModal(slot.time, formattedDateString);
+        } else if (slot.type === "CLIENT") {
+            // Prompt cancellation modal
+            setSelectedBookingId(slot.id);
+            setIsCancelModalOpen(true);
+        }
+    };
+
+    const handleConfirmAction = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (actionMode === "SESSION") {
@@ -200,19 +289,57 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                 return;
             }
 
-            const title = sessionTitle || `${selectedMemberName} — PT (${sessionDuration}m)`;
-            const newBooking = {
-                id: `b-${Date.now()}`,
-                date: selectedDateStr,
-                time: selectedHour,
-                duration: Number(sessionDuration),
-                title,
-                type: "PT",
-                status: "SOON"
-            };
+            const resourceId = resources[0]?.id;
+            if (!resourceId) {
+                toast.error("No trainer resource provisioned. Please try again in a moment.");
+                return;
+            }
 
-            setBookings(prev => [...prev, newBooking]);
-            toast.success(`Assigned ${sessionDuration}min PT session for ${selectedMemberName} at ${selectedHour}.`);
+            const [h, m] = selectedHour.split(":").map(Number);
+            const startObj = new Date(selectedDateStr);
+            startObj.setHours(h, m, 0, 0);
+            const endObj = new Date(startObj.getTime() + Number(sessionDuration) * 60 * 1000);
+
+            try {
+                // If using a fallback mock member not in DB, create mock booking locally
+                if (selectedMemberId.startsWith("m-")) {
+                    const newMock = {
+                        id: `mock-${Date.now()}`,
+                        date: selectedDateStr,
+                        time: selectedHour,
+                        duration: Number(sessionDuration),
+                        title: `${selectedMemberName} — PT (${sessionDuration}m)`,
+                        type: "PT",
+                        status: "SOON"
+                    };
+                    setLocalBookings(prev => [...prev, newMock]);
+                    toast.success(`Local mock session assigned for ${selectedMemberName} at ${selectedHour}.`);
+                    setIsActionModalOpen(false);
+                    return;
+                }
+
+                // Call real PostgreSQL scheduling mutation
+                const res = await striveClientFetch("/api/v1/scheduling/bookings", {
+                    method: "POST",
+                    tenantId,
+                    body: JSON.stringify({
+                        resourceId,
+                        membershipId: selectedMemberId,
+                        startTime: startObj.toISOString(),
+                        endTime: endObj.toISOString()
+                    })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.message || "Failed to book: slot overlap detected.");
+                }
+
+                toast.success(`Assigned session for ${selectedMemberName} at ${selectedHour} on Strive DB.`);
+                refetchBookings();
+            } catch (err: any) {
+                toast.error(err.message || "Failed to schedule session.");
+            }
         } else {
             const newBlock = {
                 id: `block-${Date.now()}`,
@@ -231,13 +358,41 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
         setBlockReason("");
     };
 
+    const handleCancelBooking = async () => {
+        if (!selectedBookingId) return;
+
+        if (selectedBookingId.startsWith("mock-")) {
+            setLocalBookings(prev => prev.filter(b => b.id !== selectedBookingId));
+            toast.success("Mock session booking released.");
+            setIsCancelModalOpen(false);
+            setSelectedBookingId(null);
+            return;
+        }
+
+        try {
+            const res = await striveClientFetch(`/api/v1/scheduling/bookings/${selectedBookingId}`, {
+                method: "DELETE",
+                tenantId
+            });
+
+            if (!res.ok) throw new Error("Could not cancel session on database.");
+            
+            toast.success("Session successfully cancelled and released from ledger.");
+            refetchBookings();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to cancel reservation.");
+        } finally {
+            setIsCancelModalOpen(false);
+            setSelectedBookingId(null);
+        }
+    };
+
     const handleSaveLunchSettings = (e: React.FormEvent) => {
         e.preventDefault();
         toast.success(`Lunch break updated to ${lunchStart} on your personal profile.`);
         setIsLunchModalOpen(false);
     };
 
-    // Navigation triggers
     const adjustDate = (days: number) => {
         const next = new Date(currentDate);
         next.setDate(currentDate.getDate() + days);
@@ -342,16 +497,15 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                 const isDone = slot.status === "DONE";
                                 const isBreak = slot.status === "BREAK";
                                 const isOoo = slot.status === "OOO";
+                                const isPT = slot.type === "CLIENT";
 
                                 return (
                                     <div
                                         key={slot.id}
-                                        onClick={() => {
-                                            if (isOpen) handleOpenActionModal(slot.time, formattedDateString);
-                                        }}
+                                        onClick={() => handleSlotClick(slot)}
                                         className={cn(
                                             "flex items-center justify-between p-4 rounded-xl border transition-all bg-card/25 border-border",
-                                            isOpen && "opacity-70 hover:opacity-100 cursor-pointer hover:border-primary/30",
+                                            (isOpen || isPT) && "opacity-75 hover:opacity-100 cursor-pointer hover:border-primary/30",
                                             isNow && "border-primary bg-primary/5 ring-1 ring-primary/20",
                                             isSoon && "border-border hover:border-primary/20",
                                             isDone && "opacity-45 hover:opacity-75",
@@ -429,12 +583,17 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                                         <div
                                                             key={dIdx}
                                                             onClick={() => {
-                                                                if (!booking && !block && !isLunch) handleOpenActionModal(hour, dateStr);
+                                                                if (booking && booking.type !== "CLASS") {
+                                                                    setSelectedBookingId(booking.id);
+                                                                    setIsCancelModalOpen(true);
+                                                                } else if (!booking && !block && !isLunch) {
+                                                                    handleOpenActionModal(hour, dateStr);
+                                                                }
                                                             }}
                                                             className={cn(
                                                                 "p-2 border-r border-border last:border-r-0 min-h-[50px] relative transition-all text-left text-xs flex flex-col justify-between group",
                                                                 !booking && !block && !isLunch && "hover:bg-accent/40 cursor-pointer",
-                                                                booking && "bg-primary/5 border-l-2 border-l-primary",
+                                                                booking && "bg-primary/5 border-l-2 border-l-primary cursor-pointer hover:bg-primary/10",
                                                                 block && "bg-destructive/5 border-l-2 border-l-destructive",
                                                                 isLunch && "bg-muted/40"
                                                             )}
@@ -480,7 +639,6 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                               </div>
                               <div className="grid grid-cols-7 grid-rows-5 gap-1.5 mt-2">
                                   {Array.from({ length: 35 }).map((_, idx) => {
-                                      // Creating a dynamic offset grid for May 2026 (May 1 starts on Friday = index 5)
                                       const dayNum = idx - 4; 
                                       const isWithinMonth = dayNum > 0 && dayNum <= 31;
                                       const dateStr = `2026-05-${dayNum < 10 ? `0${dayNum}` : dayNum}`;
@@ -744,6 +902,48 @@ export default function ScheduleClient({ subdomain, initialBookings = [] }: Sche
                                 </Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. Booking Cancellation Confirmation Modal */}
+            {isCancelModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-card border border-border w-full max-w-sm rounded-2xl p-6 relative shadow-2xl space-y-4 animate-in zoom-in-95 duration-200 text-left">
+                        <button
+                            onClick={() => {
+                                setIsCancelModalOpen(false);
+                                setSelectedBookingId(null);
+                            }}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground rounded-xl p-1.5 hover:bg-accent/50 transition-all"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="space-y-1">
+                            <h3 className="font-extrabold text-foreground text-base tracking-tight text-destructive">Release Reservation</h3>
+                            <p className="text-[11px] text-muted-foreground font-medium">Are you sure you want to cancel and delete this session booking?</p>
+                        </div>
+
+                        <div className="pt-2 flex gap-3">
+                            <Button 
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                    setIsCancelModalOpen(false);
+                                    setSelectedBookingId(null);
+                                }}
+                                className="flex-1 text-muted-foreground hover:text-foreground text-xs font-bold h-10 rounded-xl"
+                            >
+                                Keep Session
+                            </Button>
+                            <Button 
+                                onClick={handleCancelBooking}
+                                className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold h-10 rounded-xl gap-1.5"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" /> Cancel booking
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

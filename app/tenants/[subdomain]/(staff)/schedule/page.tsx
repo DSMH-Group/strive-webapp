@@ -64,6 +64,7 @@ export default async function TrainerSchedulePage({
     return (
         <ScheduleClient
             subdomain={subdomain}
+            tenantId={tenantId}
             initialBookings={initialBookings}
         />
     );
