@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import Link from "next/link";
 import { useForm, useFieldArray, Controller, type UseFormRegister, type Control } from "react-hook-form";
 import {
     Reorder,
@@ -147,7 +148,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
     });
 
     const sessionTemplatesMap = useMemo(() => {
-        const merged: Record<string, { name: string; sets: number }[]> = { ...SESSION_TEMPLATES };
+        const merged: Record<string, { name: string; sets: number }[]> = {};
         
         dbTemplates.forEach((tpl: any) => {
             let exercisesList: any[] = [];
@@ -174,14 +175,37 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
         useForm<LogFormValues>({
             defaultValues: {
                 memberId: clients[0]?.id ?? "",
-                sessionType: SESSION_TYPES[0],
+                sessionType: "",
                 date: new Date().toISOString().slice(0, 10),
-                exercises: templateToExercises(SESSION_TYPES[0]),
+                exercises: [],
             },
         });
 
     const selectedMemberId = watch("memberId");
+    const selectedSessionType = watch("sessionType");
     const { fields, append, remove, replace } = useFieldArray({ control, name: "exercises" });
+
+    // Set initial sessionType once templates finish loading
+    useEffect(() => {
+        const currentType = getValues("sessionType");
+        if (!currentType && sessionTypes.length > 0) {
+            setValue("sessionType", sessionTypes[0]);
+        }
+    }, [sessionTypes, getValues, setValue]);
+
+    // Automatically load exercises when sessionType updates
+    const lastSessionTypeRef = useRef("");
+    useEffect(() => {
+        if (!selectedSessionType || selectedSessionType === "CUSTOM") return;
+        if (selectedSessionType === lastSessionTypeRef.current) return;
+        lastSessionTypeRef.current = selectedSessionType;
+        
+        const template = sessionTemplatesMap[selectedSessionType];
+        if (template && template.length > 0) {
+            const next = template.map((t: any) => buildExerciseFromTemplate(t.name, t.sets));
+            replace(next);
+        }
+    }, [selectedSessionType, sessionTemplatesMap, replace]);
 
     // Filter sessions matching selected client
     const memberBookings = useMemo(() => {
@@ -261,18 +285,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
         [fields, remove]
     );
 
-    const handleApplyTemplate = useCallback(() => {
-        const type = getValues("sessionType");
-        const template = sessionTemplatesMap[type];
-        if (!template || template.length === 0) {
-            toast.error("No template defined for this session type.");
-            return;
-        }
-        
-        const next = template.map((t: any) => buildExerciseFromTemplate(t.name, t.sets));
-        replace(next);
-        toast.success(`Loaded the ${type} template.`);
-    }, [getValues, replace, sessionTemplatesMap]);
+
 
     const buildPayload = (values: LogFormValues) => {
         const ordered = order
@@ -460,13 +473,12 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                         Session type
                                     </Label>
-                                    <button
-                                        type="button"
-                                        onClick={handleApplyTemplate}
-                                        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary transition-opacity hover:opacity-80"
+                                    <Link
+                                        href={`/tenants/${subdomain}/settings?view=TEMPLATES`}
+                                        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary transition-opacity hover:opacity-80 font-semibold"
                                     >
-                                        <Sparkles className="h-3 w-3" /> Template
-                                    </button>
+                                        <Sparkles className="h-3 w-3" /> Manage Templates
+                                    </Link>
                                 </div>
                                 <Controller
                                     control={control}
