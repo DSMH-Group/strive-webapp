@@ -209,9 +209,78 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
         return currentDate.toISOString().split("T")[0];
     }, [currentDate]);
 
-    // Today's timeline slots
+    // Query the active tenant config (which has operating hours / closed holidays)
+    const { data: tenantConfig } = useQuery({
+        queryKey: ["tenantConfig", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch(`/api/v1/tenants/${tenantId}`);
+            if (!res.ok) return null;
+            return res.json();
+        },
+        enabled: !!tenantId
+    });
+
+    const dayOfWeek = useMemo(() => {
+        return currentDate.toLocaleDateString("en-US", { weekday: "long" });
+    }, [currentDate]);
+
+    // Check if current day is in closed dates / holidays
+    const closedDateConfig = useMemo(() => {
+        const rules = tenantConfig?.businessRules as any;
+        const closedList = rules?.closedDates as { date: string; reason: string }[];
+        if (!closedList || !Array.isArray(closedList)) return null;
+        return closedList.find(d => d.date === formattedDateString);
+    }, [tenantConfig, formattedDateString]);
+
+    // Check if current day is closed weekly
+    const isWeeklyClosed = useMemo(() => {
+        const rules = tenantConfig?.businessRules as any;
+        const hoursConfig = rules?.operatingHours as any[];
+        if (!hoursConfig || !Array.isArray(hoursConfig)) return false;
+
+        const dayConfig = hoursConfig.find(d => d.day.toLowerCase() === dayOfWeek.toLowerCase());
+        return dayConfig && !dayConfig.active;
+    }, [tenantConfig, dayOfWeek]);
+
+    const isFacilityClosed = !!closedDateConfig || isWeeklyClosed;
+
+    // Generate dynamic hours list for DAY view and time selectors
+    const dynamicHours = useMemo(() => {
+        const rules = tenantConfig?.businessRules as any;
+        const hoursConfig = rules?.operatingHours as any[];
+        
+        if (!hoursConfig || !Array.isArray(hoursConfig)) {
+            return HOURS; // fallback to default
+        }
+
+        const dayConfig = hoursConfig.find(d => d.day.toLowerCase() === dayOfWeek.toLowerCase());
+        if (!dayConfig || !dayConfig.active) {
+            return []; // closed today
+        }
+
+        // Generate hourly slots between open and close
+        // e.g. open "06:00", close "21:00"
+        try {
+            const [openH] = dayConfig.open.split(":").map(Number);
+            const [closeH] = dayConfig.close.split(":").map(Number);
+            
+            const list = [];
+            for (let h = openH; h < closeH; h++) {
+                const timeStr = `${String(h).padStart(2, "0")}:00`;
+                list.push(timeStr);
+            }
+            return list;
+        } catch (e) {
+            return HOURS; // fallback
+        }
+    }, [tenantConfig, dayOfWeek]);
+
+    // Today's timeline slots mapping dynamicHours
     const daySlots = useMemo(() => {
-        return HOURS.map((hour) => {
+        if (isFacilityClosed) {
+            return [];
+        }
+        return dynamicHours.map((hour) => {
             const booking = bookings.find(b => b.date === formattedDateString && b.time === hour);
             const block = blocks.find(bl => bl.date === formattedDateString && bl.time === hour);
             const isLunch = hour === lunchStart;
@@ -252,7 +321,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                 status: "OPEN"
             };
         });
-    }, [bookings, blocks, formattedDateString, lunchStart]);
+    }, [bookings, blocks, formattedDateString, lunchStart, dynamicHours, isFacilityClosed]);
 
     // Week dates calculator
     const weekDates = useMemo(() => {
@@ -528,9 +597,9 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                         {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric", ...(view === "DAY" && { day: "numeric" }) })}
                     </span>
                 </div>
-                {view === "DAY" && (
+                {view === "DAY" && !isFacilityClosed && (
                     <Button
-                        onClick={() => handleOpenActionModal("10:00", formattedDateString)}
+                        onClick={() => handleOpenActionModal(dynamicHours[0] || "10:00", formattedDateString)}
                         className="bg-primary hover:bg-primary/95 text-primary-foreground h-9 text-xs font-bold gap-1.5 px-4 rounded-xl shadow-sm"
                     >
                         <Plus className="w-3.5 h-3.5" /> Book / Block
@@ -546,71 +615,87 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                     
                     {/* 1. DAY VIEW */}
                     {view === "DAY" && (
-                        <div className="space-y-2.5">
-                            {daySlots.map((slot) => {
-                                const isOpen = slot.status === "OPEN";
-                                const isNow = slot.status === "NOW";
-                                const isSoon = slot.status === "SOON";
-                                const isDone = slot.status === "DONE";
-                                const isBreak = slot.status === "BREAK";
-                                const isOoo = slot.status === "OOO";
-                                const isPT = slot.type === "CLIENT";
+                        isFacilityClosed ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-card/25 border border-border/80 rounded-2xl p-8 backdrop-blur-md relative overflow-hidden">
+                                <div className="w-16 h-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive">
+                                    <Clock className="w-8 h-8 animate-pulse" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-extrabold text-foreground uppercase tracking-tight">Facility Closed Today</h3>
+                                    <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-normal">
+                                        {closedDateConfig 
+                                            ? `Reason: ${closedDateConfig.reason}` 
+                                            : `This facility is closed to bookings and check-ins on ${dayOfWeek}s.`}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-2.5">
+                                {daySlots.map((slot) => {
+                                    const isOpen = slot.status === "OPEN";
+                                    const isNow = slot.status === "NOW";
+                                    const isSoon = slot.status === "SOON";
+                                    const isDone = slot.status === "DONE";
+                                    const isBreak = slot.status === "BREAK";
+                                    const isOoo = slot.status === "OOO";
+                                    const isPT = slot.type === "CLIENT";
 
-                                return (
-                                    <div
-                                        key={slot.id}
-                                        onClick={() => handleSlotClick(slot)}
-                                        className={cn(
-                                            "flex items-center justify-between p-4 rounded-xl border transition-all bg-card/25 border-border",
-                                            (isOpen || isPT || isOoo) && "opacity-75 hover:opacity-100 cursor-pointer hover:border-primary/30",
-                                            isNow && "border-primary bg-primary/5 ring-1 ring-primary/20",
-                                            isSoon && "border-border hover:border-primary/20",
-                                            isDone && "opacity-45 hover:opacity-75",
-                                            isBreak && "bg-muted/40 opacity-55 cursor-default",
-                                            isOoo && "bg-destructive/5 border-destructive/20 opacity-85"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-4 min-w-0">
-                                            <span className="font-mono text-xs font-black text-muted-foreground/60 w-10 shrink-0">
-                                                {slot.time}
-                                            </span>
-                                            <div className="flex flex-col text-left min-w-0">
-                                                <span className={cn(
-                                                    "text-sm font-bold truncate",
-                                                    isOpen ? "text-muted-foreground/75 font-semibold italic" : "text-foreground"
-                                                )}>
-                                                    {slot.title}
+                                    return (
+                                        <div
+                                            key={slot.id}
+                                            onClick={() => handleSlotClick(slot)}
+                                            className={cn(
+                                                "flex items-center justify-between p-4 rounded-xl border transition-all bg-card/25 border-border",
+                                                (isOpen || isPT || isOoo) && "opacity-75 hover:opacity-100 cursor-pointer hover:border-primary/30",
+                                                isNow && "border-primary bg-primary/5 ring-1 ring-primary/20",
+                                                isSoon && "border-border hover:border-primary/20",
+                                                isDone && "opacity-45 hover:opacity-75",
+                                                isBreak && "bg-muted/40 opacity-55 cursor-default",
+                                                isOoo && "bg-destructive/5 border-destructive/20 opacity-85"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                <span className="font-mono text-xs font-black text-muted-foreground/60 w-10 shrink-0">
+                                                    {slot.time}
                                                 </span>
-                                                {slot.clientEmail && (
-                                                    <span className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">{slot.clientEmail}</span>
+                                                <div className="flex flex-col text-left min-w-0">
+                                                    <span className={cn(
+                                                        "text-sm font-bold truncate",
+                                                        isOpen ? "text-muted-foreground/75 font-semibold italic" : "text-foreground"
+                                                    )}>
+                                                        {slot.title}
+                                                    </span>
+                                                    {slot.clientEmail && (
+                                                        <span className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">{slot.clientEmail}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 shrink-0 pl-2">
+                                                {isOpen && (
+                                                    <span className="text-[9px] font-black uppercase text-primary tracking-widest border border-primary/20 px-2 py-0.5 bg-primary/5 rounded-sm">Quick Add</span>
+                                                )}
+                                                {isNow && (
+                                                    <span className="text-[10px] font-extrabold text-primary uppercase tracking-tight animate-pulse bg-primary/10 px-2.5 py-0.5 rounded-sm border border-primary/20">Active</span>
+                                                )}
+                                                {isSoon && (
+                                                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tight bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded-sm">Upcoming</span>
+                                                )}
+                                                {isDone && (
+                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Complete</span>
+                                                )}
+                                                {isBreak && (
+                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight bg-background px-2 py-0.5 border border-border rounded-sm">Break</span>
+                                                )}
+                                                {isOoo && (
+                                                    <span className="text-[10px] font-bold text-destructive uppercase tracking-tight bg-destructive/10 px-2 py-0.5 border border-destructive/20 rounded-sm">Blocked</span>
                                                 )}
                                             </div>
                                         </div>
-
-                                        <div className="flex items-center gap-3 shrink-0 pl-2">
-                                            {isOpen && (
-                                                <span className="text-[9px] font-black uppercase text-primary tracking-widest border border-primary/20 px-2 py-0.5 bg-primary/5 rounded-sm">Quick Add</span>
-                                            )}
-                                            {isNow && (
-                                                <span className="text-[10px] font-extrabold text-primary uppercase tracking-tight animate-pulse bg-primary/10 px-2.5 py-0.5 rounded-sm border border-primary/20">Active</span>
-                                            )}
-                                            {isSoon && (
-                                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tight bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded-sm">Upcoming</span>
-                                            )}
-                                            {isDone && (
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Complete</span>
-                                            )}
-                                            {isBreak && (
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight bg-background px-2 py-0.5 border border-border rounded-sm">Break</span>
-                                            )}
-                                            {isOoo && (
-                                                <span className="text-[10px] font-bold text-destructive uppercase tracking-tight bg-destructive/10 px-2 py-0.5 border border-destructive/20 rounded-sm">Blocked</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        )
                     )}
 
                     {/* 2. WEEK VIEW */}
@@ -640,6 +725,43 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                                     const booking = bookings.find(b => b.date === dateStr && b.time === hour);
                                                     const block = blocks.find(bl => bl.date === dateStr && bl.time === hour);
                                                     const isLunch = hour === lunchStart;
+
+                                                    // Calculate if the cell falls outside operating hours or is a holiday
+                                                    const dayOfWeekName = day.toLocaleDateString("en-US", { weekday: "long" });
+                                                    const weekDayConfig = (tenantConfig?.businessRules?.operatingHours || []).find(
+                                                        (oh: any) => oh.day.toLowerCase() === dayOfWeekName.toLowerCase()
+                                                    );
+                                                    const isDayHoliday = (tenantConfig?.businessRules?.closedDates || []).some(
+                                                        (d: any) => d.date === dateStr
+                                                    );
+                                                    const isWeekDayInactive = weekDayConfig && !weekDayConfig.active;
+                                                    
+                                                    let isHourOutOfRange = false;
+                                                    if (weekDayConfig && weekDayConfig.active) {
+                                                        try {
+                                                            const [openH] = weekDayConfig.open.split(":").map(Number);
+                                                            const [closeH] = weekDayConfig.close.split(":").map(Number);
+                                                            const [hourNum] = hour.split(":").map(Number);
+                                                            if (hourNum < openH || hourNum >= closeH) {
+                                                                isHourOutOfRange = true;
+                                                            }
+                                                        } catch (e) {
+                                                            // ignore
+                                                        }
+                                                    }
+                                                    
+                                                    const isCellClosed = isDayHoliday || isWeekDayInactive || isHourOutOfRange;
+
+                                                    if (isCellClosed) {
+                                                        return (
+                                                            <div
+                                                                key={dIdx}
+                                                                className="p-2 border-r border-border last:border-r-0 min-h-[50px] bg-muted/10 opacity-35 cursor-not-allowed flex items-center justify-center text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest font-mono"
+                                                            >
+                                                                Closed
+                                                            </div>
+                                                        );
+                                                    }
 
                                                     return (
                                                         <div
@@ -897,7 +1019,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                         onChange={(e) => setSelectedHour(e.target.value)}
                                         className="w-full bg-background border border-border rounded-xl h-10 px-3 text-xs text-foreground focus:ring-1 focus:ring-primary/20 outline-none"
                                     >
-                                        {HOURS.map((hr) => (
+                                        {(dynamicHours.length > 0 ? dynamicHours : HOURS).map((hr) => (
                                             <option key={hr} value={hr}>{hr}</option>
                                         ))}
                                     </select>

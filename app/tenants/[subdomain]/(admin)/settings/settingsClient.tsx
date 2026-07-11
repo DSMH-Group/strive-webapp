@@ -22,9 +22,13 @@ import {
     ShieldCheck,
     Users2,
     Sparkles,
-    ClipboardList
+    ClipboardList,
+    Plus,
+    Trash2
 } from "lucide-react";
 import {toast} from "sonner";
+import {useQuery, useMutation} from "@tanstack/react-query";
+import {striveClientFetch} from "@/lib/api";
 import {cn} from "@/lib/utils";
 import {MembershipPlans} from "@/components/tenant/admin/settings/MembershipPlans";
 import {GymProfile} from "@/components/tenant/admin/settings/GymProfile";
@@ -66,7 +70,104 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
         router.push(url.pathname + url.search);
     };
 
-    // --- Mock State Ingestion Framework (For remaining non-integrated tabs) ---
+    // --- Real Database Configurations ---
+    const { data: tenantConfig, isLoading: isConfigLoading, refetch: refetchConfig } = useQuery({
+        queryKey: ["tenantConfig", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch(`/api/v1/tenants/${tenantId}`);
+            if (!res.ok) throw new Error("Failed to load settings configuration.");
+            return res.json();
+        },
+        enabled: !!tenantId
+    });
+
+    const [operatingHours, setOperatingHours] = useState([
+        {day: "Monday", open: "06:00", close: "21:00", active: true},
+        {day: "Tuesday", open: "06:00", close: "21:00", active: true},
+        {day: "Wednesday", open: "06:00", close: "21:00", active: true},
+        {day: "Thursday", open: "06:00", close: "21:00", active: true},
+        {day: "Friday", open: "06:00", close: "21:00", active: true},
+        {day: "Saturday", open: "07:00", close: "18:00", active: true},
+        {day: "Sunday", open: "00:00", close: "00:00", active: false},
+    ]);
+    const [closedDates, setClosedDates] = useState<{ date: string; reason: string }[]>([]);
+
+    React.useEffect(() => {
+        if (tenantConfig?.businessRules) {
+            const rules = tenantConfig.businessRules as any;
+            if (rules.operatingHours && Array.isArray(rules.operatingHours)) {
+                setOperatingHours(rules.operatingHours);
+            }
+            if (rules.closedDates && Array.isArray(rules.closedDates)) {
+                setClosedDates(rules.closedDates);
+            }
+        }
+    }, [tenantConfig]);
+
+    const saveConfigMutation = useMutation({
+        mutationFn: async (updatedBusinessRules: any) => {
+            const res = await striveClientFetch(`/api/v1/tenants`, {
+                method: "PATCH",
+                headers: {
+                    "X-Tenant-ID": tenantId,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    businessRules: {
+                        ...(tenantConfig?.businessRules as any || {}),
+                        ...updatedBusinessRules
+                    }
+                })
+            });
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Failed to update configuration.");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Ecosystem operating parameters persisted successfully!");
+            refetchConfig();
+            setCurrentView("MENU");
+        },
+        onError: (err: any) => {
+            toast.error(`Configuration sync failed: ${err.message}`);
+        }
+    });
+
+    const handleSaveOperatingHours = () => {
+        saveConfigMutation.mutate({
+            operatingHours,
+            closedDates
+        });
+    };
+
+    const [newHolidayDate, setNewHolidayDate] = useState("");
+    const [newHolidayReason, setNewHolidayReason] = useState("");
+
+    const handleAddHoliday = (e: React.FormEvent) => {
+        e.preventDefault();
+        const dateStr = newHolidayDate.trim();
+        const reasonStr = newHolidayReason.trim() || "Closed / Public Holiday";
+        if (!dateStr) {
+            toast.error("Please specify a valid calendar date.");
+            return;
+        }
+        if (closedDates.some(d => d.date === dateStr)) {
+            toast.error("This calendar date is already configured as closed.");
+            return;
+        }
+        setClosedDates(prev => [...prev, { date: dateStr, reason: reasonStr }].sort((a,b) => a.date.localeCompare(b.date)));
+        setNewHolidayDate("");
+        setNewHolidayReason("");
+        toast.success(`Marked ${dateStr} as closed in local state workspace.`);
+    };
+
+    const handleRemoveHoliday = (dateToRemove: string) => {
+        setClosedDates(prev => prev.filter(d => d.date !== dateToRemove));
+        toast.success(`Removed holiday closed configuration for ${dateToRemove}.`);
+    };
+
     const [rules, setRules] = useState({
         gracePeriod: 5, lowTokenAlert: 2, checkInWindow: 15, defaultSession: 60, cancellationNotice: 24
     });
@@ -78,15 +179,6 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
         sessionLog: false,
         checkInAlert: false
     });
-    const [operatingHours, setOperatingHours] = useState([
-        {day: "Monday", open: "06:00", close: "21:00", active: true},
-        {day: "Tuesday", open: "06:00", close: "21:00", active: true},
-        {day: "Wednesday", open: "06:00", close: "21:00", active: true},
-        {day: "Thursday", open: "06:00", close: "21:00", active: true},
-        {day: "Friday", open: "06:00", close: "21:00", active: true},
-        {day: "Saturday", open: "07:00", close: "18:00", active: true},
-        {day: "Sunday", open: "00:00", close: "00:00", active: false},
-    ]);
     const [accessControl, setAccessControl] = useState({
         selfCheckIn: true, trainerConfirms: false, memberCancellations: true, seeClassRoster: false, seeRevenue: false
     });
@@ -304,44 +396,111 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
                     <SectionHeader title="Operating Hours"
                                    desc="Days and times the gym facility environment is open to receive check-ins"/>
                     <Card className="bg-card/30 border-border rounded-lg p-6">
-                        <div className="space-y-3.5">
-                            {operatingHours.map((sched, idx) => (
-                                <div key={sched.day}
-                                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-background/40 border border-border rounded-md">
-                                    <div className="flex items-center gap-4 w-32">
-                                        <Switch checked={sched.active} onCheckedChange={(v) => {
-                                            const updated = [...operatingHours];
-                                            updated[idx].active = v;
-                                            setOperatingHours(updated);
-                                        }}/>
-                                        <span
-                                            className={cn("text-xs font-bold", sched.active ? "text-foreground" : "text-muted-foreground line-through")}>{sched.day}</span>
-                                    </div>
-                                    {sched.active ? (
-                                        <div
-                                            className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                                            <Input type="text" value={sched.open} onChange={(e) => {
-                                                const updated = [...operatingHours];
-                                                updated[idx].open = e.target.value;
-                                                setOperatingHours(updated);
-                                            }}
-                                                   className="w-20 bg-background border-border h-8 text-center rounded-sm text-xs"/>
-                                            <span>to</span>
-                                            <Input type="text" value={sched.close} onChange={(e) => {
-                                                const updated = [...operatingHours];
-                                                updated[idx].close = e.target.value;
-                                                setOperatingHours(updated);
-                                            }}
-                                                   className="w-20 bg-background border-border h-8 text-center rounded-sm text-xs"/>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            {/* Left block: Weekly schedule */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border pb-2">Weekly Schedule</h3>
+                                <div className="space-y-3">
+                                    {operatingHours.map((sched, idx) => (
+                                        <div key={sched.day}
+                                             className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-background/40 border border-border rounded-md">
+                                            <div className="flex items-center gap-4 w-32">
+                                                <Switch checked={sched.active} onCheckedChange={(v) => {
+                                                    const updated = [...operatingHours];
+                                                    updated[idx].active = v;
+                                                    setOperatingHours(updated);
+                                                }}/>
+                                                <span
+                                                    className={cn("text-xs font-bold", sched.active ? "text-foreground" : "text-muted-foreground line-through")}>{sched.day}</span>
+                                            </div>
+                                            {sched.active ? (
+                                                <div
+                                                    className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                                                    <Input type="text" value={sched.open} onChange={(e) => {
+                                                        const updated = [...operatingHours];
+                                                        updated[idx].open = e.target.value;
+                                                        setOperatingHours(updated);
+                                                    }}
+                                                           className="w-20 bg-background border-border h-8 text-center rounded-sm text-xs"/>
+                                                    <span>to</span>
+                                                    <Input type="text" value={sched.close} onChange={(e) => {
+                                                        const updated = [...operatingHours];
+                                                        updated[idx].close = e.target.value;
+                                                        setOperatingHours(updated);
+                                                    }}
+                                                           className="w-20 bg-background border-border h-8 text-center rounded-sm text-xs"/>
+                                                </div>
+                                            ) : (
+                                                <span
+                                                    className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-background/50 px-2.5 py-1 rounded-sm border border-border">Closed</span>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <span
-                                            className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-background/50 px-2.5 py-1 rounded-sm border border-border">Closed</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Right block: Holidays closed dates */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-border pb-2">Closed Holidays & Custom Dates</h3>
+                                
+                                {/* Add Holiday form */}
+                                <form onSubmit={handleAddHoliday} className="p-4 bg-background/30 border border-border rounded-md space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Date</Label>
+                                            <Input 
+                                                type="date" 
+                                                value={newHolidayDate}
+                                                onChange={(e) => setNewHolidayDate(e.target.value)}
+                                                className="bg-background border-border h-8 text-xs rounded-sm"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Reason</Label>
+                                            <Input 
+                                                type="text" 
+                                                placeholder="e.g. Christmas Day"
+                                                value={newHolidayReason}
+                                                onChange={(e) => setNewHolidayReason(e.target.value)}
+                                                className="bg-background border-border h-8 text-xs rounded-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button type="submit" variant="outline" size="sm" className="w-full text-xs font-bold h-8 border-primary/30 text-primary hover:bg-primary/5 rounded">
+                                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Closed Date
+                                    </Button>
+                                </form>
+
+                                {/* List of Holidays */}
+                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                    {closedDates.map((item) => (
+                                        <div key={item.date} className="flex items-center justify-between p-3 bg-background/40 border border-border/80 rounded-md">
+                                            <div className="space-y-0.5">
+                                                <p className="font-mono text-xs font-bold text-foreground">{item.date}</p>
+                                                <p className="text-[10px] text-muted-foreground">{item.reason}</p>
+                                            </div>
+                                            <Button 
+                                                type="button"
+                                                onClick={() => handleRemoveHoliday(item.date)}
+                                                variant="ghost" 
+                                                size="sm" 
+                                                className="h-8 w-8 text-muted-foreground hover:text-destructive p-0 rounded-sm"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    
+                                    {closedDates.length === 0 && (
+                                        <p className="text-xs text-muted-foreground text-center py-8 bg-background/10 border border-dashed border-border rounded-md">
+                                            No special holiday closures configured.
+                                        </p>
                                     )}
                                 </div>
-                            ))}
+                            </div>
                         </div>
-                        <SaveButton onClick={() => handleSaveChangesMock("Ingress Access Windows")}/>
+                        <SaveButton onClick={handleSaveOperatingHours} isLoading={saveConfigMutation.isPending}/>
                     </Card>
                 </div>
             )}
