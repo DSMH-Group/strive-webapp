@@ -64,6 +64,7 @@ export default async function TrainerLogPage({
     return (
         <LogClient
             subdomain={subdomain}
+            tenantId={tenantId}
             assignedClients={assignedClients}
         />
     );
