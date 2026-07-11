@@ -2,6 +2,7 @@
 "use client";
 
 import React, {useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -45,7 +46,19 @@ type SettingsView =
     | "TAX_GATEWAY";
 
 export default function SettingsClient({subdomain, tenantId}: SettingsClientProps) {
-    const [currentView, setCurrentView] = useState<SettingsView>("MENU");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const currentView = (searchParams.get("view") || "MENU") as SettingsView;
+
+    const setCurrentView = (newView: SettingsView) => {
+        const url = new URL(window.location.href);
+        if (newView === "MENU") {
+            url.searchParams.delete("view");
+        } else {
+            url.searchParams.set("view", newView);
+        }
+        router.push(url.pathname + url.search);
+    };
 
     // --- Mock State Ingestion Framework (For remaining non-integrated tabs) ---
     const [rules, setRules] = useState({

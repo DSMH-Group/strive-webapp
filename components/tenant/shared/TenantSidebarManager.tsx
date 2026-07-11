@@ -2,7 +2,7 @@
 
 import React, {useState} from "react";
 import Link from "next/link";
-import {usePathname, useRouter} from "next/navigation";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useQuery} from "@tanstack/react-query";
 import {authClient} from "@/lib/auth-client";
 import {striveClientFetch} from "@/lib/api";
@@ -60,8 +60,8 @@ const generateSidebarConfig = (roles: string[], baseUrl: string, badgeCounts: an
             items: [
                 {icon: <LayoutDashboard size={16}/>, label: "Console", href: `${baseUrl}/console`, matchExact: true},
                 {icon: <Users size={16}/>, label: "Members", href: `${baseUrl}/members`},
-                {icon: <Users size={16}/>, label: "Invites", href: `${baseUrl}/invites`},
-                {icon: <BarChart3 size={16}/>, label: "Reports", href: `${baseUrl}/reports`},
+                {icon: <Users size={16}/>, label: "Invites", href: `${baseUrl}/invites`, badge: badgeCounts?.invites},
+                {icon: <BarChart3 size={16}/>, label: "Reports", href: `${baseUrl}/reports`, badge: badgeCounts?.reports},
                 {icon: <Settings size={16}/>, label: "Settings", href: `${baseUrl}/settings`},
             ]
         });
@@ -129,6 +129,55 @@ export function TenantSidebarManager({tenantId, config}: SidebarManagerProps) {
         }
     });
 
+    // 🚀 Fetch live counts for badges
+    const {data: sidebarCounts} = useQuery({
+        queryKey: ["sidebarStatsCounts", tenantId],
+        queryFn: async () => {
+            try {
+                const [invitesRes, invoicesRes, membersRes, bookingsRes] = await Promise.all([
+                    striveClientFetch("/api/v1/members/invites", { method: "GET", tenantId }),
+                    striveClientFetch("/api/v1/billing/invoices", { method: "GET", tenantId }),
+                    striveClientFetch("/api/v1/members?role=MEMBER", { method: "GET", tenantId }),
+                    striveClientFetch("/api/v1/scheduling/bookings", { method: "GET", tenantId })
+                ]);
+                
+                const invites = invitesRes.ok ? await invitesRes.json() : [];
+                const invoices = invoicesRes.ok ? await invoicesRes.json() : [];
+                const members = membersRes.ok ? await membersRes.json() : [];
+                const bookings = bookingsRes.ok ? await bookingsRes.json() : [];
+                
+                const activeInvitesCount = Array.isArray(invites) ? invites.length : 0;
+                
+                const pendingReconciliationsCount = Array.isArray(invoices)
+                    ? invoices.filter((inv: any) => inv.status === "PENDING" || inv.status === "OVERDUE").length
+                    : 0;
+                    
+                const pendingGraceClientsCount = Array.isArray(members)
+                    ? members.filter((m: any) => m.status === "PENDING" || m.status === "GRACE_PERIOD").length
+                    : 0;
+                    
+                const todayStr = new Date().toISOString().split("T")[0];
+                const todayBookingsCount = Array.isArray(bookings)
+                    ? bookings.filter((b: any) => {
+                        const bDate = b.date || b.checkInTime || b.createdAt || "";
+                        return bDate.includes(todayStr);
+                      }).length
+                    : 0;
+                
+                return {
+                    invites: activeInvitesCount,
+                    reports: pendingReconciliationsCount,
+                    clients: pendingGraceClientsCount,
+                    schedule: todayBookingsCount || (Array.isArray(bookings) ? bookings.length : 0)
+                };
+            } catch (err) {
+                console.error("Error fetching sidebar counts:", err);
+                return { invites: 0, reports: 0, clients: 0, schedule: 0 };
+            }
+        },
+        refetchInterval: 15000,
+    });
+
     if (isLoading) {
         return (
             <div className="flex h-full w-full items-center justify-center p-6 bg-background border-r border-border">
@@ -143,21 +192,24 @@ export function TenantSidebarManager({tenantId, config}: SidebarManagerProps) {
         m.tenantId === tenantId || m.tenant?.id === tenantId
     );
 
-    // Extract all roles this user holds for the current tenant
     const roles: string[] = activeMembership?.roles?.map((r: any) => r.role) || [];
-
     const tenantName = config?.name || "Workspace";
     const logoUrl = config?.themeConfig?.logoUrl;
-
-    // In a real scenario, base URLs would adapt to the subdomain logic from middleware
     const baseUrl = "";
-    // Mocking badge counts for the example
-    const badgeCounts = {payments: 1, clients: 2, schedule: 1};
+
+    const badgeCounts = {
+        payments: 0,
+        clients: sidebarCounts?.clients ?? 0,
+        schedule: sidebarCounts?.schedule ?? 0,
+        invites: sidebarCounts?.invites ?? 0,
+        reports: sidebarCounts?.reports ?? 0
+    };
 
     const sidebarConfig = generateSidebarConfig(roles, baseUrl, badgeCounts);
 
     return (
         <UnifiedSidebar
+            tenantId={tenantId}
             tenantName={tenantName}
             logoUrl={logoUrl}
             config={sidebarConfig}
@@ -166,10 +218,39 @@ export function TenantSidebarManager({tenantId, config}: SidebarManagerProps) {
 }
 
 // --- Unified Presentational Component ---
-function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, logoUrl: string, config: SidebarConfig }) {
+function UnifiedSidebar({tenantId, tenantName, logoUrl, config}: { tenantId: string, tenantName: string, logoUrl: string, config: SidebarConfig }) {
     const pathname = usePathname();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    // Dynamic Sub-Page details detection
+    const isMemberPath = pathname.includes("/members/") && !pathname.endsWith("/members");
+    const isClientPath = pathname.includes("/clients/") && !pathname.endsWith("/clients");
+    
+    let subPageId = null;
+    if (isMemberPath) {
+        const parts = pathname.split("/members/");
+        subPageId = parts[1]?.split("/")[0] || null;
+    } else if (isClientPath) {
+        const parts = pathname.split("/clients/");
+        subPageId = parts[1]?.split("/")[0] || null;
+    }
+
+    const { data: memberDetail } = useQuery({
+        queryKey: ["sidebarMemberDetail", subPageId],
+        queryFn: async () => {
+            if (!subPageId) return null;
+            const res = await striveClientFetch(`/api/v1/members/${subPageId}`, { method: "GET", tenantId });
+            if (!res.ok) return null;
+            return await res.json();
+        },
+        enabled: !!subPageId
+    });
+
+    const subPageName = memberDetail?.user 
+        ? `${memberDetail.user.firstName} ${memberDetail.user.lastName}` 
+        : "Loading member...";
 
     const handleSignOut = async () => {
         setIsLoggingOut(true);
@@ -223,37 +304,69 @@ function UnifiedSidebar({tenantName, logoUrl, config}: { tenantName: string, log
                         <nav className="space-y-0.5">
                             {group.items.map((item, idx) => {
                                 const isActive = item.matchExact ? pathname === item.href : pathname.startsWith(item.href);
+                                
+                                const isMemberSub = item.label === "Members" && isMemberPath;
+                                const isClientSub = item.label === "Clients" && isClientPath;
+                                const isSettingsSub = item.label === "Settings" && pathname.startsWith("/settings") && searchParams.get("view") && searchParams.get("view") !== "MENU";
+
+                                let subItemLabel = "";
+                                if (isMemberSub || isClientSub) {
+                                    subItemLabel = subPageName;
+                                } else if (isSettingsSub) {
+                                    const view = searchParams.get("view");
+                                    const viewLabels: Record<string, string> = {
+                                        PROFILE: "Gym Profile",
+                                        PLANS: "Membership Plans",
+                                        RULES: "Rules & Thresholds",
+                                        TAX_GATEWAY: "Tax & Gateway Settings",
+                                        NOTIFICATIONS: "Notification Triggers",
+                                        HOURS: "Operational Hours",
+                                        ACCESS: "Access Control (Hikvision)",
+                                        TEAM: "Team Members"
+                                    };
+                                    subItemLabel = viewLabels[view || ""] || "";
+                                }
+
                                 return (
-                                    <Link
-                                        key={idx}
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center justify-between px-2 py-2 rounded-md transition-all text-[13px] font-medium group",
-                                            isActive
-                                                ? "bg-primary/10 text-primary"
-                                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className={cn(
-                                                "transition-colors",
-                                                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                                            )}>
-                                                {item.icon}
-                                            </span>
-                                            <span>{item.label}</span>
-                                        </div>
-                                        {item.badge !== undefined && item.badge > 0 && (
-                                            <span className={cn(
-                                                "text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center transition-colors",
+                                    <div key={idx} className="flex flex-col space-y-0.5">
+                                        <Link
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center justify-between px-2 py-2 rounded-md transition-all text-[13px] font-medium group",
                                                 isActive
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "bg-secondary text-muted-foreground group-hover:bg-muted-foreground/20"
-                                            )}>
-                                                {item.badge}
-                                            </span>
+                                                    ? "bg-primary/10 text-primary"
+                                                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className={cn(
+                                                    "transition-colors",
+                                                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                                )}>
+                                                    {item.icon}
+                                                </span>
+                                                <span>{item.label}</span>
+                                            </div>
+                                            {item.badge !== undefined && item.badge > 0 && (
+                                                <span className={cn(
+                                                    "text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center transition-colors",
+                                                    isActive
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "bg-secondary text-muted-foreground group-hover:bg-muted-foreground/20"
+                                                )}>
+                                                    {item.badge}
+                                                </span>
+                                            )}
+                                        </Link>
+                                        
+                                        {/* Sub-item child rendering */}
+                                        {isActive && subItemLabel && (
+                                            <div className="pl-9 pr-2 py-1 text-[11px] text-muted-foreground flex items-center gap-1.5 border-l border-border ml-4 font-semibold select-none animate-in slide-in-from-top-1 duration-200">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-primary/70 shrink-0" />
+                                                <span className="truncate">{subItemLabel}</span>
+                                            </div>
                                         )}
-                                    </Link>
+                                    </div>
                                 );
                             })}
                         </nav>
