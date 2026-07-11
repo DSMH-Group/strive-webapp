@@ -48,12 +48,14 @@ const ReorderableExercise = React.memo(function ReorderableExercise({
     control,
     register,
     onRemove,
+    library,
 }: {
     id: string;
     index: number;
     control: Control<LogFormValues>;
     register: UseFormRegister<LogFormValues>;
     onRemove: (id: string) => void;
+    library?: string[];
 }) {
     const dragControls = useDragControls();
     const handleRemove = useCallback(() => onRemove(id), [onRemove, id]);
@@ -72,6 +74,7 @@ const ReorderableExercise = React.memo(function ReorderableExercise({
                 exerciseIndex={index}
                 dragControls={dragControls as DragControls}
                 onRemove={handleRemove}
+                library={library}
             />
         </Reorder.Item>
     );
@@ -87,6 +90,22 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
             return await res.json();
         }
     });
+
+    // --- DB CONNECTIVITY: Get Exercise Bank library ---
+    const { data: dbExercises = [] } = useQuery<any[]>({
+        queryKey: ["logExerciseBank", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/exercises", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const exerciseLibraryNames = useMemo(() => {
+        return dbExercises.map((ex: any) => ex.name);
+    }, [dbExercises]);
 
     const clients = useMemo(() => {
         if (members.length > 0) {
@@ -541,6 +560,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                         control={control}
                                         register={register}
                                         onRemove={handleRemoveExercise}
+                                        library={exerciseLibraryNames}
                                     />
                                 );
                             })}

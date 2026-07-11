@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { striveClientFetch } from "@/lib/api";
 import { SectionHeader } from "@/app/tenants/[subdomain]/(admin)/settings/settingsClient";
 import { cn } from "@/lib/utils";
+import { ExerciseCombobox } from "@/app/tenants/[subdomain]/(staff)/log/_components/ExerciseCombobox";
 
 interface SessionTemplatesProps {
     tenantId: string;
@@ -38,6 +39,22 @@ export function SessionTemplates({ tenantId, onComplete }: SessionTemplatesProps
     const [formData, setFormData] = useState<TemplateFormData>({ name: "", exercises: [{ name: "", sets: 3 }] });
 
     // --- API Interactions ---
+
+    // Get Exercise Bank library
+    const { data: dbExercises = [] } = useQuery<any[]>({
+        queryKey: ["settingsExerciseBank", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/exercises", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const exerciseLibraryNames = React.useMemo(() => {
+        return dbExercises.map((ex: any) => ex.name);
+    }, [dbExercises]);
 
     const { data: templates = [], isLoading: templatesLoading } = useQuery<any[]>({
         queryKey: ["sessionTemplates", tenantId],
@@ -260,13 +277,11 @@ export function SessionTemplates({ tenantId, onComplete }: SessionTemplatesProps
                                         {formData.exercises.map((item, index) => (
                                             <div key={index} className="flex items-center gap-2 bg-secondary/20 p-2.5 rounded-lg border border-border">
                                                 <div className="flex-1 space-y-1.5">
-                                                    <Input
-                                                        type="text"
-                                                        placeholder="Exercise name"
+                                                    <ExerciseCombobox
                                                         value={item.name}
-                                                        onChange={(e) => handleExerciseChange(index, "name", e.target.value)}
-                                                        className="bg-background border-border h-8 text-xs rounded"
-                                                        required
+                                                        onChange={(v) => handleExerciseChange(index, "name", v)}
+                                                        placeholder="Exercise name"
+                                                        library={exerciseLibraryNames}
                                                     />
                                                 </div>
                                                 <div className="w-18 shrink-0">

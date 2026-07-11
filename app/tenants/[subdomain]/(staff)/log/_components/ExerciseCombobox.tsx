@@ -9,24 +9,26 @@ interface ExerciseComboboxProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
+    library?: string[];
 }
 
 // Lightweight autocomplete over EXERCISE_LIBRARY. Free text is always allowed
 // (trainers can log anything); suggestions just speed up the common case.
-function ExerciseComboboxImpl({ value, onChange, placeholder }: ExerciseComboboxProps) {
+function ExerciseComboboxImpl({ value, onChange, placeholder, library }: ExerciseComboboxProps) {
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const matches = useMemo(() => {
         const q = value.trim().toLowerCase();
+        const activeLibrary = library && library.length > 0 ? library : EXERCISE_LIBRARY;
         const pool = q
-            ? EXERCISE_LIBRARY.filter((e) => e.toLowerCase().includes(q))
-            : EXERCISE_LIBRARY;
+            ? activeLibrary.filter((e) => e.toLowerCase().includes(q))
+            : activeLibrary;
         // Hide the list when the only match is an exact echo of what's typed.
         if (pool.length === 1 && pool[0].toLowerCase() === q) return [];
         return pool.slice(0, 6);
-    }, [value]);
+    }, [value, library]);
 
     const commit = (val: string) => {
         onChange(val);

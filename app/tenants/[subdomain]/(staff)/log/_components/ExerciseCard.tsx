@@ -21,6 +21,7 @@ interface ExerciseCardProps {
     exerciseIndex: number;
     dragControls: DragControls;
     onRemove: () => void;
+    library?: string[];
 }
 
 function ExerciseCardImpl({
@@ -29,6 +30,7 @@ function ExerciseCardImpl({
     exerciseIndex,
     dragControls,
     onRemove,
+    library,
 }: ExerciseCardProps) {
     const { fields, append, remove } = useFieldArray({
         control,
@@ -69,7 +71,7 @@ function ExerciseCardImpl({
                         control={control}
                         name={`exercises.${exerciseIndex}.name`}
                         render={({ field }) => (
-                            <ExerciseCombobox value={field.value ?? ""} onChange={field.onChange} />
+                            <ExerciseCombobox value={field.value ?? ""} onChange={field.onChange} library={library} />
                         )}
                     />
                     {lastSummary && (
