@@ -38,10 +38,21 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
             });
             if (!res.ok) throw new Error("Failed to fetch client invoices");
             return res.json();
+    });
+
+    // 🚀 1b. Fetch Client Attendance/Check-in Logs
+    const { data: attendanceHistory = [], isLoading: isAttendanceLoading } = useQuery({
+        queryKey: ["clientAttendanceHistory", clientId],
+        queryFn: async () => {
+            const res = await striveClientFetch(`/api/v1/attendances?membershipId=${clientId}`, {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) throw new Error("Failed to fetch client attendance history");
+            return res.json();
         }
     });
 
-    if (isClientLoading || isInvoicesLoading) {
+    if (isClientLoading || isInvoicesLoading || isAttendanceLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Client Profile...
@@ -314,41 +325,59 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                     )}
 
                     <Card className="bg-card border border-border rounded-[1.5rem] p-6 space-y-4">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">Session History</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">Facility Access & Attendance History</span>
                         <div className="border border-border rounded-xl overflow-hidden bg-background">
                             <Table>
                                 <TableHeader className="bg-muted/50 border-b border-border">
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 pl-5 w-28">Date</TableHead>
-                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-32">Type</TableHead>
-                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3">Summary</TableHead>
-                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-24 text-right">Duration</TableHead>
+                                    <TableRow className="hover:bg-transparent border-b-0">
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 pl-5 w-36">Check-in Time</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-28">Method</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3">Status</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-40 text-right pr-5">Checkout Time</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {client.sessions?.map((session: any) => (
-                                        <TableRow key={session.id} className="border-b border-border last:border-0 hover:bg-accent group transition-colors duration-150">
-                                            <TableCell className="py-4 pl-5 font-mono text-xs font-bold text-muted-foreground">
-                                                {session.date}
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded">
-                                                    {session.type}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <p className="text-sm font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">{session.exercisesSummary}</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-md">{session.notes}</p>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right font-mono text-xs font-bold text-muted-foreground">
-                                                {session.duration}m
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {(!client.sessions || client.sessions.length === 0) && (
+                                    {attendanceHistory.map((log: any) => {
+                                        const durationMs = log.checkOutTime ? (new Date(log.checkOutTime).getTime() - new Date(log.checkInTime).getTime()) : 0;
+                                        const durationMinutes = durationMs ? Math.round(durationMs / (1000 * 60)) : 0;
+                                        
+                                        return (
+                                            <TableRow key={log.id} className="border-b border-border last:border-0 hover:bg-accent group transition-colors duration-150">
+                                                <TableCell className="py-4 pl-5 font-mono text-xs font-bold text-foreground">
+                                                    {new Date(log.checkInTime).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
+                                                        {log.authMethod || "RFID"}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    {log.checkOutTime ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold text-muted-foreground">Completed Check-in</span>
+                                                            <span className="text-[10px] text-muted-foreground font-mono mt-0.5">Duration: {durationMinutes} minutes</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-bold">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                            Active check-in (Inside Facility)
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right font-mono text-xs font-bold text-muted-foreground pr-5">
+                                                    {log.checkOutTime ? (
+                                                        new Date(log.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                                    ) : (
+                                                        <span className="text-xs text-emerald-500 font-bold font-sans">Active</span>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                    {(!attendanceHistory || attendanceHistory.length === 0) && (
                                         <TableRow>
                                             <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-xs italic">
-                                                No sessions have been logged for this client yet.
+                                                No attendance logs detected for this member.
                                             </TableCell>
                                         </TableRow>
                                     )}

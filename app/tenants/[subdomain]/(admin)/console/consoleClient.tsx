@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -49,11 +49,41 @@ const chartConfig = {
     }
 } satisfies ChartConfig;
 
+const getStatusBadge = (status: string) => {
+    switch (status?.toUpperCase()) {
+        case "ACTIVE":
+            return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+        case "GRACE_PERIOD":
+            return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        case "SUSPENDED":
+            return "bg-red-500/10 text-red-500 border-red-500/20";
+        default:
+            return "bg-muted text-muted-foreground border-border";
+    }
+};
+
+const getAvatarColor = (id: string = "") => {
+    const colors = [
+        "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+        "bg-violet-500/10 text-violet-400 border-violet-500/20",
+        "bg-rose-500/10 text-rose-400 border-rose-500/20",
+        "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+        "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    ];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+};
+
 export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
     // 1. Resolve Tenant Context Header parameter safely out of active window location metadata
     const tenantId = typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("tenantId") || ""
         : "";
+
+    const queryClient = useQueryClient();
 
     // 2. Fetch profile matrix & execute RBAC gate assertions purely on the client thread
     const { data: userProfile, isLoading: profileLoading, isError: profileError } = useQuery<ExtendedUserResponseDto>({
@@ -69,7 +99,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
     const targetMembership = userProfile?.memberships?.find(m => m.tenant.id === tenantId || m.tenant.domain === subdomain);
     const hasAdminAccess = targetMembership?.roles.some(r => r.role === "ORG_ADMIN" || r.role === "MANAGER");
 
-    // 3. Parallel Operational Admin Data Core Loader
+    // 3. Parallel Operational Admin Data Core Loader (Polling at 3s for live ingress updates)
     const { data: adminMetrics, isLoading: dataLoading } = useQuery({
         queryKey: ["consoleOperationalLedger", tenantId],
         queryFn: async () => {
@@ -85,7 +115,31 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                 attendances: attendancesRes.ok ? await attendancesRes.json() as any : { history: [], monthlyCount: 0 }
             };
         },
-        enabled: !!tenantId && !!hasAdminAccess
+        enabled: !!tenantId && !!hasAdminAccess,
+        refetchInterval: 3000,
+    });
+
+    // 4. Manual Ingress Checkout Mutation
+    const checkoutMutation = useMutation({
+        mutationFn: async (attendanceId: string) => {
+            const res = await striveClientFetch(`/api/v1/attendances/${attendanceId}`, {
+                method: "PATCH",
+                headers: {
+                    "X-Tenant-ID": tenantId,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ checkoutTime: new Date().toISOString() })
+            });
+            if (!res.ok) throw new Error("Verification checkout override rejected.");
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Client checked out successfully.");
+            queryClient.invalidateQueries({ queryKey: ["consoleOperationalLedger", tenantId] });
+        },
+        onError: (err: any) => {
+            toast.error(`Checkout failed: ${err.message}`);
+        }
     });
 
     // --- Analytics Processing state loops ---
@@ -211,41 +265,110 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                     <Card className="bg-card border-border rounded-lg p-6">
                         <div className="flex items-center justify-between pb-4">
                             <div className="space-y-1">
-                                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Activity Feed</h3>
-                                <p className="text-xs text-muted-foreground/60">Live hardware ingress and check-in verifications</p>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Live Activity Feed</h3>
+                                    <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                        Live monitoring active
+                                    </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground/60">Real-time hardware ingress and check-in verifications</p>
                             </div>
                         </div>
                         <div className="border border-border rounded-md overflow-hidden bg-background/40">
                             <Table>
                                 <TableHeader className="bg-background border-b border-border">
                                     <TableRow className="border-b border-border hover:bg-transparent">
-                                        <TableHead className="text-muted-foreground text-xs">Verification Target</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs pl-4">Verification Target</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs">Status</TableHead>
                                         <TableHead className="text-muted-foreground text-xs">Method</TableHead>
-                                        <TableHead className="text-muted-foreground text-xs text-right">Timestamp</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs">In / Out</TableHead>
+                                        <TableHead className="text-muted-foreground text-xs text-right pr-4">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {attendances.history.slice(0, 5).map((log: any, idx: number) => (
-                                        <TableRow key={log.id || idx} className="border-b border-border hover:bg-accent/40">
-                                            <TableCell className="font-medium py-3.5">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"/>
-                                                    <span className="font-bold text-foreground">
-                                                        {log.membershipId ? `Member [${log.membershipId.slice(0, 8)}]` : "Hardware Ingress Pass"}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground text-xs font-mono">
-                                                <span className="bg-background px-2 py-0.5 border border-border rounded-sm">{log.authMethod || "RFID"}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right text-muted-foreground/80 text-xs font-mono">
-                                                {new Date(log.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {attendances.history.slice(0, 5).map((log: any, idx: number) => {
+                                        const user = log.membership?.user;
+                                        const hasActiveCheckin = !log.checkOutTime;
+                                        const avatarColor = getAvatarColor(log.membershipId || String(idx));
+                                        
+                                        return (
+                                            <TableRow key={log.id || idx} className="border-b border-border hover:bg-accent/40">
+                                                <TableCell className="font-medium py-3 pl-4">
+                                                    {user ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border shrink-0", avatarColor)}>
+                                                                {user.firstName?.[0] || ""}{user.lastName?.[0] || ""}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-xs text-foreground">
+                                                                    {user.firstName} {user.lastName}
+                                                                </span>
+                                                                <span className="text-[10px] text-muted-foreground font-mono">
+                                                                    {user.phone || user.email || "No details"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                            <span className="font-bold text-xs text-foreground">
+                                                                Hardware Ingress Pass
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="py-3">
+                                                    {log.membership?.status ? (
+                                                        <span className={cn("text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded border tracking-wide", getStatusBadge(log.membership.status))}>
+                                                            {log.membership.status}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded border border-border bg-background text-muted-foreground">
+                                                            N/A
+                                                        </span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-muted-foreground text-xs font-mono py-3">
+                                                    <span className="bg-background px-2 py-0.5 border border-border rounded-sm">{log.authMethod || "RFID"}</span>
+                                                </TableCell>
+                                                <TableCell className="text-muted-foreground text-xs font-mono py-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-foreground font-bold">
+                                                            IN: {new Date(log.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                        <span className="text-[10px] text-muted-foreground">
+                                                            {log.checkOutTime ? (
+                                                                `OUT: ${new Date(log.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+                                                            ) : (
+                                                                "Still in facility"
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right py-3 pr-4">
+                                                    {hasActiveCheckin && log.membershipId ? (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled={checkoutMutation.isPending}
+                                                            onClick={() => checkoutMutation.mutate(log.id)}
+                                                            className="h-8 text-[10px] font-bold uppercase tracking-wider bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border-destructive/20 hover:border-transparent rounded"
+                                                        >
+                                                            Checkout
+                                                        </Button>
+                                                    ) : !hasActiveCheckin ? (
+                                                        <span className="text-[10px] font-mono text-muted-foreground italic">Checked Out</span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-mono text-muted-foreground italic">N/A</span>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                     {attendances.history.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={3} className="text-center py-8 text-xs text-muted-foreground">No live ingress logs detected in current lifecycle.</TableCell>
+                                            <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">No live ingress logs detected in current lifecycle.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>
