@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,11 +14,93 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+
+const BLUEPRINTS = [
+    {
+        name: "Push-Pull-Legs Hypertrophy",
+        goal: "Build Lean Muscle",
+        totalWeeks: 12,
+        routines: [
+            {
+                dayName: "Day A: Push",
+                exercises: [
+                    { name: "Bench Press", sets: 4, reps: 8, muscleGroup: "Chest" },
+                    { name: "Overhead Press", sets: 3, reps: 10, muscleGroup: "Shoulders" },
+                    { name: "Cable Fly", sets: 3, reps: 12, muscleGroup: "Chest" },
+                    { name: "Triceps Pushdown", sets: 3, reps: 12, muscleGroup: "Triceps" },
+                ]
+            },
+            {
+                dayName: "Day B: Pull",
+                exercises: [
+                    { name: "Pull-up", sets: 4, reps: 8, muscleGroup: "Back" },
+                    { name: "Barbell Row", sets: 3, reps: 8, muscleGroup: "Back" },
+                    { name: "Face Pull", sets: 3, reps: 15, muscleGroup: "Shoulders" },
+                    { name: "Barbell Curl", sets: 3, reps: 12, muscleGroup: "Biceps" },
+                ]
+            },
+            {
+                dayName: "Day C: Legs",
+                exercises: [
+                    { name: "Back Squat", sets: 4, reps: 8, muscleGroup: "Legs" },
+                    { name: "Romanian Deadlift", sets: 3, reps: 10, muscleGroup: "Legs" },
+                    { name: "Leg Press", sets: 3, reps: 12, muscleGroup: "Legs" },
+                    { name: "Calf Raise", sets: 4, reps: 15, muscleGroup: "Legs" },
+                ]
+            }
+        ]
+    },
+    {
+        name: "Powerlifting 5x5 Strength",
+        goal: "Increase Absolute Strength",
+        totalWeeks: 8,
+        routines: [
+            {
+                dayName: "Workout A",
+                exercises: [
+                    { name: "Back Squat", sets: 5, reps: 5, muscleGroup: "Legs" },
+                    { name: "Bench Press", sets: 5, reps: 5, muscleGroup: "Chest" },
+                    { name: "Barbell Row", sets: 5, reps: 5, muscleGroup: "Back" },
+                ]
+            },
+            {
+                dayName: "Workout B",
+                exercises: [
+                    { name: "Back Squat", sets: 5, reps: 5, muscleGroup: "Legs" },
+                    { name: "Overhead Press", sets: 5, reps: 5, muscleGroup: "Shoulders" },
+                    { name: "Deadlift", sets: 1, reps: 5, muscleGroup: "Back" },
+                ]
+            }
+        ]
+    },
+    {
+        name: "Cardio Conditioning & Core",
+        goal: "Fat Loss & Endurance",
+        totalWeeks: 6,
+        routines: [
+            {
+                dayName: "Interval Training",
+                exercises: [
+                    { name: "Treadmill Intervals", sets: 4, reps: 5, muscleGroup: "Cardio" },
+                    { name: "Rowing Erg", sets: 3, reps: 10, muscleGroup: "Cardio" },
+                ]
+            },
+            {
+                dayName: "Core Strength",
+                exercises: [
+                    { name: "Plank", sets: 3, reps: 60, muscleGroup: "Core" },
+                    { name: "Hanging Leg Raise", sets: 3, reps: 12, muscleGroup: "Core" },
+                ]
+            }
+        ]
+    }
+];
 
 export default function ClientDetailClient({ tenantId, clientId }: { tenantId: string, clientId: string }) {
 
     // 🚀 1. Fetch Core Client & Membership Data
-    const { data: client, isLoading: isClientLoading } = useQuery({
+    const { data: client, isLoading: isClientLoading, refetch: refetchClient } = useQuery({
         queryKey: ["clientDetail", clientId],
         queryFn: async () => {
             const res = await striveClientFetch(`/api/v1/members/${clientId}`, {
@@ -74,6 +156,55 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
             });
             if (!res.ok) throw new Error("Failed to fetch client notes history");
             return res.json();
+        }
+    });
+
+    const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false);
+    const [modalTab, setModalTab] = React.useState<"catalog" | "custom">("catalog");
+    const [selectedBlueprintIdx, setSelectedBlueprintIdx] = React.useState<number | null>(null);
+
+    const [customProgName, setCustomProgName] = React.useState("");
+    const [customProgGoal, setCustomProgGoal] = React.useState("");
+    const [customProgWeeks, setCustomProgWeeks] = React.useState(12);
+    const [customRoutines, setCustomRoutines] = React.useState<any[]>([
+        { dayName: "Day 1", exercises: [{ name: "", sets: 3, reps: 10, muscleGroup: "All" }] }
+    ]);
+
+    const assignProgramMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await striveClientFetch(`/api/v1/members/${clientId}/program`, {
+                method: "POST",
+                tenantId,
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("Failed to assign workout program.");
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Workout program assigned successfully.");
+            setIsAssignModalOpen(false);
+            refetchClient();
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to assign program.");
+        }
+    });
+
+    const removeProgramMutation = useMutation({
+        mutationFn: async () => {
+            const res = await striveClientFetch(`/api/v1/members/${clientId}/program`, {
+                method: "DELETE",
+                tenantId
+            });
+            if (!res.ok) throw new Error("Failed to remove program.");
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Workout program removed from client profile.");
+            refetchClient();
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to remove program.");
         }
     });
 
@@ -161,8 +292,11 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                         <Button variant="secondary" className="bg-muted hover:bg-accent text-xs font-bold h-10 px-4 rounded-xl flex-1 md:flex-none">
                             Log Session
                         </Button>
-                        <Button className="text-xs font-bold h-10 px-4 rounded-xl flex-1 md:flex-none">
-                            + New Program
+                        <Button 
+                            onClick={() => setIsAssignModalOpen(true)}
+                            className="text-xs font-bold h-10 px-4 rounded-xl flex-1 md:flex-none"
+                        >
+                            {client.activeProgram ? "Reassign Program" : "+ New Program"}
                         </Button>
                     </div>
                 </div>
@@ -268,7 +402,25 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                                             <p className="text-xs text-muted-foreground mt-1">Goal: <span className="font-medium text-foreground">{client.activeProgram.goal}</span></p>
                                         </div>
                                     </div>
-                                    <Button variant="outline" size="sm" className="h-9 px-4 rounded-xl text-xs font-bold border-border">Reassign Program</Button>
+                                    <div className="flex items-center gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => setIsAssignModalOpen(true)}
+                                            className="h-9 px-4 rounded-xl text-xs font-bold border-border"
+                                        >
+                                            Reassign Program
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => removeProgramMutation.mutate()}
+                                            disabled={removeProgramMutation.isPending}
+                                            className="h-9 px-4 rounded-xl text-xs font-bold text-destructive hover:bg-destructive/10"
+                                        >
+                                            {removeProgramMutation.isPending ? "Ending..." : "End Program"}
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between text-xs font-bold mb-2">
@@ -637,6 +789,279 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
+                <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-card border border-border p-6 rounded-2xl text-foreground">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-black tracking-tight">Assign Workout Program</DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            Assign a structured workout routine blueprint or build a customized plan for {client.user?.firstName || "client"}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/* Tabs List */}
+                    <div className="flex border-b border-border mb-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setModalTab("catalog");
+                                setSelectedBlueprintIdx(null);
+                            }}
+                            className={cn(
+                                "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all",
+                                modalTab === "catalog"
+                                    ? "border-primary text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Elite Blueprint Catalog
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setModalTab("custom")}
+                            className={cn(
+                                "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all",
+                                modalTab === "custom"
+                                    ? "border-primary text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Custom Program Builder
+                        </button>
+                    </div>
+
+                    {/* Catalog Content */}
+                    {modalTab === "catalog" && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {BLUEPRINTS.map((bp, idx) => (
+                                    <div
+                                        key={bp.name}
+                                        onClick={() => setSelectedBlueprintIdx(idx)}
+                                        className={cn(
+                                            "p-4 rounded-xl border cursor-pointer text-left transition-all hover:border-primary/60 bg-muted/20",
+                                            selectedBlueprintIdx === idx
+                                                ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                                                : "border-border"
+                                        )}
+                                    >
+                                        <h4 className="font-black text-sm tracking-tight mb-1">{bp.name}</h4>
+                                        <p className="text-xs text-muted-foreground mb-3">{bp.goal}</p>
+                                        <span className="text-[10px] font-mono font-bold bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                                            {bp.totalWeeks} Weeks
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {selectedBlueprintIdx !== null && (
+                                <div className="p-4 bg-muted/10 border border-border rounded-xl space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground border-b border-border pb-2">
+                                        Blueprint Preview: {BLUEPRINTS[selectedBlueprintIdx].name}
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {BLUEPRINTS[selectedBlueprintIdx].routines.map((routine, rIdx) => (
+                                            <div key={rIdx} className="bg-background/40 border border-border/60 p-3 rounded-lg">
+                                                <h5 className="font-bold text-xs text-primary mb-2">{routine.dayName}</h5>
+                                                <div className="space-y-1.5">
+                                                    {routine.exercises.map((ex, eIdx) => (
+                                                        <div key={eIdx} className="flex justify-between items-center text-xs text-muted-foreground">
+                                                            <span>{ex.name}</span>
+                                                            <span className="font-mono font-semibold">{ex.sets} × {ex.reps}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button
+                                        onClick={() => assignProgramMutation.mutate(BLUEPRINTS[selectedBlueprintIdx])}
+                                        disabled={assignProgramMutation.isPending}
+                                        className="w-full text-xs font-bold h-10 rounded-xl"
+                                    >
+                                        {assignProgramMutation.isPending ? "Assigning..." : "Assign Blueprint"}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Custom Builder Content */}
+                    {modalTab === "custom" && (
+                        <div className="space-y-6 text-left">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Program Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Strength Phase 1"
+                                        value={customProgName}
+                                        onChange={(e) => setCustomProgName(e.target.value)}
+                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Goal</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Mass Gaining"
+                                        value={customProgGoal}
+                                        onChange={(e) => setCustomProgGoal(e.target.value)}
+                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Weeks</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={customProgWeeks}
+                                        onChange={(e) => setCustomProgWeeks(Number(e.target.value) || 12)}
+                                        className="h-10 w-full px-3 rounded-xl border border-border bg-background text-sm font-semibold focus-visible:outline-primary"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Routines List */}
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center border-b border-border pb-2">
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Routines & Workouts</h4>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCustomRoutines([...customRoutines, { dayName: `Day ${customRoutines.length + 1}`, exercises: [{ name: "", sets: 3, reps: 10, muscleGroup: "All" }] }])}
+                                        className="h-8 text-xs font-bold rounded-lg border-border"
+                                    >
+                                        + Add Workout Day
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                                    {customRoutines.map((routine, rIdx) => (
+                                        <div key={rIdx} className="p-4 bg-muted/10 border border-border rounded-xl space-y-3">
+                                            <div className="flex justify-between items-center gap-4">
+                                                <input
+                                                    type="text"
+                                                    value={routine.dayName}
+                                                    onChange={(e) => {
+                                                        const next = [...customRoutines];
+                                                        next[rIdx].dayName = e.target.value;
+                                                        setCustomRoutines(next);
+                                                    }}
+                                                    className="bg-transparent border-b border-border/80 text-sm font-bold text-primary focus-visible:outline-none w-48 pb-0.5"
+                                                    placeholder="Workout Day Name"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const next = [...customRoutines];
+                                                            next[rIdx].exercises.push({ name: "", sets: 3, reps: 10, muscleGroup: "All" });
+                                                            setCustomRoutines(next);
+                                                        }}
+                                                        className="h-7 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border/60"
+                                                    >
+                                                        + Add Exercise
+                                                    </Button>
+                                                    {customRoutines.length > 1 && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setCustomRoutines(customRoutines.filter((_, idx) => idx !== rIdx))}
+                                                            className="h-7 text-[10px] font-bold uppercase tracking-wider text-destructive hover:bg-destructive/10"
+                                                        >
+                                                            Remove Day
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {routine.exercises.map((ex: any, eIdx: number) => (
+                                                    <div key={eIdx} className="grid grid-cols-12 gap-2 items-center">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Exercise Name"
+                                                            value={ex.name}
+                                                            onChange={(e) => {
+                                                                const next = [...customRoutines];
+                                                                next[rIdx].exercises[eIdx].name = e.target.value;
+                                                                setCustomRoutines(next);
+                                                            }}
+                                                            className="col-span-6 h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold focus-visible:outline-primary"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Sets"
+                                                            value={ex.sets}
+                                                            onChange={(e) => {
+                                                                const next = [...customRoutines];
+                                                                next[rIdx].exercises[eIdx].sets = Number(e.target.value) || 0;
+                                                                setCustomRoutines(next);
+                                                            }}
+                                                            className="col-span-2 h-8 px-2 rounded-lg border border-border bg-background text-xs font-mono font-bold text-center focus-visible:outline-primary"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Reps"
+                                                            value={ex.reps}
+                                                            onChange={(e) => {
+                                                                const next = [...customRoutines];
+                                                                next[rIdx].exercises[eIdx].reps = Number(e.target.value) || 0;
+                                                                setCustomRoutines(next);
+                                                            }}
+                                                            className="col-span-2 h-8 px-2 rounded-lg border border-border bg-background text-xs font-mono font-bold text-center focus-visible:outline-primary"
+                                                        />
+                                                        <div className="col-span-2 text-right">
+                                                            {routine.exercises.length > 1 && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => {
+                                                                        const next = [...customRoutines];
+                                                                        next[rIdx].exercises = next[rIdx].exercises.filter((_: any, idx: number) => idx !== eIdx);
+                                                                        setCustomRoutines(next);
+                                                                    }}
+                                                                    className="h-8 text-xs font-bold text-destructive hover:bg-destructive/10 px-2 rounded-lg"
+                                                                >
+                                                                    Remove
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={() => assignProgramMutation.mutate({
+                                    name: customProgName,
+                                    goal: customProgGoal,
+                                    totalWeeks: customProgWeeks,
+                                    routines: customRoutines.map((r, idx) => ({
+                                        id: `routine-${idx}`,
+                                        dayName: r.dayName,
+                                        exercises: r.exercises.filter((ex: any) => ex.name.trim() !== "").map((ex: any) => ({
+                                            name: ex.name,
+                                            sets: ex.sets,
+                                            reps: ex.reps,
+                                            muscleGroup: ex.muscleGroup || "All"
+                                        }))
+                                    }))
+                                })}
+                                disabled={assignProgramMutation.isPending || !customProgName.trim() || !customProgGoal.trim()}
+                                className="w-full text-xs font-bold h-10 rounded-xl"
+                            >
+                                {assignProgramMutation.isPending ? "Assigning..." : "Assign Custom Program"}
+                            </Button>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
