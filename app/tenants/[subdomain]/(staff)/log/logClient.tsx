@@ -114,6 +114,21 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
         }
     });
 
+    // --- DB CONNECTIVITY: Get session types historically recorded ---
+    const { data: dbSessionTypes = [], refetch: refetchSessionTypes } = useQuery<string[]>({
+        queryKey: ["logSessionTypes", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/metrics/session-types", { tenantId });
+            if (!res.ok) return [];
+            return await res.json();
+        }
+    });
+
+    const sessionTypes = useMemo(() => {
+        const unique = new Set([...dbSessionTypes, ...SESSION_TYPES]);
+        return Array.from(unique);
+    }, [dbSessionTypes]);
+
     const STORAGE_KEY = `strive:logdraft:${subdomain}`;
 
     const { control, register, handleSubmit, reset, watch, getValues, setValue } =
@@ -136,6 +151,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
     }, [dbBookings, selectedMemberId]);
 
     const [selectedBookingId, setSelectedBookingId] = useState<string>("NEW");
+    const [isCustomSessionType, setIsCustomSessionType] = useState(false);
+    const [customSessionTypeVal, setCustomSessionTypeVal] = useState("");
 
     // Reset target session if selected member changes
     useEffect(() => {
@@ -276,6 +293,9 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                         exercises: templateToExercises(SESSION_TYPES[0]),
                     });
                     setSelectedBookingId("NEW");
+                    setIsCustomSessionType(false);
+                    setCustomSessionTypeVal("");
+                    refetchSessionTypes();
                     setTimeout(() => setSavePhase("idle"), 1600);
                 } catch (err: any) {
                     setSavePhase("idle");
@@ -317,7 +337,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                             
                             {/* Member Selector */}
-                            <div className="space-y-1.5 col-span-1">
+                            <div className="space-y-1.5 col-span-1 text-left">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                     Member
                                 </Label>
@@ -326,8 +346,10 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                     name="memberId"
                                     render={({ field }) => (
                                         <Select value={field.value} onValueChange={(v) => field.onChange(v ?? field.value)}>
-                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold">
-                                                <SelectValue placeholder="Select member" />
+                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
+                                                <span>
+                                                    {clients.find(c => c.id === field.value)?.name || "Select member"}
+                                                </span>
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {clients.map((c) => (
@@ -342,7 +364,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                             </div>
 
                             {/* Session Selector (Pre-existing vs New) */}
-                            <div className="space-y-1.5 col-span-1">
+                            <div className="space-y-1.5 col-span-1 text-left">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                     Target Session
                                 </Label>
@@ -359,16 +381,31 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                         }
                                     }}
                                 >
-                                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold">
-                                        <SelectValue placeholder="Select session" />
+                                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
+                                        <span>
+                                            {(() => {
+                                                if (selectedBookingId === "NEW") return "New Session...";
+                                                const booking = memberBookings.find((b: any) => b.id === selectedBookingId);
+                                                if (booking) {
+                                                    const dateStr = new Date(booking.startTime).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                                                    const timeStr = new Date(booking.startTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+                                                    const noteLabel = booking.resource?.name ? ` - ${booking.resource.name}` : "";
+                                                    return `PT Session (${dateStr} @ ${timeStr})${noteLabel}`;
+                                                }
+                                                return "Select session";
+                                            })()}
+                                        </span>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="NEW">New Session...</SelectItem>
                                         {memberBookings.map((b: any) => {
-                                            const dateStr = new Date(b.startTime).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                                            const start = new Date(b.startTime);
+                                            const dateStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                                            const timeStr = start.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+                                            const noteLabel = b.resource?.name ? ` - ${b.resource.name}` : "";
                                             return (
                                                 <SelectItem key={b.id} value={b.id}>
-                                                    PT Session ({dateStr})
+                                                    PT Session ({dateStr} @ {timeStr}){noteLabel}
                                                 </SelectItem>
                                             );
                                         })}
@@ -377,7 +414,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                             </div>
 
                             {/* Session type */}
-                            <div className="space-y-1.5 col-span-1">
+                            <div className="space-y-1.5 col-span-1 text-left">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                         Session type
@@ -394,33 +431,68 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                     control={control}
                                     name="sessionType"
                                     render={({ field }) => (
-                                        <Select value={field.value} onValueChange={(v) => field.onChange(v ?? field.value)}>
-                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold">
-                                                <SelectValue placeholder="Select type" />
+                                        <Select 
+                                            value={isCustomSessionType ? "CUSTOM" : field.value} 
+                                            onValueChange={(v) => {
+                                                if (v === "CUSTOM") {
+                                                    setIsCustomSessionType(true);
+                                                    field.onChange("");
+                                                } else {
+                                                    setIsCustomSessionType(false);
+                                                    field.onChange(v ?? field.value);
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
+                                                <span>
+                                                    {isCustomSessionType ? "-- Custom Type --" : field.value || "Select type"}
+                                                </span>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {SESSION_TYPES.map((t) => (
+                                                {sessionTypes.map((t) => (
                                                     <SelectItem key={t} value={t}>
                                                         {t}
                                                     </SelectItem>
                                                 ))}
+                                                <SelectItem value="CUSTOM">-- Custom... --</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                             </div>
 
-                            {/* Date Picker */}
-                            <div className="space-y-1.5 col-span-1">
-                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                    Date
-                                </Label>
-                                <Input
-                                    type="date"
-                                    disabled={selectedBookingId !== "NEW"}
-                                    {...register("date")}
-                                    className="h-10 border-border bg-background text-sm font-mono disabled:opacity-50"
-                                />
+                            {/* Date Picker / Custom Type Specified */}
+                            <div className="space-y-1.5 col-span-1 text-left">
+                                {isCustomSessionType ? (
+                                    <>
+                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                            Custom Session Type
+                                        </Label>
+                                        <Input
+                                            type="text"
+                                            placeholder="e.g. Rehab PT"
+                                            value={customSessionTypeVal}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCustomSessionTypeVal(val);
+                                                setValue("sessionType", val);
+                                            }}
+                                            className="h-10 border-border bg-background text-sm"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                            Date
+                                        </Label>
+                                        <Input
+                                            type="date"
+                                            disabled={selectedBookingId !== "NEW"}
+                                            {...register("date")}
+                                            className="h-10 border-border bg-background text-sm font-mono disabled:opacity-50"
+                                        />
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
