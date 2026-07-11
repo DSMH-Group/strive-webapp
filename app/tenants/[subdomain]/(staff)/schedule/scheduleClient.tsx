@@ -34,7 +34,7 @@ const HOURS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "1
 export default function ScheduleClient({ subdomain, tenantId, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
-    const [currentDate, setCurrentDate] = useState<Date>(new Date()); // Dynamic "today"
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
     // Customizable lunch break state
     const [lunchStart, setLunchStart] = useState("12:00");
@@ -67,6 +67,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
 
     // Local static/mock bookings state (to overlay on top of database bookings)
     const [localBookings, setLocalBookings] = useState<any[]>([]);
+    const [blocks, setBlocks] = useState<any[]>([]);
 
     useEffect(() => {
         setLocalBookings([
@@ -82,13 +83,25 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
             { id: "mock-10", date: getRelativeDateStr(3), time: "08:00", duration: 60, title: "Dilshan Raj — PT", clientEmail: "dilshan.raj@strive.com", type: "PT", status: "SOON" }
         ]);
         setBlocks([
-            { id: "block-1", date: getRelativeDateStr(0), time: "16:00", title: "Equipment Maintenance" }
+            { id: "block-mock-1", date: getRelativeDateStr(0), time: "16:00", title: "Equipment Maintenance" }
         ]);
         setSelectedDateStr(getRelativeDateStr(0));
     }, []);
 
-    // Blocked/OOO slots state
-    const [blocks, setBlocks] = useState<any[]>([]);
+    // --- DB CONNECTIVITY: Active Trainer Profile / Membership Handshake ---
+    const { data: userProfile } = useQuery({
+        queryKey: ["scheduleTrainerProfile", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/users/me", { method: "GET", tenantId });
+            if (!res.ok) return null;
+            return await res.json();
+        }
+    });
+
+    const activeTrainerMembershipId = useMemo(() => {
+        const membership = userProfile?.memberships?.find((m: any) => m.tenantId === tenantId);
+        return membership?.id || null;
+    }, [userProfile, tenantId]);
 
     // --- DB CONNECTIVITY: Resources Fetch & Auto-Provision ---
     const { data: resources = [], isLoading: isLoadingResources, refetch: refetchResources } = useQuery<any[]>({
@@ -141,6 +154,22 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
             const hourStr = start.toTimeString().split(" ")[0].slice(0, 5); // "HH:MM"
             const durationMins = Math.round((end.getTime() - start.getTime()) / 60000);
             
+            // Detect if this booking represents a block created by the trainer themselves
+            const isTrainerBlock = activeTrainerMembershipId && b.membershipId === activeTrainerMembershipId;
+
+            if (isTrainerBlock) {
+                return {
+                    id: b.id,
+                    date: dateStr,
+                    time: hourStr,
+                    duration: durationMins,
+                    title: "Trainer Calendar Block",
+                    clientEmail: "Unavailable for booking",
+                    type: "BREAK",
+                    status: "OOO"
+                };
+            }
+
             const memberName = b.membership?.user 
                 ? `${b.membership.user.firstName} ${b.membership.user.lastName}` 
                 : "Assigned Session";
@@ -163,7 +192,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
         );
 
         return [...mappedDb, ...filteredLocal];
-    }, [dbBookings, localBookings]);
+    }, [dbBookings, localBookings, activeTrainerMembershipId]);
 
     // Fetch members list for session assignment
     const { data: members = [] } = useQuery<any[]>({
@@ -185,13 +214,11 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
         ];
     }, [members]);
 
-    // Map selected member details
     const selectedMemberName = useMemo(() => {
         const found = fallbackMembers.find(m => m.id === selectedMemberId);
         return found ? `${found.user.firstName} ${found.user.lastName}` : "";
     }, [selectedMemberId, fallbackMembers]);
 
-    // Format current date strings
     const formattedDateString = useMemo(() => {
         return currentDate.toISOString().split("T")[0];
     }, [currentDate]);
@@ -209,7 +236,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                     time: hour,
                     title: booking.title,
                     clientEmail: booking.clientEmail,
-                    type: booking.type === "CLASS" ? "CLASS" : "CLIENT",
+                    type: booking.type === "CLASS" ? "CLASS" : booking.type === "BREAK" ? "BREAK" : "CLIENT",
                     status: booking.status
                 };
             }
@@ -255,7 +282,6 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
         });
     }, [currentDate]);
 
-    // Summary Metric Aggregations
     const summaryStats = useMemo(() => {
         const activeSessions = daySlots.filter(s => s.type === "CLIENT" || s.type === "CLASS").length;
         const openSlots = daySlots.filter(s => s.type === "OPEN").length;
@@ -288,7 +314,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     const handleSlotClick = (slot: any) => {
         if (slot.status === "OPEN") {
             handleOpenActionModal(slot.time, formattedDateString);
-        } else if (slot.type === "CLIENT") {
+        } else if (slot.type === "CLIENT" || slot.status === "OOO") {
             setSelectedBookingId(slot.id);
             setIsCancelModalOpen(true);
         }
@@ -297,21 +323,22 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     const handleConfirmAction = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const resourceId = resources[0]?.id;
+        if (!resourceId) {
+            toast.error("No trainer resource provisioned. Please try again in a moment.");
+            return;
+        }
+
+        const [h, m] = selectedHour.split(":").map(Number);
+        const startObj = new Date(selectedDateStr);
+        startObj.setHours(h, m, 0, 0);
+
         if (actionMode === "SESSION") {
             if (!selectedMemberId) {
                 toast.error("Please select a member to assign the session.");
                 return;
             }
 
-            const resourceId = resources[0]?.id;
-            if (!resourceId) {
-                toast.error("No trainer resource provisioned. Please try again in a moment.");
-                return;
-            }
-
-            const [h, m] = selectedHour.split(":").map(Number);
-            const startObj = new Date(selectedDateStr);
-            startObj.setHours(h, m, 0, 0);
             const endObj = new Date(startObj.getTime() + Number(sessionDuration) * 60 * 1000);
 
             try {
@@ -354,15 +381,43 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                 toast.error(err.message || "Failed to schedule session.");
             }
         } else {
-            const newBlock = {
-                id: `block-${Date.now()}`,
-                date: selectedDateStr,
-                time: selectedHour,
-                title: blockReason || "Blocked slot"
-            };
+            const endObj = new Date(startObj.getTime() + 60 * 60 * 1000); // 1 hour block by default
 
-            setBlocks(prev => [...prev, newBlock]);
-            toast.success(`Blocked time slot at ${selectedHour} on ${selectedDateStr}.`);
+            if (!activeTrainerMembershipId) {
+                toast.error("Trainer membership context not resolved. Booking block locally.");
+                const newBlock = {
+                    id: `block-mock-${Date.now()}`,
+                    date: selectedDateStr,
+                    time: selectedHour,
+                    title: blockReason || "Blocked slot"
+                };
+                setBlocks(prev => [...prev, newBlock]);
+                setIsActionModalOpen(false);
+                return;
+            }
+
+            try {
+                const res = await striveClientFetch("/api/v1/scheduling/bookings", {
+                    method: "POST",
+                    tenantId,
+                    body: JSON.stringify({
+                        resourceId,
+                        membershipId: activeTrainerMembershipId,
+                        startTime: startObj.toISOString(),
+                        endTime: endObj.toISOString()
+                    })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.message || "Failed to block: slot overlap detected.");
+                }
+
+                toast.success(`Calendar block successfully recorded at ${selectedHour}.`);
+                refetchBookings();
+            } catch (err: any) {
+                toast.error(err.message || "Failed to block calendar.");
+            }
         }
 
         setIsActionModalOpen(false);
@@ -374,8 +429,9 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     const handleCancelBooking = async () => {
         if (!selectedBookingId) return;
 
-        if (selectedBookingId.startsWith("mock-")) {
+        if (selectedBookingId.startsWith("mock-") || selectedBookingId.startsWith("block-mock-")) {
             setLocalBookings(prev => prev.filter(b => b.id !== selectedBookingId));
+            setBlocks(prev => prev.filter(b => b.id !== selectedBookingId));
             toast.success("Mock session booking released.");
             setIsCancelModalOpen(false);
             setSelectedBookingId(null);
@@ -518,7 +574,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                         onClick={() => handleSlotClick(slot)}
                                         className={cn(
                                             "flex items-center justify-between p-4 rounded-xl border transition-all bg-card/25 border-border",
-                                            (isOpen || isPT) && "opacity-75 hover:opacity-100 cursor-pointer hover:border-primary/30",
+                                            (isOpen || isPT || isOoo) && "opacity-75 hover:opacity-100 cursor-pointer hover:border-primary/30",
                                             isNow && "border-primary bg-primary/5 ring-1 ring-primary/20",
                                             isSoon && "border-border hover:border-primary/20",
                                             isDone && "opacity-45 hover:opacity-75",
