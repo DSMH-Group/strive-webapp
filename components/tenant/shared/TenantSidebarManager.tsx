@@ -71,7 +71,7 @@ const generateSidebarConfig = (roles: string[], baseUrl: string, badgeCounts: an
     if (roles.some(r => ["STAFF", "MANAGER", "TRAINER"].includes(r))) {
         rolesDisplay.push("Staff");
         groups.push({
-            title: "Workspace & Staff",
+            title: "Trainer & Staff",
             items: [
                 {
                     icon: <Users size={16}/>,
