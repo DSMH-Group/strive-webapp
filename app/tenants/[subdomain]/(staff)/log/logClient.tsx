@@ -237,17 +237,20 @@ export default function LogClient({ subdomain, assignedClients = [] }: LogClient
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="mx-auto max-w-3xl space-y-5 text-foreground"
+            className="mx-auto max-w-7xl space-y-5 text-foreground"
         >
             {/* Heading */}
             <div className="flex items-end justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Log session</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Log Session</h1>
                     <p className="text-sm text-muted-foreground">
                         Track sets, reps and load — saved automatically as you go.
                     </p>
                 </div>
             </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                <div className="lg:col-span-3 space-y-5">
 
             {/* Config bar */}
             <div className="rounded-xl border border-border bg-card/40 p-4">
@@ -414,6 +417,55 @@ export default function LogClient({ subdomain, assignedClients = [] }: LogClient
                         )}
                     </AnimatePresence>
                 </Button>
+            </div>
+            </div>
+
+                {/* Right Column - Informational Sidebar */}
+                <div className="space-y-4 lg:sticky lg:top-24">
+                    <div className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-sm">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-mono block">Session Logger</span>
+                            <h3 className="text-sm font-extrabold text-foreground">How It Works</h3>
+                            <p className="text-xs text-muted-foreground leading-normal mt-2">
+                                Use this portal to log real-time performance datasets for clients. Saving a session updates their anatomical muscle maps and progression heatmaps immediately.
+                            </p>
+                        </div>
+
+                        <div className="h-[1px] bg-border" />
+
+                        <div className="space-y-3.5">
+                            <div className="flex gap-2.5 items-start">
+                                <span className="text-xs shrink-0 mt-0.5">💾</span>
+                                <div className="space-y-0.5">
+                                    <h4 className="text-xs font-bold text-foreground leading-none">Draft Autosave</h4>
+                                    <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                                        Your in-progress entries are saved locally. You won't lose data even if you refresh.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2.5 items-start">
+                                <span className="text-xs shrink-0 mt-0.5">🔄</span>
+                                <div className="space-y-0.5">
+                                    <h4 className="text-xs font-bold text-foreground leading-none">Drag to Reorder</h4>
+                                    <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                                        Grab the left drag handles on the exercise cards to sequence the workout structure.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2.5 items-start">
+                                <span className="text-xs shrink-0 mt-0.5">✨</span>
+                                <div className="space-y-0.5">
+                                    <h4 className="text-xs font-bold text-foreground leading-none">Load Templates</h4>
+                                    <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                                        Click "Apply Template" to instantly populate default exercises for the selected program type.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </motion.div>
     );
