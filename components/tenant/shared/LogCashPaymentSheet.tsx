@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { striveClientFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { CreditCard, Loader2 } from "lucide-react";
@@ -33,6 +33,21 @@ export function LogCashPaymentSheet({ tenantId, members, children }: LogCashPaym
     const [amount, setAmount] = useState("");
     const [paymentToward, setPaymentToward] = useState<"SUBSCRIPTION" | "TOKEN">("SUBSCRIPTION");
     const [customReason, setCustomReason] = useState("");
+
+    // Fetch members directly to ensure it loads even if console cache is dry
+    const { data: dbMembers = [] } = useQuery<any[]>({
+        queryKey: ["sheetMembersIndex", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/members", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return res.json();
+        },
+        enabled: !!tenantId && isOpen
+    });
+
+    const activeMembers = dbMembers.length > 0 ? dbMembers : members;
 
     const logPaymentMutation = useMutation({
         mutationFn: async (payload: { membershipId: string; amount: number; type: "SUBSCRIPTION" | "TOKEN"; description: string }) => {
@@ -146,7 +161,7 @@ export function LogCashPaymentSheet({ tenantId, members, children }: LogCashPaym
                                 required
                             >
                                 <option value="" disabled>-- Choose Member --</option>
-                                {members.map((m: any) => (
+                                {activeMembers.map((m: any) => (
                                     <option key={m.id} value={m.id}>
                                         {m.user?.firstName} {m.user?.lastName} ({m.user?.email})
                                     </option>

@@ -197,7 +197,7 @@ export default function FrontDeskClient({ subdomain }: FrontDeskClientProps) {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col justify-between p-6 select-none relative overflow-hidden">
+        <div className="h-screen max-h-screen bg-background text-foreground flex flex-col justify-between p-6 select-none relative overflow-hidden">
             {/* Ambient visual background glow */}
             {lastScanResult && (
                 <div className={cn(
@@ -207,7 +207,7 @@ export default function FrontDeskClient({ subdomain }: FrontDeskClientProps) {
             )}
 
             {/* Header console */}
-            <div className="flex items-center justify-between border-b border-border pb-4 relative z-10">
+            <div className="flex items-center justify-between border-b border-border pb-4 relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 border border-primary/20 rounded-xl">
                         <MonitorPlay className="w-5 h-5 text-primary" />
@@ -217,7 +217,7 @@ export default function FrontDeskClient({ subdomain }: FrontDeskClientProps) {
                         <p className="text-xl font-black italic tracking-tight text-foreground">{tenant?.name || "Strive"} Reception Console</p>
                     </div>
                 </div>
-                <Link href={`/tenants/${subdomain}/console`}>
+                <Link href="/console">
                     <Button variant="outline" size="sm" className="h-9 text-xs font-bold rounded-xl border-border bg-card">
                         <ArrowLeft className="w-4 h-4 mr-2" /> Exit Kiosk
                     </Button>
@@ -225,11 +225,11 @@ export default function FrontDeskClient({ subdomain }: FrontDeskClientProps) {
             </div>
 
             {/* Main screen area */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 my-6 items-stretch relative z-10 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 my-6 items-stretch relative z-10 overflow-hidden min-h-0">
                 {/* Left block: live scanning view */}
-                <div className="lg:col-span-8 flex flex-col justify-between gap-6">
+                <div className="lg:col-span-8 flex flex-col gap-6 min-h-0">
                     {/* Scanner Input field */}
-                    <form onSubmit={handleFormSubmit}>
+                    <form onSubmit={handleFormSubmit} className="shrink-0">
                         <div className="relative">
                             <Input
                                 ref={inputRef}
@@ -370,7 +370,7 @@ export default function FrontDeskClient({ subdomain }: FrontDeskClientProps) {
             </div>
 
             {/* Footer console watermark */}
-            <div className="text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10 border-t border-border pt-4">
+            <div className="text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10 border-t border-border pt-4 shrink-0">
                 Powered by Strive Operating OS • Sandbox Active
             </div>
         </div>

@@ -398,7 +398,7 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                                     <CommandButton label="Log Cash Payment" icon={<CreditCard className="w-4 h-4"/>} />
                                 </LogCashPaymentSheet>
 
-                                <Link href={`/tenants/${subdomain}/front-desk`} className="w-full">
+                                <Link href="/front-desk" className="w-full">
                                     <CommandButton label="Front Desk Mode" icon={<MonitorPlay className="w-4 h-4"/>} />
                                 </Link>
 

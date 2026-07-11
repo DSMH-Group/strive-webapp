@@ -42,6 +42,21 @@ export function BroadcastSmsSheet({ tenantId, members, children }: BroadcastSmsS
     const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
     const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
+    // Fetch members directly to ensure it loads even if console cache is dry
+    const { data: dbMembers = [] } = useQuery<any[]>({
+        queryKey: ["sheetMembersIndex", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/members", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return res.json();
+        },
+        enabled: !!tenantId && isOpen
+    });
+
+    const activeMembers = dbMembers.length > 0 ? dbMembers : members;
+
     // Fetch mailing lists
     const { data: mailingLists = [], isLoading: isLoadingLists, refetch: refetchLists } = useQuery<any[]>({
         queryKey: ["mailingLists", tenantId],
@@ -209,7 +224,7 @@ export function BroadcastSmsSheet({ tenantId, members, children }: BroadcastSmsS
         );
     };
 
-    const filteredMembers = members.filter(m => {
+    const filteredMembers = activeMembers.filter(m => {
         const fullName = `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.toLowerCase();
         const email = (m.user?.email || "").toLowerCase();
         const q = memberSearchQuery.toLowerCase();
