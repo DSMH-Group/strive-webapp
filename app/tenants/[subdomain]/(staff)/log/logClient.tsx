@@ -41,6 +41,19 @@ interface LogClientProps {
 
 type SavePhase = "idle" | "saving" | "done";
 
+const isSameExerciseStructure = (current: any[], template: any[]) => {
+    if (!template) return false;
+    if (!current) return false;
+    if (current.length !== template.length) return false;
+    for (let i = 0; i < current.length; i++) {
+        const curEx = current[i];
+        const tplEx = template[i];
+        if (curEx.name !== tplEx.name) return false;
+        if (curEx.sets?.length !== tplEx.sets) return false;
+    }
+    return true;
+};
+
 const ReorderableExercise = React.memo(function ReorderableExercise({
     id,
     index,
@@ -193,6 +206,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
 
     // Automatically load exercises when sessionType updates
     const lastSessionTypeRef = useRef("");
+    const [loadedTemplateName, setLoadedTemplateName] = useState<string>("");
+    
     useEffect(() => {
         if (selectedSessionType === "CUSTOM") {
             if (lastSessionTypeRef.current !== "CUSTOM") {
@@ -203,10 +218,11 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
         }
         if (!selectedSessionType) return;
         if (selectedSessionType === lastSessionTypeRef.current) return;
-        lastSessionTypeRef.current = selectedSessionType;
         
         const template = sessionTemplatesMap[selectedSessionType];
         if (template && template.length > 0) {
+            lastSessionTypeRef.current = selectedSessionType;
+            setLoadedTemplateName(selectedSessionType);
             const next = template.map((t: any) => buildExerciseFromTemplate(t.name, t.sets));
             replace(next);
         }
@@ -221,6 +237,74 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
     const [selectedBookingId, setSelectedBookingId] = useState<string>("NEW");
     const [isCustomSessionType, setIsCustomSessionType] = useState(false);
     const [customSessionTypeVal, setCustomSessionTypeVal] = useState("");
+
+    const [showSaveTemplatePrompt, setShowSaveTemplatePrompt] = useState(false);
+    const [saveTemplateName, setSaveTemplateName] = useState("");
+    const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+    // Check for structural deviation from loaded template
+    const currentExercises = watch("exercises");
+    useEffect(() => {
+        if (isCustomSessionType || !selectedSessionType || selectedSessionType === "CUSTOM" || !loadedTemplateName) return;
+        
+        const template = sessionTemplatesMap[loadedTemplateName];
+        if (!template) return;
+        
+        const hasDeviated = !isSameExerciseStructure(currentExercises, template);
+        if (hasDeviated) {
+            setIsCustomSessionType(true);
+            const customName = `${loadedTemplateName} (Custom)`;
+            setCustomSessionTypeVal(customName);
+            setValue("sessionType", customName);
+            
+            // Show save prompt
+            setSaveTemplateName(customName);
+            setShowSaveTemplatePrompt(true);
+            toast.info(`Exercises modified. "${loadedTemplateName}" session type converted to Custom.`);
+        }
+    }, [currentExercises, selectedSessionType, isCustomSessionType, loadedTemplateName, sessionTemplatesMap, setValue]);
+
+    const handleSaveAsNewTemplate = useCallback(async () => {
+        if (!saveTemplateName.trim()) return;
+        setIsSavingTemplate(true);
+        try {
+            const templateExercises = currentExercises.map((e: any) => ({
+                name: e.name,
+                sets: e.sets?.length || 1
+            }));
+
+            const res = await striveClientFetch("/api/v1/session-templates", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Tenant-ID": tenantId
+                },
+                body: JSON.stringify({
+                    name: saveTemplateName,
+                    exercises: templateExercises
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to create template.");
+            }
+
+            toast.success(`Template "${saveTemplateName}" saved successfully!`);
+            setShowSaveTemplatePrompt(false);
+            
+            // Refetch templates so it's loaded in dropdown
+            await refetchTemplates();
+            
+            // Switch sessionType to the newly created template!
+            setIsCustomSessionType(false);
+            setLoadedTemplateName(saveTemplateName);
+            setValue("sessionType", saveTemplateName);
+        } catch (err: any) {
+            toast.error(err.message || "Could not save template.");
+        } finally {
+            setIsSavingTemplate(false);
+        }
+    }, [saveTemplateName, currentExercises, tenantId, refetchTemplates, setValue]);
 
     // Reset target session if selected member changes
     useEffect(() => {
@@ -354,6 +438,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                     setSelectedBookingId("NEW");
                     setIsCustomSessionType(false);
                     setCustomSessionTypeVal("");
+                    setShowSaveTemplatePrompt(false);
                     refetchTemplates();
                     setTimeout(() => setSavePhase("idle"), 1600);
                 } catch (err: any) {
@@ -562,6 +647,43 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                             )}
                         </div>
                     </div>
+
+                    {showSaveTemplatePrompt && (
+                        <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-left">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-foreground">Save as new template?</h4>
+                                    <p className="text-xs text-muted-foreground">You modified the "{loadedTemplateName}" template. Save it for future sessions?</p>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowSaveTemplatePrompt(false)} 
+                                    className="text-xs text-muted-foreground hover:text-foreground font-semibold"
+                                >
+                                    Dismiss
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="text"
+                                    value={saveTemplateName}
+                                    onChange={(e) => setSaveTemplateName(e.target.value)}
+                                    placeholder="e.g. Legs Hypertrophy"
+                                    className="h-9 text-sm max-w-xs bg-background"
+                                />
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleSaveAsNewTemplate}
+                                    disabled={isSavingTemplate || !saveTemplateName.trim()}
+                                    className="h-9 px-4 flex items-center gap-1 font-semibold"
+                                >
+                                    {isSavingTemplate && <Loader2 className="h-3 w-3 animate-spin" />}
+                                    Save Template
+                                </Button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Live summary */}
                     <SessionSummary control={control} />
