@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function ClientDetailClient({ tenantId, clientId }: { tenantId: string, clientId: string }) {
 
@@ -64,7 +65,52 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
         }
     });
 
-    if (isClientLoading || isInvoicesLoading || isAttendanceLoading || isWorkoutLogsLoading) {
+    // 🚀 1d. Fetch Client Note History (Metrics of type TRAINER_NOTE)
+    const { data: notesHistory = [], isLoading: isNotesLoading, refetch: refetchNotes } = useQuery({
+        queryKey: ["clientNotesHistory", clientId],
+        queryFn: async () => {
+            const res = await striveClientFetch(`/api/v1/metrics?metricType=TRAINER_NOTE&membershipId=${clientId}`, {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) throw new Error("Failed to fetch client notes history");
+            return res.json();
+        }
+    });
+
+    const [newNote, setNewNote] = React.useState("");
+    const [isSavingNote, setIsSavingNote] = React.useState(false);
+
+    const handleSaveNote = async () => {
+        if (!newNote.trim()) {
+            toast.error("Note content cannot be empty.");
+            return;
+        }
+        setIsSavingNote(true);
+        try {
+            const res = await striveClientFetch("/api/v1/metrics", {
+                method: "POST",
+                tenantId,
+                body: JSON.stringify({
+                    metricType: "TRAINER_NOTE",
+                    membershipId: clientId,
+                    data: {
+                        content: newNote.trim()
+                    }
+                })
+            });
+            if (!res.ok) throw new Error("Could not save note to client profile.");
+            
+            toast.success("Note saved to client profile.");
+            setNewNote("");
+            refetchNotes();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to save note.");
+        } finally {
+            setIsSavingNote(false);
+        }
+    };
+
+    if (isClientLoading || isInvoicesLoading || isAttendanceLoading || isWorkoutLogsLoading || isNotesLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Client Profile...
@@ -548,25 +594,41 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-3 mb-4">Trainer Private Notes</span>
                         <Textarea
                             placeholder="Document observations, technique tweaks, or medical concerns here. This is only visible to staff."
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
                             className="flex-1 bg-background border-border resize-none rounded-xl text-sm leading-relaxed mb-4 focus-visible:ring-primary/20"
                         />
-                        <Button className="w-full text-xs font-bold h-10 rounded-xl">
-                            Save Note to Profile
+                        <Button 
+                            onClick={handleSaveNote}
+                            disabled={isSavingNote || !newNote.trim()}
+                            className="w-full text-xs font-bold h-10 rounded-xl"
+                        >
+                            {isSavingNote ? "Saving Note..." : "Save Note to Profile"}
                         </Button>
                     </Card>
 
                     <Card className="p-6 bg-card border border-border rounded-2xl h-[500px] flex flex-col">
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-3 mb-4">Note History</span>
                         <div className="flex-1 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-border">
-                            {client.notesHistory?.length > 0 ? client.notesHistory.map((note: any) => (
-                                <div key={note.id} className="p-4 bg-background border border-border rounded-xl">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <p className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">{note.date}</p>
-                                        <p className="text-[10px] font-bold text-primary">{note.author}</p>
+                            {notesHistory.length > 0 ? notesHistory.map((note: any) => {
+                                const data = typeof note.data === 'string' ? JSON.parse(note.data) : note.data || {};
+                                const dateStr = new Date(note.recordedAt).toLocaleString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                                return (
+                                    <div key={note.id} className="p-4 bg-background border border-border rounded-xl">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">{dateStr}</p>
+                                            <p className="text-[10px] font-bold text-primary">{data.author || "Staff"}</p>
+                                        </div>
+                                        <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{data.content}</p>
                                     </div>
-                                    <p className="text-sm leading-relaxed text-foreground">{note.content}</p>
-                                </div>
-                            )) : (
+                                );
+                            }) : (
                                 <div className="h-full flex items-center justify-center">
                                     <p className="text-xs text-muted-foreground italic">No historical notes found.</p>
                                 </div>
