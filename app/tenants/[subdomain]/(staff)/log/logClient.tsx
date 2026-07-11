@@ -394,9 +394,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                     {/* Card 1: Session Details */}
                     <div className="rounded-xl border border-border bg-card/40 p-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            
-                            {/* Member Selector */}
-                            <div className="space-y-1.5 col-span-1 text-left">
+                                                       {/* Member Selector */}
+                            <div className="space-y-1.5 col-span-1 text-left min-w-0">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                     Member
                                 </Label>
@@ -405,8 +404,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                     name="memberId"
                                     render={({ field }) => (
                                         <Select value={field.value} onValueChange={(v) => field.onChange(v ?? field.value)}>
-                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
-                                                <span>
+                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex items-center min-w-0">
+                                                <span className="truncate text-left pr-2 block">
                                                     {clients.find(c => c.id === field.value)?.name || "Select member"}
                                                 </span>
                                             </SelectTrigger>
@@ -423,7 +422,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                             </div>
 
                             {/* Session Selector (Pre-existing vs New) */}
-                            <div className="space-y-1.5 col-span-1 text-left">
+                            <div className="space-y-1.5 col-span-1 text-left min-w-0">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                     Target Session
                                 </Label>
@@ -440,8 +439,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                         }
                                     }}
                                 >
-                                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
-                                        <span>
+                                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex items-center min-w-0">
+                                        <span className="truncate text-left pr-2 block">
                                             {(() => {
                                                 if (selectedBookingId === "NEW") return "New Session...";
                                                 const booking = memberBookings.find((b: any) => b.id === selectedBookingId);
@@ -464,7 +463,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                             const noteLabel = b.resource?.name ? ` - ${b.resource.name}` : "";
                                             return (
                                                 <SelectItem key={b.id} value={b.id}>
-                                                    PT Session ({dateStr} @ {timeStr}){noteLabel}
+                                                    PT Session ({dateStr} @ ${timeStr}){noteLabel}
                                                 </SelectItem>
                                             );
                                         })}
@@ -495,7 +494,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                         )}>
                             
                             {/* Session type */}
-                            <div className="space-y-1.5 col-span-1 text-left">
+                            <div className="space-y-1.5 col-span-1 text-left min-w-0">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                         Session type
@@ -523,8 +522,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                                 }
                                             }}
                                         >
-                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex">
-                                                <span>
+                                            <SelectTrigger className="h-10 w-full border-border bg-background text-sm font-semibold justify-between flex items-center min-w-0">
+                                                <span className="truncate text-left pr-2 block">
                                                     {isCustomSessionType ? "-- Custom Type --" : field.value || "Select type"}
                                                 </span>
                                             </SelectTrigger>
