@@ -25,12 +25,10 @@ import { Plus, Send, Check, CloudCheck, Sparkles, Loader2, Calendar } from "luci
 import { toast } from "sonner";
 import { ExerciseCard } from "./_components/ExerciseCard";
 import { SessionSummary } from "./_components/SessionSummary";
+import { cn } from "@/lib/utils";
 import {
     LogFormValues,
-    SESSION_TYPES,
-    SESSION_TEMPLATES,
     buildExerciseFromTemplate,
-    templateToExercises,
 } from "./exercise-data";
 import { useQuery } from "@tanstack/react-query";
 import { striveClientFetch } from "@/lib/api";
@@ -196,7 +194,14 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
     // Automatically load exercises when sessionType updates
     const lastSessionTypeRef = useRef("");
     useEffect(() => {
-        if (!selectedSessionType || selectedSessionType === "CUSTOM") return;
+        if (selectedSessionType === "CUSTOM") {
+            if (lastSessionTypeRef.current !== "CUSTOM") {
+                lastSessionTypeRef.current = "CUSTOM";
+                replace([]);
+            }
+            return;
+        }
+        if (!selectedSessionType) return;
         if (selectedSessionType === lastSessionTypeRef.current) return;
         lastSessionTypeRef.current = selectedSessionType;
         
@@ -342,9 +347,9 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                     // Reset to defaults
                     reset({
                         memberId: clients[0]?.id ?? "",
-                        sessionType: SESSION_TYPES[0],
+                        sessionType: sessionTypes[0] || "",
                         date: new Date().toISOString().slice(0, 10),
-                        exercises: templateToExercises(SESSION_TYPES[0]),
+                        exercises: [],
                     });
                     setSelectedBookingId("NEW");
                     setIsCustomSessionType(false);
@@ -386,9 +391,9 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                 <div className="lg:col-span-3 space-y-5">
 
-                    {/* Config bar */}
+                    {/* Card 1: Session Details */}
                     <div className="rounded-xl border border-border bg-card/40 p-4">
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             
                             {/* Member Selector */}
                             <div className="space-y-1.5 col-span-1 text-left">
@@ -467,6 +472,28 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                 </Select>
                             </div>
 
+                            {/* Date Picker */}
+                            <div className="space-y-1.5 col-span-1 text-left">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                    Date
+                                </Label>
+                                <Input
+                                    type="date"
+                                    disabled={selectedBookingId !== "NEW"}
+                                    {...register("date")}
+                                    className="h-10 border-border bg-background text-sm font-mono disabled:opacity-50"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Workout Template */}
+                    <div className="rounded-xl border border-border bg-card/40 p-4">
+                        <div className={cn(
+                            "grid grid-cols-1 gap-4",
+                            isCustomSessionType ? "md:grid-cols-2" : "md:grid-cols-1"
+                        )}>
+                            
                             {/* Session type */}
                             <div className="space-y-1.5 col-span-1 text-left">
                                 <div className="flex items-center justify-between">
@@ -474,7 +501,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                         Session type
                                     </Label>
                                     <Link
-                                        href={`/tenants/${subdomain}/settings?view=TEMPLATES`}
+                                        href="/settings?view=TEMPLATES"
                                         className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary transition-opacity hover:opacity-80 font-semibold"
                                     >
                                         <Sparkles className="h-3 w-3" /> Manage Templates
@@ -514,39 +541,26 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                 />
                             </div>
 
-                            {/* Date Picker / Custom Type Specified */}
-                            <div className="space-y-1.5 col-span-1 text-left">
-                                {isCustomSessionType ? (
-                                    <>
-                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                            Custom Session Type
-                                        </Label>
-                                        <Input
-                                            type="text"
-                                            placeholder="e.g. Rehab PT"
-                                            value={customSessionTypeVal}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                setCustomSessionTypeVal(val);
-                                                setValue("sessionType", val);
-                                            }}
-                                            className="h-10 border-border bg-background text-sm"
-                                        />
-                                    </>
-                                ) : (
-                                    <>
-                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                            Date
-                                        </Label>
-                                        <Input
-                                            type="date"
-                                            disabled={selectedBookingId !== "NEW"}
-                                            {...register("date")}
-                                            className="h-10 border-border bg-background text-sm font-mono disabled:opacity-50"
-                                        />
-                                    </>
-                                )}
-                            </div>
+                            {/* Custom Session Type */}
+                            {isCustomSessionType && (
+                                <div className="space-y-1.5 col-span-1 text-left">
+                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Custom Session Type
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="e.g. Rehab PT"
+                                        value={customSessionTypeVal}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setCustomSessionTypeVal(val);
+                                            setValue("sessionType", val);
+                                        }}
+                                        className="h-10 border-border bg-background text-sm"
+                                        required
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
