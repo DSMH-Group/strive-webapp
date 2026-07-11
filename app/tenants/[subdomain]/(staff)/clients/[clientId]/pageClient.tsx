@@ -52,7 +52,19 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
         }
     });
 
-    if (isClientLoading || isInvoicesLoading || isAttendanceLoading) {
+    // 🚀 1c. Fetch Client Workout Session Logs (Metrics of type WORKOUT_LOG)
+    const { data: workoutLogs = [], isLoading: isWorkoutLogsLoading } = useQuery({
+        queryKey: ["clientWorkoutLogs", clientId],
+        queryFn: async () => {
+            const res = await striveClientFetch(`/api/v1/metrics?metricType=WORKOUT_LOG&membershipId=${clientId}`, {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) throw new Error("Failed to fetch client workout logs");
+            return res.json();
+        }
+    });
+
+    if (isClientLoading || isInvoicesLoading || isAttendanceLoading || isWorkoutLogsLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-32 text-xs font-bold uppercase tracking-widest text-muted-foreground gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" /> Synchronizing Client Profile...
@@ -323,6 +335,60 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                             </div>
                         </Card>
                     )}
+
+                    {/* PT Workout Sessions */}
+                    <Card className="bg-card border border-border rounded-[1.5rem] p-6 space-y-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">Completed Training Sessions & Workout Logs</span>
+                        <div className="border border-border rounded-xl overflow-hidden bg-background">
+                            <Table>
+                                <TableHeader className="bg-muted/50 border-b border-border">
+                                    <TableRow className="hover:bg-transparent border-b-0">
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 pl-5 w-36">Date</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-40">Session Type</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3">Exercises Logged</TableHead>
+                                        <TableHead className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground py-3 w-40 text-right pr-5">Session Name / Note</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {workoutLogs.map((log: any) => {
+                                        const loggedData = typeof log.data === 'string' ? JSON.parse(log.data) : log.data || {};
+                                        const exercises = loggedData.exercises || [];
+                                        const exerciseSummary = exercises.map((e: any) => `${e.name} (${e.sets?.length || 0} sets)`).join(", ");
+                                        const dateStr = loggedData.date ? new Date(loggedData.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date(log.recordedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                        
+                                        return (
+                                            <TableRow key={log.id} className="border-b border-border last:border-0 hover:bg-accent group transition-colors duration-150">
+                                                <TableCell className="py-4 pl-5 font-mono text-xs font-bold text-foreground">
+                                                    {dateStr}
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
+                                                        {loggedData.sessionType || "Custom"}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-foreground line-clamp-1">{exerciseSummary || "No exercises logged"}</span>
+                                                        <span className="text-[10px] text-muted-foreground font-mono mt-0.5">Total volume: {exercises.reduce((acc: number, e: any) => acc + (e.sets || []).reduce((sAcc: number, s: any) => sAcc + ((s.weightKgs || 0) * (s.reps || 0)), 0), 0)} kg</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right text-xs font-semibold text-muted-foreground pr-5">
+                                                    {loggedData.sessionNote || "—"}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                    {(!workoutLogs || workoutLogs.length === 0) && (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-xs italic">
+                                                No training sessions logged for this member yet.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </Card>
 
                     <Card className="bg-card border border-border rounded-[1.5rem] p-6 space-y-4">
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">Facility Access & Attendance History</span>
