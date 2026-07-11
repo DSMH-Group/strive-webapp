@@ -20,7 +20,8 @@ import {
     Percent,
     Save,
     ShieldCheck,
-    Users2
+    Users2,
+    Sparkles
 } from "lucide-react";
 import {toast} from "sonner";
 import {cn} from "@/lib/utils";
@@ -28,6 +29,7 @@ import {MembershipPlans} from "@/components/tenant/admin/settings/MembershipPlan
 import {GymProfile} from "@/components/tenant/admin/settings/GymProfile";
 import {TeamMembers} from "@/components/tenant/admin/settings/TeamMembers";
 import {DeviceManager} from "@/components/tenant/admin/DeviceManager";
+import {SessionTemplates} from "@/components/tenant/admin/settings/SessionTemplates";
 
 interface SettingsClientProps {
     subdomain: string;
@@ -43,7 +45,8 @@ type SettingsView =
     | "HOURS"
     | "ACCESS"
     | "TEAM"
-    | "TAX_GATEWAY";
+    | "TAX_GATEWAY"
+    | "TEMPLATES";
 
 export default function SettingsClient({subdomain, tenantId}: SettingsClientProps) {
     const router = useRouter();
@@ -138,6 +141,9 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
                         <MenuListItem icon={<Users2 className="text-muted-foreground"/>} title="Team Members"
                                       desc="Trainers, staff, and admin accounts"
                                       onClick={() => setCurrentView("TEAM")}/>
+                        <MenuListItem icon={<Sparkles className="text-muted-foreground"/>} title="Session Templates"
+                                      desc="Pre-built exercise blueprints for trainers"
+                                      onClick={() => setCurrentView("TEMPLATES")}/>
                     </div>
                 </div>
             )}
@@ -150,6 +156,11 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
             {/* 🚀 LIVE: PLANS CATALOG ENGINE COMPONENTIZED */}
             {currentView === "PLANS" && (
                 <MembershipPlans tenantId={tenantId} onComplete={() => setCurrentView("MENU")}/>
+            )}
+
+            {/* 🚀 LIVE: SESSION TEMPLATE ENGINE COMPONENTIZED */}
+            {currentView === "TEMPLATES" && (
+                <SessionTemplates tenantId={tenantId} onComplete={() => setCurrentView("MENU")}/>
             )}
 
             {currentView === "RULES" && (

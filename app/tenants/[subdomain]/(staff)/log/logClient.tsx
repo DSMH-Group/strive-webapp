@@ -27,6 +27,7 @@ import { SessionSummary } from "./_components/SessionSummary";
 import {
     LogFormValues,
     SESSION_TYPES,
+    SESSION_TEMPLATES,
     buildExerciseFromTemplate,
     templateToExercises,
 } from "./exercise-data";
@@ -114,20 +115,39 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
         }
     });
 
-    // --- DB CONNECTIVITY: Get session types historically recorded ---
-    const { data: dbSessionTypes = [], refetch: refetchSessionTypes } = useQuery<string[]>({
-        queryKey: ["logSessionTypes", tenantId],
+    // --- DB CONNECTIVITY: Get custom session templates ---
+    const { data: dbTemplates = [], refetch: refetchTemplates } = useQuery<any[]>({
+        queryKey: ["logSessionTemplates", tenantId],
         queryFn: async () => {
-            const res = await striveClientFetch("/api/v1/metrics/session-types", { tenantId });
+            const res = await striveClientFetch("/api/v1/session-templates", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
             if (!res.ok) return [];
             return await res.json();
         }
     });
 
+    const sessionTemplatesMap = useMemo(() => {
+        const merged: Record<string, { name: string; sets: number }[]> = { ...SESSION_TEMPLATES };
+        
+        dbTemplates.forEach((tpl: any) => {
+            let exercisesList: any[] = [];
+            try {
+                exercisesList = typeof tpl.exercises === "string" 
+                    ? JSON.parse(tpl.exercises) 
+                    : tpl.exercises || [];
+            } catch {
+                exercisesList = [];
+            }
+            merged[tpl.name] = exercisesList;
+        });
+
+        return merged;
+    }, [dbTemplates]);
+
     const sessionTypes = useMemo(() => {
-        const unique = new Set([...dbSessionTypes, ...SESSION_TYPES]);
-        return Array.from(unique);
-    }, [dbSessionTypes]);
+        return Object.keys(sessionTemplatesMap);
+    }, [sessionTemplatesMap]);
 
     const STORAGE_KEY = `strive:logdraft:${subdomain}`;
 
@@ -224,14 +244,16 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
 
     const handleApplyTemplate = useCallback(() => {
         const type = getValues("sessionType");
-        const next = templateToExercises(type);
-        if (next.length === 0) {
+        const template = sessionTemplatesMap[type];
+        if (!template || template.length === 0) {
             toast.error("No template defined for this session type.");
             return;
         }
+        
+        const next = template.map((t: any) => buildExerciseFromTemplate(t.name, t.sets));
         replace(next);
         toast.success(`Loaded the ${type} template.`);
-    }, [getValues, replace]);
+    }, [getValues, replace, sessionTemplatesMap]);
 
     const buildPayload = (values: LogFormValues) => {
         const ordered = order
@@ -295,7 +317,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                     setSelectedBookingId("NEW");
                     setIsCustomSessionType(false);
                     setCustomSessionTypeVal("");
-                    refetchSessionTypes();
+                    refetchTemplates();
                     setTimeout(() => setSavePhase("idle"), 1600);
                 } catch (err: any) {
                     setSavePhase("idle");

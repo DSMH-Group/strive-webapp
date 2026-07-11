@@ -322,7 +322,8 @@ function UnifiedSidebar({tenantId, tenantName, logoUrl, config}: { tenantId: str
                                         NOTIFICATIONS: "Notification Triggers",
                                         HOURS: "Operational Hours",
                                         ACCESS: "Access Control (Hikvision)",
-                                        TEAM: "Team Members"
+                                        TEAM: "Team Members",
+                                        TEMPLATES: "Session Templates"
                                     };
                                     subItemLabel = viewLabels[view || ""] || "";
                                 }
