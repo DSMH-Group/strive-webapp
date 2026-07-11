@@ -61,6 +61,7 @@ export default async function ReportsPage({
     return (
         <ReportsClient
             subdomain={subdomain}
+            tenantId={tenantId}
             financials={data.financials}
             utilization={data.utilization}
         />

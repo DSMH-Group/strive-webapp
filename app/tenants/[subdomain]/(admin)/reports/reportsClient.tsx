@@ -44,6 +44,7 @@ import { striveClientFetch } from "@/lib/api";
 
 interface ReportsClientProps {
     subdomain: string;
+    tenantId: string;
     financials: any;
     utilization: any;
 }
@@ -61,7 +62,7 @@ const chartConfig = {
 
 const PIE_COLORS = ["hsl(var(--primary))", "#3b82f6", "#10b981", "#f59e0b"];
 
-export default function ReportsClient({ subdomain, financials, utilization }: ReportsClientProps) {
+export default function ReportsClient({ subdomain, tenantId, financials, utilization }: ReportsClientProps) {
     const router = useRouter();
     const [isExporting, setIsExporting] = useState(false);
     const [activeTab, setActiveTab] = useState<"overview" | "financials" | "utilization" | "retention">("overview");
@@ -269,6 +270,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
         try {
             const res = await striveClientFetch("/api/v1/billing/payments/manual", {
                 method: "POST",
+                tenantId: tenantId,
                 body: JSON.stringify({
                     invoiceId: selectedTx.id,
                     method: selectedTx.method || "BANK_TRANSFER",
