@@ -33,6 +33,7 @@ const HOURS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "1
 
 export default function ScheduleClient({ subdomain, tenantId, initialBookings = [] }: ScheduleClientProps) {
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -322,6 +323,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
 
     const handleConfirmAction = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
 
         const resourceId = resources[0]?.id;
         if (!resourceId) {
@@ -329,19 +331,22 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
             return;
         }
 
+        setIsSubmitting(true);
+
         const [h, m] = selectedHour.split(":").map(Number);
         const startObj = new Date(selectedDateStr);
         startObj.setHours(h, m, 0, 0);
 
-        if (actionMode === "SESSION") {
-            if (!selectedMemberId) {
-                toast.error("Please select a member to assign the session.");
-                return;
-            }
+        try {
+            if (actionMode === "SESSION") {
+                if (!selectedMemberId) {
+                    toast.error("Please select a member to assign the session.");
+                    setIsSubmitting(false);
+                    return;
+                }
 
-            const endObj = new Date(startObj.getTime() + Number(sessionDuration) * 60 * 1000);
+                const endObj = new Date(startObj.getTime() + Number(sessionDuration) * 60 * 1000);
 
-            try {
                 if (selectedMemberId.startsWith("m-")) {
                     const newMock = {
                         id: `mock-${Date.now()}`,
@@ -377,26 +382,22 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
 
                 toast.success(`Assigned session for ${selectedMemberName} at ${selectedHour} on Strive DB.`);
                 refetchBookings();
-            } catch (err: any) {
-                toast.error(err.message || "Failed to schedule session.");
-            }
-        } else {
-            const endObj = new Date(startObj.getTime() + 60 * 60 * 1000); // 1 hour block by default
+            } else {
+                const endObj = new Date(startObj.getTime() + 60 * 60 * 1000); // 1 hour block by default
 
-            if (!activeTrainerMembershipId) {
-                toast.error("Trainer membership context not resolved. Booking block locally.");
-                const newBlock = {
-                    id: `block-mock-${Date.now()}`,
-                    date: selectedDateStr,
-                    time: selectedHour,
-                    title: blockReason || "Blocked slot"
-                };
-                setBlocks(prev => [...prev, newBlock]);
-                setIsActionModalOpen(false);
-                return;
-            }
+                if (!activeTrainerMembershipId) {
+                    toast.error("Trainer membership context not resolved. Booking block locally.");
+                    const newBlock = {
+                        id: `block-mock-${Date.now()}`,
+                        date: selectedDateStr,
+                        time: selectedHour,
+                        title: blockReason || "Blocked slot"
+                    };
+                    setBlocks(prev => [...prev, newBlock]);
+                    setIsActionModalOpen(false);
+                    return;
+                }
 
-            try {
                 const res = await striveClientFetch("/api/v1/scheduling/bookings", {
                     method: "POST",
                     tenantId,
@@ -415,15 +416,17 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
 
                 toast.success(`Calendar block successfully recorded at ${selectedHour}.`);
                 refetchBookings();
-            } catch (err: any) {
-                toast.error(err.message || "Failed to block calendar.");
             }
-        }
 
-        setIsActionModalOpen(false);
-        setSessionTitle("");
-        setSelectedMemberId("");
-        setBlockReason("");
+            setIsActionModalOpen(false);
+            setSessionTitle("");
+            setSelectedMemberId("");
+            setBlockReason("");
+        } catch (err: any) {
+            toast.error(err.message || "Failed to schedule session.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleCancelBooking = async () => {
@@ -985,6 +988,7 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                 <Button 
                                     type="button"
                                     variant="ghost"
+                                    disabled={isSubmitting}
                                     onClick={() => setIsActionModalOpen(false)}
                                     className="flex-1 text-muted-foreground hover:text-foreground text-xs font-bold h-10 rounded-xl"
                                 >
@@ -992,8 +996,10 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
                                 </Button>
                                 <Button 
                                     type="submit"
-                                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 rounded-xl"
+                                    disabled={isSubmitting}
+                                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 rounded-xl gap-2"
                                 >
+                                    {isSubmitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                                     Confirm
                                 </Button>
                             </div>
