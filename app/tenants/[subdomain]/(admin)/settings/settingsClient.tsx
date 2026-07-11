@@ -21,7 +21,8 @@ import {
     Save,
     ShieldCheck,
     Users2,
-    Sparkles
+    Sparkles,
+    ClipboardList
 } from "lucide-react";
 import {toast} from "sonner";
 import {cn} from "@/lib/utils";
@@ -30,6 +31,7 @@ import {GymProfile} from "@/components/tenant/admin/settings/GymProfile";
 import {TeamMembers} from "@/components/tenant/admin/settings/TeamMembers";
 import {DeviceManager} from "@/components/tenant/admin/DeviceManager";
 import {SessionTemplates} from "@/components/tenant/admin/settings/SessionTemplates";
+import {ProgramTemplates} from "@/components/tenant/admin/settings/ProgramTemplates";
 
 interface SettingsClientProps {
     subdomain: string;
@@ -46,7 +48,8 @@ type SettingsView =
     | "ACCESS"
     | "TEAM"
     | "TAX_GATEWAY"
-    | "TEMPLATES";
+    | "TEMPLATES"
+    | "PROGRAMS";
 
 export default function SettingsClient({subdomain, tenantId}: SettingsClientProps) {
     const router = useRouter();
@@ -144,6 +147,9 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
                         <MenuListItem icon={<Sparkles className="text-muted-foreground"/>} title="Session Templates"
                                       desc="Pre-built exercise blueprints for trainers"
                                       onClick={() => setCurrentView("TEMPLATES")}/>
+                        <MenuListItem icon={<ClipboardList className="text-muted-foreground"/>} title="Workout Programs"
+                                      desc="Pre-built routine blueprints and custom templates"
+                                      onClick={() => setCurrentView("PROGRAMS")}/>
                     </div>
                 </div>
             )}
@@ -161,6 +167,11 @@ export default function SettingsClient({subdomain, tenantId}: SettingsClientProp
             {/* 🚀 LIVE: SESSION TEMPLATE ENGINE COMPONENTIZED */}
             {currentView === "TEMPLATES" && (
                 <SessionTemplates tenantId={tenantId} onComplete={() => setCurrentView("MENU")}/>
+            )}
+
+            {/* 🚀 LIVE: PROGRAM TEMPLATE ENGINE COMPONENTIZED */}
+            {currentView === "PROGRAMS" && (
+                <ProgramTemplates tenantId={tenantId} onComplete={() => setCurrentView("MENU")}/>
             )}
 
             {currentView === "RULES" && (

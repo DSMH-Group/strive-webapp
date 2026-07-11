@@ -16,87 +16,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
-const BLUEPRINTS = [
-    {
-        name: "Push-Pull-Legs Hypertrophy",
-        goal: "Build Lean Muscle",
-        totalWeeks: 12,
-        routines: [
-            {
-                dayName: "Day A: Push",
-                exercises: [
-                    { name: "Bench Press", sets: 4, reps: 8, muscleGroup: "Chest" },
-                    { name: "Overhead Press", sets: 3, reps: 10, muscleGroup: "Shoulders" },
-                    { name: "Cable Fly", sets: 3, reps: 12, muscleGroup: "Chest" },
-                    { name: "Triceps Pushdown", sets: 3, reps: 12, muscleGroup: "Triceps" },
-                ]
-            },
-            {
-                dayName: "Day B: Pull",
-                exercises: [
-                    { name: "Pull-up", sets: 4, reps: 8, muscleGroup: "Back" },
-                    { name: "Barbell Row", sets: 3, reps: 8, muscleGroup: "Back" },
-                    { name: "Face Pull", sets: 3, reps: 15, muscleGroup: "Shoulders" },
-                    { name: "Barbell Curl", sets: 3, reps: 12, muscleGroup: "Biceps" },
-                ]
-            },
-            {
-                dayName: "Day C: Legs",
-                exercises: [
-                    { name: "Back Squat", sets: 4, reps: 8, muscleGroup: "Legs" },
-                    { name: "Romanian Deadlift", sets: 3, reps: 10, muscleGroup: "Legs" },
-                    { name: "Leg Press", sets: 3, reps: 12, muscleGroup: "Legs" },
-                    { name: "Calf Raise", sets: 4, reps: 15, muscleGroup: "Legs" },
-                ]
-            }
-        ]
-    },
-    {
-        name: "Powerlifting 5x5 Strength",
-        goal: "Increase Absolute Strength",
-        totalWeeks: 8,
-        routines: [
-            {
-                dayName: "Workout A",
-                exercises: [
-                    { name: "Back Squat", sets: 5, reps: 5, muscleGroup: "Legs" },
-                    { name: "Bench Press", sets: 5, reps: 5, muscleGroup: "Chest" },
-                    { name: "Barbell Row", sets: 5, reps: 5, muscleGroup: "Back" },
-                ]
-            },
-            {
-                dayName: "Workout B",
-                exercises: [
-                    { name: "Back Squat", sets: 5, reps: 5, muscleGroup: "Legs" },
-                    { name: "Overhead Press", sets: 5, reps: 5, muscleGroup: "Shoulders" },
-                    { name: "Deadlift", sets: 1, reps: 5, muscleGroup: "Back" },
-                ]
-            }
-        ]
-    },
-    {
-        name: "Cardio Conditioning & Core",
-        goal: "Fat Loss & Endurance",
-        totalWeeks: 6,
-        routines: [
-            {
-                dayName: "Interval Training",
-                exercises: [
-                    { name: "Treadmill Intervals", sets: 4, reps: 5, muscleGroup: "Cardio" },
-                    { name: "Rowing Erg", sets: 3, reps: 10, muscleGroup: "Cardio" },
-                ]
-            },
-            {
-                dayName: "Core Strength",
-                exercises: [
-                    { name: "Plank", sets: 3, reps: 60, muscleGroup: "Core" },
-                    { name: "Hanging Leg Raise", sets: 3, reps: 12, muscleGroup: "Core" },
-                ]
-            }
-        ]
-    }
-];
-
 export default function ClientDetailClient({ tenantId, clientId }: { tenantId: string, clientId: string }) {
 
     // 🚀 1. Fetch Core Client & Membership Data
@@ -169,9 +88,39 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
     const [customRoutines, setCustomRoutines] = React.useState<any[]>([
         { dayName: "Day 1", exercises: [{ name: "", sets: 3, reps: 10, muscleGroup: "All" }] }
     ]);
+    const [saveAsTemplate, setSaveAsTemplate] = React.useState(false);
+
+    const { data: blueprints = [], isLoading: blueprintsLoading } = useQuery<any[]>({
+        queryKey: ["programTemplates", tenantId],
+        queryFn: async () => {
+            const res = await striveClientFetch("/api/v1/program-templates", {
+                headers: { "X-Tenant-ID": tenantId }
+            });
+            if (!res.ok) return [];
+            return res.json();
+        },
+        enabled: isAssignModalOpen
+    });
 
     const assignProgramMutation = useMutation({
         mutationFn: async (payload: any) => {
+            if (saveAsTemplate && modalTab === "custom") {
+                try {
+                    await striveClientFetch("/api/v1/program-templates", {
+                        method: "POST",
+                        tenantId,
+                        body: JSON.stringify({
+                            name: payload.name,
+                            goal: payload.goal,
+                            totalWeeks: payload.totalWeeks,
+                            routines: payload.routines
+                        })
+                    });
+                } catch (e) {
+                    console.error("Failed to save program blueprint template to library", e);
+                }
+            }
+
             const res = await striveClientFetch(`/api/v1/members/${clientId}/program`, {
                 method: "POST",
                 tenantId,
@@ -183,6 +132,7 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
         onSuccess: () => {
             toast.success("Workout program assigned successfully.");
             setIsAssignModalOpen(false);
+            setSaveAsTemplate(false);
             refetchClient();
         },
         onError: (err: any) => {
@@ -833,55 +783,77 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                     {/* Catalog Content */}
                     {modalTab === "catalog" && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {BLUEPRINTS.map((bp, idx) => (
-                                    <div
-                                        key={bp.name}
-                                        onClick={() => setSelectedBlueprintIdx(idx)}
-                                        className={cn(
-                                            "p-4 rounded-xl border cursor-pointer text-left transition-all hover:border-primary/60 bg-muted/20",
-                                            selectedBlueprintIdx === idx
-                                                ? "border-primary ring-2 ring-primary/20 bg-primary/5"
-                                                : "border-border"
-                                        )}
-                                    >
-                                        <h4 className="font-black text-sm tracking-tight mb-1">{bp.name}</h4>
-                                        <p className="text-xs text-muted-foreground mb-3">{bp.goal}</p>
-                                        <span className="text-[10px] font-mono font-bold bg-muted px-2 py-0.5 rounded text-muted-foreground">
-                                            {bp.totalWeeks} Weeks
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {selectedBlueprintIdx !== null && (
-                                <div className="p-4 bg-muted/10 border border-border rounded-xl space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground border-b border-border pb-2">
-                                        Blueprint Preview: {BLUEPRINTS[selectedBlueprintIdx].name}
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {BLUEPRINTS[selectedBlueprintIdx].routines.map((routine, rIdx) => (
-                                            <div key={rIdx} className="bg-background/40 border border-border/60 p-3 rounded-lg">
-                                                <h5 className="font-bold text-xs text-primary mb-2">{routine.dayName}</h5>
-                                                <div className="space-y-1.5">
-                                                    {routine.exercises.map((ex, eIdx) => (
-                                                        <div key={eIdx} className="flex justify-between items-center text-xs text-muted-foreground">
-                                                            <span>{ex.name}</span>
-                                                            <span className="font-mono font-semibold">{ex.sets} × {ex.reps}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                            {blueprintsLoading ? (
+                                <div className="p-12 flex justify-center items-center">
+                                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                </div>
+                            ) : blueprints.length === 0 ? (
+                                <div className="p-12 text-center text-muted-foreground text-sm font-medium">
+                                    No blueprints found in catalog.
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {blueprints.map((bp, idx) => (
+                                            <div
+                                                key={bp.id || bp.name}
+                                                onClick={() => setSelectedBlueprintIdx(idx)}
+                                                className={cn(
+                                                    "p-4 rounded-xl border cursor-pointer text-left transition-all hover:border-primary/60 bg-muted/20",
+                                                    selectedBlueprintIdx === idx
+                                                        ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                                                        : "border-border"
+                                                )}
+                                            >
+                                                <h4 className="font-black text-sm tracking-tight mb-1">{bp.name}</h4>
+                                                <p className="text-xs text-muted-foreground mb-3">{bp.goal}</p>
+                                                <span className="text-[10px] font-mono font-bold bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                                                    {bp.totalWeeks} Weeks
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
-                                    <Button
-                                        onClick={() => assignProgramMutation.mutate(BLUEPRINTS[selectedBlueprintIdx])}
-                                        disabled={assignProgramMutation.isPending}
-                                        className="w-full text-xs font-bold h-10 rounded-xl"
-                                    >
-                                        {assignProgramMutation.isPending ? "Assigning..." : "Assign Blueprint"}
-                                    </Button>
-                                </div>
+
+                                    {selectedBlueprintIdx !== null && blueprints[selectedBlueprintIdx] && (
+                                        <div className="p-4 bg-muted/10 border border-border rounded-xl space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                            <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground border-b border-border pb-2">
+                                                Blueprint Preview: {blueprints[selectedBlueprintIdx].name}
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {(typeof blueprints[selectedBlueprintIdx].routines === "string"
+                                                    ? JSON.parse(blueprints[selectedBlueprintIdx].routines)
+                                                    : blueprints[selectedBlueprintIdx].routines || []
+                                                ).map((routine: any, rIdx: number) => (
+                                                    <div key={rIdx} className="bg-background/40 border border-border/60 p-3 rounded-lg">
+                                                        <h5 className="font-bold text-xs text-primary mb-2">{routine.dayName}</h5>
+                                                        <div className="space-y-1.5">
+                                                            {routine.exercises?.map((ex: any, eIdx: number) => (
+                                                                <div key={eIdx} className="flex justify-between items-center text-xs text-muted-foreground">
+                                                                    <span>{ex.name}</span>
+                                                                    <span className="font-mono font-semibold">{ex.sets} × {ex.reps}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <Button
+                                                onClick={() => assignProgramMutation.mutate({
+                                                    name: blueprints[selectedBlueprintIdx].name,
+                                                    goal: blueprints[selectedBlueprintIdx].goal,
+                                                    totalWeeks: blueprints[selectedBlueprintIdx].totalWeeks,
+                                                    routines: typeof blueprints[selectedBlueprintIdx].routines === "string"
+                                                        ? JSON.parse(blueprints[selectedBlueprintIdx].routines)
+                                                        : blueprints[selectedBlueprintIdx].routines
+                                                })}
+                                                disabled={assignProgramMutation.isPending}
+                                                className="w-full text-xs font-bold h-10 rounded-xl"
+                                            >
+                                                {assignProgramMutation.isPending ? "Assigning..." : "Assign Blueprint"}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
@@ -1035,6 +1007,19 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2 pb-1">
+                                <input
+                                    type="checkbox"
+                                    id="saveAsTemplate"
+                                    checked={saveAsTemplate}
+                                    onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                                    className="w-4 h-4 rounded text-primary focus:ring-primary/20 bg-background border-border cursor-pointer"
+                                />
+                                <label htmlFor="saveAsTemplate" className="text-xs font-bold text-muted-foreground select-none cursor-pointer hover:text-foreground transition-colors">
+                                    Save this program as a reusable template in our catalog
+                                </label>
                             </div>
 
                             <Button
