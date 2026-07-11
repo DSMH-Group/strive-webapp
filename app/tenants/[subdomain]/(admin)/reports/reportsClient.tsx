@@ -33,10 +33,14 @@ import {
     Check,
     Send,
     ArrowUpRight,
-    Search
+    Search,
+    X,
+    Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { striveClientFetch } from "@/lib/api";
 
 interface ReportsClientProps {
     subdomain: string;
@@ -58,8 +62,13 @@ const chartConfig = {
 const PIE_COLORS = ["hsl(var(--primary))", "#3b82f6", "#10b981", "#f59e0b"];
 
 export default function ReportsClient({ subdomain, financials, utilization }: ReportsClientProps) {
+    const router = useRouter();
     const [isExporting, setIsExporting] = useState(false);
     const [activeTab, setActiveTab] = useState<"overview" | "financials" | "utilization" | "retention">("overview");
+
+    // Reconciliation Operation States
+    const [isReconciling, setIsReconciling] = useState(false);
+    const [selectedTx, setSelectedTx] = useState<any | null>(null);
 
     // --- Dynamic Industry Metric Formulations ---
     const financialStats = useMemo(() => {
@@ -221,6 +230,68 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
         }));
     }, [utilization]);
 
+    // --- Dynamic Pending Invoices List ---
+    const pendingTransactions = useMemo(() => {
+        const invoices = financials?.invoices || [];
+        const pendingInvoices = invoices.filter((inv: any) => inv.status === "PENDING" || inv.status === "OVERDUE");
+
+        if (pendingInvoices.length === 0) {
+            return [
+                { id: "tx-mock-1", name: "K. Sandeep (Direct Bank Transfer)", method: "BANK_TRANSFER", amount: 24500, isMock: true },
+                { id: "tx-mock-2", name: "M. F. Perera (Cash at Counter)", method: "CASH", amount: 15000, isMock: true },
+                { id: "tx-mock-3", name: "Studio Core Sri Lanka (Corporate Cheque)", method: "BANK_TRANSFER", amount: 45500, isMock: true }
+            ];
+        }
+
+        return pendingInvoices.map((inv: any) => ({
+            id: inv.id,
+            name: `${inv.membership?.user?.firstName || "Strive"} ${inv.membership?.user?.lastName || "Member"} (Invoice #${inv.id.slice(0, 6).toUpperCase()})`,
+            method: inv.paymentMethod || "BANK_TRANSFER",
+            amount: inv.lineItems?.reduce((sum: number, item: any) => sum + (item.amount || 0), 0) || inv.amount || 5000,
+            isMock: false
+        }));
+    }, [financials]);
+
+    const handleConfirmReconcile = async () => {
+        if (!selectedTx) return;
+
+        if (selectedTx.isMock) {
+            setIsReconciling(true);
+            setTimeout(() => {
+                setIsReconciling(false);
+                setSelectedTx(null);
+                toast.success(`Mock manual reconciliation settled for ${selectedTx.name}.`);
+            }, 800);
+            return;
+        }
+
+        setIsReconciling(true);
+        try {
+            const res = await striveClientFetch("/api/v1/billing/payments/manual", {
+                method: "POST",
+                body: JSON.stringify({
+                    invoiceId: selectedTx.id,
+                    method: selectedTx.method || "BANK_TRANSFER",
+                    amount: Number(selectedTx.amount) || 0
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Failed to process manual settlement.");
+            }
+
+            toast.success(`Invoice settled and payment verified successfully for ${selectedTx.name}.`);
+            router.refresh(); // Refresh NextJS server data
+        } catch (error: any) {
+            console.error("Reconciliation error:", error);
+            toast.error(error.message || "Reconciliation failed.");
+        } finally {
+            setIsReconciling(false);
+            setSelectedTx(null);
+        }
+    };
+
     const handleCsvExport = () => {
         setIsExporting(true);
         setTimeout(() => {
@@ -230,7 +301,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 text-foreground">
+        <div className="space-y-6 animate-in fade-in duration-500 text-foreground relative">
 
             {/* Context Header Row */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
@@ -356,11 +427,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {[
-                                                { id: "tx-1", name: "K. Sandeep (Direct Bank Transfer)", method: "BANK_TRANSFER", amount: 24500 },
-                                                { id: "tx-2", name: "M. F. Perera (Cash at Counter)", method: "CASH", amount: 15000 },
-                                                { id: "tx-3", name: "Studio Core Sri Lanka (Corporate Cheque)", method: "BANK_TRANSFER", amount: 45500 }
-                                            ].map((tx) => (
+                                            {pendingTransactions.map((tx: any) => (
                                                 <TableRow key={tx.id} className="border-b border-border hover:bg-accent/40 group">
                                                     <TableCell className="py-3.5 pl-4 font-bold text-sm text-foreground">{tx.name}</TableCell>
                                                     <TableCell className="text-muted-foreground text-xs font-mono">{tx.method}</TableCell>
@@ -368,7 +435,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                                     <TableCell className="text-right pr-4 py-3.5">
                                                         <Button
                                                             size="sm"
-                                                            onClick={() => toast.success("Ledger transactional match recorded successfully.")}
+                                                            onClick={() => setSelectedTx(tx)}
                                                             className="h-7 bg-background border border-border rounded-sm hover:bg-accent hover:text-accent-foreground text-[10px] font-bold uppercase tracking-tight text-muted-foreground transition-all"
                                                         >
                                                             Reconcile
@@ -391,7 +458,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                     <p className="text-xs text-muted-foreground/60">Hourly facility capacity and hardware check-in traffic loads</p>
                                 </div>
                                 <div className="space-y-2">
-                                    {attendanceStats.map((slot, i) => (
+                                    {attendanceStats.map((slot: any, i: number) => (
                                         <div key={i} className="p-3 bg-background/60 rounded-md border border-border space-y-2">
                                             <div className="flex items-center justify-between text-xs">
                                                 <span className="font-bold text-foreground">{slot.hour}</span>
@@ -432,7 +499,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                                 paddingAngle={4}
                                                 dataKey="value"
                                             >
-                                                {planAllocationData.map((entry, index) => (
+                                                {planAllocationData.map((entry: any, index: number) => (
                                                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                                                 ))}
                                             </Pie>
@@ -441,7 +508,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                     </ResponsiveContainer>
                                 </div>
                                 <div className="w-full grid grid-cols-2 gap-2 text-[10px] mt-4 font-mono">
-                                    {planAllocationData.slice(0, 4).map((entry, index) => (
+                                    {planAllocationData.slice(0, 4).map((entry: any, index: number) => (
                                         <div key={entry.name} className="flex items-center gap-1.5">
                                             <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }} />
                                             <span className="text-muted-foreground truncate">{entry.name}</span>
@@ -603,7 +670,7 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                                         { name: "Suresh Perera", count: 2, amount: 8500, date: "10 Jul 2026" },
                                         { name: "Minoli Fonseka", count: 3, amount: 12000, date: "08 Jul 2026" },
                                         { name: "Thilina Silva", count: 1, amount: 6500, date: "11 Jul 2026" }
-                                    ].map((row, i) => (
+                                    ].map((row: any, i: number) => (
                                         <TableRow key={i} className="border-b border-border hover:bg-accent/40">
                                             <TableCell className="py-3.5 pl-4 font-bold text-sm text-foreground">{row.name}</TableCell>
                                             <TableCell className="text-muted-foreground text-xs font-mono">{row.count} consecutive failures</TableCell>
@@ -626,6 +693,61 @@ export default function ReportsClient({ subdomain, financials, utilization }: Re
                             </Table>
                         </div>
                     </Card>
+                </div>
+            )}
+
+            {/* Reconcile Confirmation Dialog */}
+            {selectedTx && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-card border border-border w-full max-w-sm rounded-2xl p-6 relative shadow-2xl space-y-4 animate-in zoom-in-95 duration-200 text-left">
+                        <button
+                            onClick={() => setSelectedTx(null)}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground rounded-xl p-1.5 hover:bg-accent/50 transition-all"
+                            disabled={isReconciling}
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="space-y-1">
+                            <h3 className="font-extrabold text-foreground text-base tracking-tight">Confirm Reconciliation</h3>
+                            <p className="text-[11px] text-muted-foreground">Verify and settle manual bank transfer or cash payments.</p>
+                        </div>
+
+                        <div className="p-3 bg-secondary/35 rounded-xl border border-border space-y-2.5 text-xs">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Member:</span>
+                                <span className="font-bold text-foreground">{selectedTx.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Payment Method:</span>
+                                <span className="font-bold text-foreground font-mono">{selectedTx.method}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Settlement Amount:</span>
+                                <span className="font-black text-foreground font-mono">LKR {selectedTx.amount.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-2 flex gap-3">
+                            <Button 
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setSelectedTx(null)}
+                                className="flex-1 text-muted-foreground hover:text-foreground text-xs font-bold h-10 rounded-xl"
+                                disabled={isReconciling}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={handleConfirmReconcile}
+                                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 rounded-xl gap-2"
+                                disabled={isReconciling}
+                            >
+                                {isReconciling && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                Confirm Match
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
 
