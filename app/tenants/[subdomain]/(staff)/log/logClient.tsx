@@ -189,6 +189,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                 sessionType: "",
                 date: new Date().toISOString().slice(0, 10),
                 exercises: [],
+                sessionNote: "",
             },
         });
 
@@ -246,6 +247,8 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
     const currentExercises = watch("exercises");
     useEffect(() => {
         if (isCustomSessionType || !selectedSessionType || selectedSessionType === "CUSTOM" || !loadedTemplateName) return;
+        if (selectedSessionType !== loadedTemplateName) return;
+        if (!currentExercises || currentExercises.length === 0) return;
         
         const template = sessionTemplatesMap[loadedTemplateName];
         if (!template) return;
@@ -390,6 +393,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                 bookingId: selectedBookingId !== "NEW" ? selectedBookingId : undefined,
                 sessionType: values.sessionType,
                 date: values.date,
+                sessionNote: selectedBookingId === "NEW" ? values.sessionNote : undefined,
                 exercises: ordered.map((ex) => ({
                     name: ex.name,
                     notes: ex.notes,
@@ -478,7 +482,10 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
 
                     {/* Card 1: Session Details */}
                     <div className="rounded-xl border border-border bg-card/40 p-4">
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className={cn(
+                            "grid grid-cols-1 gap-4",
+                            selectedBookingId === "NEW" ? "md:grid-cols-4" : "md:grid-cols-3"
+                        )}>
                                                        {/* Member Selector */}
                             <div className="space-y-1.5 col-span-1 text-left min-w-0">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -557,7 +564,7 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                             </div>
 
                             {/* Date Picker */}
-                            <div className="space-y-1.5 col-span-1 text-left">
+                            <div className="space-y-1.5 col-span-1 text-left min-w-0">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                     Date
                                 </Label>
@@ -568,6 +575,21 @@ export default function LogClient({ subdomain, tenantId, assignedClients = [] }:
                                     className="h-10 border-border bg-background text-sm font-mono disabled:opacity-50"
                                 />
                             </div>
+
+                            {/* Session Name / Note */}
+                            {selectedBookingId === "NEW" && (
+                                <div className="space-y-1.5 col-span-1 text-left min-w-0">
+                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Session Name / Note
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="e.g. Assessment, Routine"
+                                        {...register("sessionNote")}
+                                        className="h-10 border-border bg-background text-sm font-semibold"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 

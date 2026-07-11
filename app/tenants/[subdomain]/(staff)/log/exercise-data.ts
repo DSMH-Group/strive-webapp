@@ -18,6 +18,7 @@ export interface LogFormValues {
     sessionType: string;
     date: string;
     exercises: ExerciseEntry[];
+    sessionNote?: string;
 }
 
 // Common exercises powering the name autocomplete. Grouped loosely by pattern
