@@ -71,21 +71,6 @@ export default function ScheduleClient({ subdomain, tenantId, initialBookings = 
     const [blocks, setBlocks] = useState<any[]>([]);
 
     useEffect(() => {
-        setLocalBookings([
-            { id: "mock-1", date: getRelativeDateStr(0), time: "07:00", duration: 60, title: "Amara Silva — PT", clientEmail: "amara.silva@strive.com", type: "PT", status: "DONE" },
-            { id: "mock-2", date: getRelativeDateStr(0), time: "08:00", duration: 60, title: "Dilshan Raj — PT", clientEmail: "dilshan.raj@strive.com", type: "PT", status: "DONE" },
-            { id: "mock-3", date: getRelativeDateStr(0), time: "09:00", duration: 60, title: "Group HIIT (8 pax)", clientEmail: "hiit.class@strive.com", type: "CLASS", status: "DONE" },
-            { id: "mock-4", date: getRelativeDateStr(0), time: "11:00", duration: 60, title: "Kasun Mendis — PT", clientEmail: "kasun.m@strive.com", type: "PT", status: "NOW" },
-            { id: "mock-5", date: getRelativeDateStr(0), time: "14:00", duration: 60, title: "Sachini G. — PT", clientEmail: "sachini.g@strive.com", type: "PT", status: "SOON" },
-            { id: "mock-6", date: getRelativeDateStr(0), time: "15:00", duration: 60, title: "Core & Mobility", clientEmail: "core.mobility@strive.com", type: "CLASS", status: "SOON" },
-            { id: "mock-7", date: getRelativeDateStr(0), time: "17:00", duration: 60, title: "Ruwani J. — PT", clientEmail: "ruwani.j@strive.com", type: "PT", status: "SOON" },
-            { id: "mock-8", date: getRelativeDateStr(1), time: "09:00", duration: 60, title: "Amara Silva — PT", clientEmail: "amara.silva@strive.com", type: "PT", status: "SOON" },
-            { id: "mock-9", date: getRelativeDateStr(1), time: "10:00", duration: 60, title: "Kasun Mendis — PT", clientEmail: "kasun.m@strive.com", type: "PT", status: "SOON" },
-            { id: "mock-10", date: getRelativeDateStr(3), time: "08:00", duration: 60, title: "Dilshan Raj — PT", clientEmail: "dilshan.raj@strive.com", type: "PT", status: "SOON" }
-        ]);
-        setBlocks([
-            { id: "block-mock-1", date: getRelativeDateStr(0), time: "16:00", title: "Equipment Maintenance" }
-        ]);
         setSelectedDateStr(getRelativeDateStr(0));
     }, []);
 
