@@ -423,9 +423,11 @@ export default function ConsoleClient({ subdomain }: ConsoleClientProps) {
                     <Card className="bg-card border-border rounded-lg p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Recent Signups</h2>
-                            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0">
-                                Directory <ArrowUpRight className="w-3 h-3 ml-1"/>
-                            </Button>
+                            <Link href="/members">
+                                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground px-3 py-1 bg-muted/40 border border-border/50 rounded-lg hover:bg-muted/80 transition-colors gap-1.5 h-8">
+                                    Directory <ArrowUpRight className="w-3.5 h-3.5"/>
+                                </Button>
+                            </Link>
                         </div>
                         <div className="space-y-2">
                             {members.slice(0, 4).map((member: any) => (
