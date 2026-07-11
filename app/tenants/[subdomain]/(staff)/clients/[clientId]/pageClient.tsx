@@ -36,8 +36,8 @@ export default function ClientDetailClient({ tenantId, clientId }: { tenantId: s
             const res = await striveClientFetch(`/api/v1/billing/invoices?membershipId=${clientId}`, {
                 headers: { "X-Tenant-ID": tenantId }
             });
-            if (!res.ok) throw new Error("Failed to fetch client invoices");
             return res.json();
+        }
     });
 
     // 🚀 1b. Fetch Client Attendance/Check-in Logs

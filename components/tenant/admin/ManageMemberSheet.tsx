@@ -65,6 +65,8 @@ export function ManageMemberSheet({memberId, tenantId, onClose}: ManageMemberShe
             return res.ok ? res.json() : [];
         },
         enabled: !!memberId
+    });
+
     // --- Fetch Member Attendance Logs ---
     const {data: attendanceLogs = [], refetch: refetchAttendance} = useQuery<any[]>({
         queryKey: ["memberAttendanceLogs", memberId],
