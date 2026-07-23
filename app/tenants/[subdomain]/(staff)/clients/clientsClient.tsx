@@ -7,10 +7,12 @@ import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Activity, AlertCircle, Loader2, Plus, Search, UserCheck, Users} from "lucide-react";
+import {Activity, AlertCircle, Loader2, Plus, Search, UserCheck, Users, QrCode, Copy, Check, X} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {striveClientFetch} from "@/lib/api";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
+import { toast } from "sonner";
 
 interface TrainerClientsClientProps {
     subdomain: string;
@@ -23,6 +25,13 @@ export default function TrainerClientsClient({subdomain, tenantId}: TrainerClien
     const router = useRouter();
 
     const [searchQuery, setSearchQuery] = useState("");
+    const [isQrOpen, setIsQrOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const registerUrl = useMemo(() => {
+        if (typeof window === "undefined") return "";
+        return `${window.location.origin}/register`;
+    }, []);
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("ALL");
 
     // 🚀 HOOKED: Fetching real data scoped to your tenant
@@ -74,9 +83,18 @@ export default function TrainerClientsClient({subdomain, tenantId}: TrainerClien
                     <h1 className="text-2xl font-bold tracking-tight">Clients</h1>
                     <p className="text-xs text-muted-foreground">Full gym membership roster</p>
                 </div>
-                <Button variant="outline" className="h-10 text-xs rounded-md font-bold gap-2 px-4">
-                    <Plus className="w-3.5 h-3.5 text-primary"/> Add Client
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setIsQrOpen(true)}
+                        className="h-10 text-xs rounded-md font-bold gap-2 px-4 border-border hover:bg-accent cursor-pointer text-foreground"
+                    >
+                        <QrCode className="w-3.5 h-3.5 text-primary"/> Onboarding QR
+                    </Button>
+                    <Button variant="outline" className="h-10 text-xs rounded-md font-bold gap-2 px-4">
+                        <Plus className="w-3.5 h-3.5 text-primary"/> Add Client
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -180,6 +198,67 @@ export default function TrainerClientsClient({subdomain, tenantId}: TrainerClien
                     </TableBody>
                 </Table>
             </Card>
+
+            {isQrOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in duration-200">
+                    <div className="bg-card border border-border w-full max-w-sm rounded-3xl p-6 relative shadow-2xl space-y-6 animate-in zoom-in-95 duration-200 text-center select-none text-foreground">
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setIsQrOpen(false)}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground rounded-xl p-1.5 hover:bg-accent/50 transition-all cursor-pointer"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        {/* Header info */}
+                        <div className="space-y-1">
+                            <h3 className="font-extrabold text-foreground text-base tracking-tight uppercase">Self-Service Onboarding</h3>
+                            <p className="text-[11px] text-muted-foreground">Members can scan this code to register and request access to this facility.</p>
+                        </div>
+
+                        {/* QR Code visual container */}
+                        <div className="bg-white p-5 rounded-2xl inline-block border border-border/40 shadow-inner">
+                            <QRCodeSVG 
+                                value={registerUrl}
+                                size={180}
+                                bgColor="#ffffff"
+                                fgColor="#000000"
+                                level="Q"
+                                includeMargin={false}
+                            />
+                        </div>
+
+                        {/* Copy Link Belt */}
+                        <div className="bg-muted/40 border border-border/40 rounded-xl p-2.5 flex items-center justify-between text-xs gap-3">
+                            <span className="font-mono text-muted-foreground text-[10px] truncate max-w-[200px] text-left">
+                                {registerUrl}
+                            </span>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(registerUrl);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                    toast.success("Registration link copied to clipboard!");
+                                }}
+                                className="h-7 w-7 p-0 shrink-0 hover:bg-accent rounded-lg cursor-pointer"
+                            >
+                                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                            </Button>
+                        </div>
+
+                        <div className="pt-2">
+                            <Button 
+                                onClick={() => setIsQrOpen(false)}
+                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 rounded-xl cursor-pointer"
+                            >
+                                Done
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

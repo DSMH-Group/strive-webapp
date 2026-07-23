@@ -16,6 +16,7 @@ export async function proxy(request: NextRequest) {
         url.pathname.includes('.') ||
         url.pathname.startsWith('/favicon') ||
         url.pathname === '/login' ||
+        url.pathname === '/register' ||
         url.pathname === '/dashboard';
 
     console.log(`[PROXY TRACE] [EVAL-1] Checking internal asset/reserved guard conditions:`, {
