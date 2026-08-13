@@ -131,7 +131,7 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         autoSignIn: true,
-        async sendResetPassword({ user, url }) {
+        async sendResetPassword({ user, url }: { user: any; url: string }) {
             await sendResendEmail({
                 to: user.email,
                 subject: "Reset your Strive Password",
@@ -145,7 +145,7 @@ export const auth = betterAuth({
     emailVerification: {
         sendOnSignUp: true,
         autoSignInAfterVerification: true,
-        async sendVerificationEmail({ user, url }) {
+        async sendVerificationEmail({ user, url }: { user: any; url: string }) {
             await sendResendEmail({
                 to: user.email,
                 subject: "Verify your Strive Email Address",
@@ -210,7 +210,7 @@ export const auth = betterAuth({
     user: {
         changeEmail: {
             enabled: true,
-            async sendChangeEmailVerification({ user, newEmail, url }) {
+            async sendChangeEmailVerification({ user, newEmail, url }: { user: any; newEmail: string; url: string }) {
                 await sendResendEmail({
                     to: newEmail,
                     subject: "Confirm Email Address Change",
